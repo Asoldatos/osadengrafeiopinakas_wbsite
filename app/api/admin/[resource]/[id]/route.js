@@ -18,6 +18,7 @@ export const PUT = route(async (req, { params }, user) => {
   if (cfg.titleCol && cfg.titleCol in clean && !String(clean[cfg.titleCol] || '').trim()) return json({ error: 'Ο τίτλος δεν μπορεί να είναι κενός.' }, 400);
   if (cfg.slug && ('slug' in clean || cfg.titleCol in clean) && clean.slug !== undefined) clean.slug = await uniqueSlug(cfg, clean.slug || clean[cfg.titleCol], id);
   else delete clean.slug;
+  if (cfg.validate) { const cl = {}; for (const [k, v] of Object.entries(clean)) if (cfg.cols[k]) cl[k] = cfg.cols[k].c(v); const msg = cfg.validate(cl); if (msg) return json({ error: msg }, 400); }
   const sets = [], vals = [];
   for (const [k, v] of Object.entries(clean)) {
     const d = cfg.cols[k]; const val = d.c(v); vals.push(d.json ? JSON.stringify(val) : val);

@@ -9,6 +9,7 @@ import { api } from '@/lib/clientUpload';
 const NAV = [
   ['/editor-panel', 'Πίνακας ελέγχου', '🏠'], ['/editor-panel/articles', 'Άρθρα', '📝'], ['/editor-panel/editions', 'Εφημερίδα (τεύχη)', '📰'],
   ['/editor-panel/writers', 'Συντακτική ομάδα', '👩‍🎓'], ['/editor-panel/categories', 'Κατηγορίες', '🏷️'], ['/editor-panel/media', 'Πολυμέσα', '🖼️'],
+  ['/editor-panel/adventures', 'Περιπέτειες Κιμωλάκη', '🗺️'], ['/editor-panel/quiz', 'Ερωτήσεις κουίζ', '🧠'], ['/editor-panel/words', 'Λέξεις Κρεμάλας', '🔤'], ['/editor-panel/students', 'Λογαριασμοί μαθητών', '🧑‍🎓'],
   ['/editor-panel/builder', 'Σχεδιαστής ιστοτόπου', '🎨', 'admin'], ['/editor-panel/settings', 'Ρυθμίσεις ιστοτόπου', '⚙️', 'admin'], ['/editor-panel/security', 'Ασφάλεια και 2FA', '🔐'],
 ];
 export default function AdminShell({ user, children, tip }) {

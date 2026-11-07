@@ -157,6 +157,7 @@ export function Field({ f, value, onChange, options = [] }) {
     case 'num': return <div className="fld">{L}<input id={id} type="number" value={v} onChange={(e) => onChange(e.target.value === '' ? '' : +e.target.value)} /></div>;
     case 'color': return <div className="fld">{L}<div className="row"><input id={id} type="color" value={/^#[0-9a-f]{6}$/i.test(v) ? v : '#ffffff'} onChange={(e) => onChange(e.target.value)} /><input value={v} onChange={(e) => onChange(e.target.value)} aria-label={`${f.label} (κωδικός)`} /></div></div>;
     case 'images': return <ImagesField f={f} value={value} onChange={onChange} />;
+    case 'scenes': return <SceneEditor f={f} value={value} onChange={onChange} />;
     default: return <div className="fld">{L}<input id={id} type="text" value={v} onChange={(e) => onChange(e.target.value)} placeholder={f.ph || ''} /></div>;
   }
 }
@@ -167,6 +168,38 @@ export function ImagesField({ f, value, onChange }) {
       <div className="thumbs">{list.map((u, i) => <div key={i} className="thumb">{isVideoUrl(u) ? <><video src={`${stripHash(u)}#t=0.1`} muted preload="metadata" /><b className="vbadge">🎬</b></> : <img src={u} alt="" />}<button type="button" aria-label="Αφαίρεση" onClick={() => onChange(list.filter((_, j) => j !== i))}>✕</button></div>)}
         <button type="button" className="thumb add" onClick={() => setPick(true)}>+ Προσθήκη</button></div>
       {pick && <PickMedia onClose={() => setPick(false)} onPick={(u) => { onChange([...list, u]); setPick(false); }} />}
+    </div>
+  );
+}
+
+const MOOD_LABELS = { happy: 'Χαρούμενος', wave: 'Χαιρετά', celebrate: 'Πανηγυρίζει', reading: 'Διαβάζει', confused: 'Μπερδεμένος', phone: 'Με κινητό', work: 'Δουλεύει', oops: 'Ωχ!' };
+/** Οπτικός επεξεργαστής περιπέτειας: σκηνές, διάθεση του Κιμωλάκη, επιλογές που οδηγούν σε άλλες σκηνές, τέλη. */
+export function SceneEditor({ f, value, onChange }) {
+  const sc = Array.isArray(value) ? value : [];
+  const upd = (i, p) => onChange(sc.map((s, j) => (j === i ? { ...s, ...p } : s)));
+  const nextId = () => { let n = sc.length + 1; while (sc.some((s) => s.id === `s${n}`)) n++; return `s${n}`; };
+  const add = () => onChange([...sc, { id: nextId(), title: '', text: '', mood: 'happy', end: false, endingTitle: '', choices: [] }]);
+  const remove = (i) => { if (!confirm('Να διαγραφεί αυτή η σκηνή; Οι επιλογές που οδηγούσαν σε αυτήν θα πρέπει να αλλάξουν.')) return; const id = sc[i].id; onChange(sc.filter((_, j) => j !== i).map((s) => ({ ...s, choices: s.choices.filter((c) => c.to !== id) }))); };
+  const opts = sc.map((s, i) => ({ v: s.id, l: `${i + 1}. ${s.title || s.id}` }));
+  return (
+    <div className="fld scenes"><label>{f.label}<small>Η πρώτη σκηνή είναι η αρχή της ιστορίας. Κάθε σκηνή είτε έχει επιλογές είτε είναι τέλος.</small></label>
+      {sc.map((s, i) => (
+        <div key={s.id} className={`scene${s.end ? ' end' : ''}`}>
+          <div className="scene-h"><b>{i + 1}. {i === 0 ? '▶ Αρχή' : s.end ? '🏁 Τέλος' : 'Σκηνή'}</b><span className="grow" />
+            {i > 0 && <button type="button" className="icon-btn sm" aria-label="Μετακίνηση πάνω" onClick={() => { const a = [...sc]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; onChange(a); }}>↑</button>}
+            <button type="button" className="icon-btn sm" aria-label="Διαγραφή σκηνής" disabled={sc.length < 2} onClick={() => remove(i)}>🗑</button></div>
+          <div className="row wrap"><input aria-label="Τίτλος σκηνής" placeholder="Τίτλος σκηνής" value={s.title} onChange={(e) => upd(i, { title: e.target.value })} />
+            <select aria-label="Διάθεση Κιμωλάκη" value={s.mood} onChange={(e) => upd(i, { mood: e.target.value })}>{Object.entries(MOOD_LABELS).map(([v, l]) => <option key={v} value={v}>Κιμωλάκης: {l}</option>)}</select></div>
+          <textarea aria-label="Κείμενο σκηνής" rows={4} placeholder="Τι συμβαίνει σε αυτή τη σκηνή; (κενή γραμμή = νέα παράγραφος)" value={s.text} onChange={(e) => upd(i, { text: e.target.value })} />
+          <label className="chk"><input type="checkbox" checked={s.end} onChange={(e) => upd(i, { end: e.target.checked })} /> Αυτή η σκηνή είναι τέλος της ιστορίας</label>
+          {s.end ? <input aria-label="Τίτλος τέλους" placeholder="Τίτλος του τέλους (π.χ. Η μεγάλη έκπληξη)" value={s.endingTitle} onChange={(e) => upd(i, { endingTitle: e.target.value })} /> : (
+            <div className="choices">{s.choices.map((c, k) => (
+              <div key={k} className="row"><input aria-label="Κείμενο επιλογής" placeholder="Κείμενο επιλογής" value={c.label} onChange={(e) => upd(i, { choices: s.choices.map((x, j) => (j === k ? { ...x, label: e.target.value } : x)) })} />
+                <select aria-label="Οδηγεί στη σκηνή" value={c.to} onChange={(e) => upd(i, { choices: s.choices.map((x, j) => (j === k ? { ...x, to: e.target.value } : x)) })}><option value="">— οδηγεί σε… —</option>{opts.filter((o) => o.v !== s.id).map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}</select>
+                <button type="button" className="icon-btn sm" aria-label="Αφαίρεση επιλογής" onClick={() => upd(i, { choices: s.choices.filter((_, j) => j !== k) })}>✕</button></div>))}
+              {s.choices.length < 5 && <button type="button" className="btn btn-ghost sm" onClick={() => upd(i, { choices: [...s.choices, { label: '', to: '' }] })}>+ Επιλογή</button>}</div>)}
+        </div>))}
+      <button type="button" className="btn btn-ghost sm" onClick={add}>+ Νέα σκηνή</button>
     </div>
   );
 }

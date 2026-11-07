@@ -15,6 +15,7 @@ export const GET = route(async (req, { params }) => {
 });
 export const POST = route(async (req, { params }, user) => {
   const cfg = cfgFor(params.resource);
+  if (cfg.noCreate) return json({ error: 'Δεν επιτρέπεται η δημιουργία από εδώ.' }, 405);
   const data = await body(req);
   if (cfg.titleCol && !String(data[cfg.titleCol] || '').trim()) return json({ error: 'Συμπληρώστε τον τίτλο / το όνομα.' }, 400);
   if (params.resource === 'hotspots' && !data.edition_id) return json({ error: 'Λείπει το τεύχος.' }, 400);
@@ -22,6 +23,7 @@ export const POST = route(async (req, { params }, user) => {
   const clean = {};
   for (const k of Object.keys(cfg.cols)) if (k in data) clean[k] = data[k];
   if (cfg.slug) clean.slug = await uniqueSlug(cfg, clean.slug || clean[cfg.titleCol]);
+  if (cfg.validate) { const cl = {}; for (const [k, v] of Object.entries(clean)) if (cfg.cols[k]) cl[k] = cfg.cols[k].c(v); const msg = cfg.validate(cl); if (msg) return json({ error: msg }, 400); }
   for (const [k, v] of Object.entries(clean)) {
     const d = cfg.cols[k]; if (!d) continue;
     const val = d.c(v); vals.push(d.json ? JSON.stringify(val) : val); cols.push(k); ph.push('$' + vals.length + (d.json ? '::jsonb' : ''));

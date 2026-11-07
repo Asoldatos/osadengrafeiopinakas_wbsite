@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { api, toast } from '@/lib/clientUpload';
 import { Field } from './Fields';
 
-const TABS = [['identity', 'Ταυτότητα'], ['design', 'Χρώματα και γραμματοσειρές'], ['nav', 'Μενού'], ['footer', 'Υποσέλιδο'], ['announce', 'Ανακοίνωση'], ['mascot', 'Κιμωλάκης'], ['maint', 'Συντήρηση']];
+const TABS = [['identity', 'Ταυτότητα'], ['design', 'Χρώματα και γραμματοσειρές'], ['nav', 'Μενού'], ['footer', 'Υποσέλιδο'], ['announce', 'Ανακοίνωση'], ['accounts', 'Λογαριασμοί μαθητών'], ['mascot', 'Κιμωλάκης'], ['maint', 'Συντήρηση']];
 const COLORS = { paper: 'Χαρτί (φόντο)', paper2: 'Χαρτί 2 (πιο σκούρο)', ink: 'Μελάνι (κείμενο)', board: 'Πίνακας (πράσινο)', c1: 'Κυανό', c2: 'Κόκκινο', c3: 'Κίτρινο', c4: 'Μοβ', c5: 'Μπλε', c6: 'Πορτοκαλί' };
 const FONTS = [{ v: 'comfortaa', l: 'Comfortaa – στρογγυλή, παιχνιδιάρικη' }, { v: 'literata', l: 'Literata – σειρήτ, για ανάγνωση' }, { v: 'manrope', l: 'Manrope – σύγχρονη, καθαρή' }];
-const MSGS = { empty: 'Κενή κατάσταση (γενικά)', noResults: 'Αναζήτηση χωρίς αποτελέσματα', loading: 'Φόρτωση', error: 'Σφάλμα', notFound: 'Η σελίδα δεν βρέθηκε (404)', maintenance: 'Συντήρηση', login: 'Σελίδα σύνδεσης', twofa: 'Ρύθμιση 2FA', twofaDone: 'Επιτυχής ενεργοποίηση 2FA', published: 'Επιτυχής δημοσίευση', saved: 'Αποθήκευση', upload: 'Μεταφόρτωση αρχείων', adminTip: 'Συμβουλή στον πίνακα διαχείρισης', editions: 'Κανένα τεύχος ακόμα', articles: 'Κανένα άρθρο ακόμα', team: 'Καμία ομάδα ακόμα' };
+const MSGS = { empty: 'Κενή κατάσταση (γενικά)', noResults: 'Αναζήτηση χωρίς αποτελέσματα', loading: 'Φόρτωση', error: 'Σφάλμα', notFound: 'Η σελίδα δεν βρέθηκε (404)', maintenance: 'Συντήρηση', login: 'Σελίδα σύνδεσης', twofa: 'Ρύθμιση 2FA', twofaDone: 'Επιτυχής ενεργοποίηση 2FA', published: 'Επιτυχής δημοσίευση', saved: 'Αποθήκευση', upload: 'Μεταφόρτωση αρχείων', adminTip: 'Συμβουλή στον πίνακα διαχείρισης', editions: 'Κανένα τεύχος ακόμα', articles: 'Κανένα άρθρο ακόμα', team: 'Καμία ομάδα ακόμα', locked: 'Κλειδωμένο περιεχόμενο (χρειάζεται λογαριασμός)', welcome: 'Καλωσόρισμα νέου μαθητή', verifyOk: 'Επιβεβαίωση email', levelUp: 'Ανέβηκε επίπεδο', gameWin: 'Νίκη σε παιχνίδι', gameLose: 'Ήττα σε παιχνίδι', downloadLogin: 'Λήψη/εκτύπωση χωρίς λογαριασμό' };
 const setIn = (o, path, v) => { const [k, ...r] = path; return { ...o, [k]: r.length ? setIn(o?.[k] || {}, r, v) : v }; };
 
 export default function SettingsForm() {
@@ -41,12 +41,23 @@ export default function SettingsForm() {
           <button type="button" className="btn btn-ghost sm" onClick={() => list('nav', (l) => [...l, { label: 'Νέο στοιχείο', href: '/', visible: true }])}>+ Προσθήκη στοιχείου</button></>}
         {tab === 'footer' && <>{T('footer.about', 'Κείμενο υποσέλιδου', 'area')}{T('footer.linksTitle', 'Τίτλος στήλης πλοήγησης')}{T('footer.contactTitle', 'Τίτλος στήλης επικοινωνίας')}
           {T('footer.contact.email', 'Email')}{T('footer.contact.phone', 'Τηλέφωνο')}{T('footer.contact.address', 'Διεύθυνση')}{T('footer.copyright', 'Κείμενο πνευματικών δικαιωμάτων')}
+          <h3>Επιπλέον σύνδεσμοι υποσέλιδου (π.χ. Απόρρητο)</h3>
+          {(s.footer?.extraLinks || []).map((n, i) => (<div key={i} className="navrow"><input aria-label="Ετικέτα" value={n.label} onChange={(e) => list('footer.extraLinks', (l) => { l[i] = { ...n, label: e.target.value }; return l; })} />
+            <input aria-label="Προορισμός" value={n.href} onChange={(e) => list('footer.extraLinks', (l) => { l[i] = { ...n, href: e.target.value }; return l; })} />
+            <button type="button" className="icon-btn sm" aria-label="Διαγραφή" onClick={() => list('footer.extraLinks', (l) => l.filter((_, j) => j !== i))}>🗑</button></div>))}
+          <button type="button" className="btn btn-ghost sm" onClick={() => list('footer.extraLinks', (l) => [...l, { label: '', href: '/' }])}>+ Προσθήκη συνδέσμου</button>
           <h3>Σύνδεσμοι κοινωνικών δικτύων</h3>
           {(s.footer?.social || []).map((n, i) => (<div key={i} className="navrow"><input aria-label="Όνομα" placeholder="π.χ. Instagram" value={n.label} onChange={(e) => list('footer.social', (l) => { l[i] = { ...n, label: e.target.value }; return l; })} />
             <input aria-label="Διεύθυνση" placeholder="https://…" value={n.url} onChange={(e) => list('footer.social', (l) => { l[i] = { ...n, url: e.target.value }; return l; })} />
             <button type="button" className="icon-btn sm" aria-label="Διαγραφή" onClick={() => list('footer.social', (l) => l.filter((_, j) => j !== i))}>🗑</button></div>))}
           <button type="button" className="btn btn-ghost sm" onClick={() => list('footer.social', (l) => [...l, { label: '', url: '' }])}>+ Προσθήκη συνδέσμου</button></>}
         {tab === 'announce' && <>{T('announcement.enabled', 'Εμφάνιση ανακοίνωσης στην κορυφή όλων των σελίδων', 'bool')}{T('announcement.text', 'Κείμενο')}{T('announcement.link', 'Σύνδεσμος (προαιρετικός)')}</>}
+        {tab === 'accounts' && <>
+          {T('accounts.registrationOpen', 'Επιτρέπονται νέες εγγραφές μαθητών', 'bool')}
+          {T('accounts.printRequiresAccount', 'Η λήψη και η εκτύπωση τευχών απαιτεί λογαριασμό μαθητή', 'bool', { hint: 'Προστατεύει από ρομπότ και μαζικές λήψεις. Συνιστάται.' })}
+          {T('accounts.requireForReading', 'Και η ανάγνωση των τευχών (αναγνώστης) απαιτεί λογαριασμό', 'bool', { hint: 'Αν είναι κλειστό, ο αναγνώστης είναι ανοιχτός σε όλους.' })}
+          {T('accounts.allowedDomains', 'Επιτρεπόμενα domain email (προαιρετικό)', 'text', { hint: 'Π.χ. sch.gr — χωρισμένα με κόμμα. Αν μείνει κενό, επιτρέπεται κάθε email. Αν το σχολείο έχει δικά του email, είναι ο καλύτερος τρόπος να μπαίνουν μόνο μαθητές.' })}
+          <p className="muted small">Οι εγγραφές απαιτούν ρυθμισμένη αποστολή email (Brevo ή Resend). Για πρόσθετη προστασία από ρομπότ μπορείς να ενεργοποιήσεις το Cloudflare Turnstile (οδηγίες στο README). Τα κείμενα απορρήτου επεξεργάζονται από τον Σχεδιαστή, στη σελίδα «privacy».</p></>}
         {tab === 'mascot' && <>{T('mascot.enabled', 'Εμφάνιση του Κιμωλάκη στον ιστότοπο', 'bool')}<p className="muted">Τα μηνύματα που λέει ο Κιμωλάκης σε κάθε περίσταση.</p>{Object.entries(MSGS).map(([k, l]) => T(`mascot.messages.${k}`, l, 'area', { rows: 2 }))}</>}
         {tab === 'maint' && <>{T('maintenance.enabled', 'Ενεργοποίηση λειτουργίας συντήρησης', 'bool', { hint: 'Οι επισκέπτες θα βλέπουν μόνο τη σελίδα συντήρησης. Οι διαχειριστές εξακολουθούν να βλέπουν τον ιστότοπο.' })}
           {T('maintenance.title', 'Τίτλος')}{T('maintenance.message', 'Μήνυμα', 'area')}{T('maintenance.imageUrl', 'Εικόνα (αν μείνει κενή εμφανίζεται ο Κιμωλάκης με κράνος)', 'image')}</>}

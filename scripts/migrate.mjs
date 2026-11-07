@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { SCHEMA } from '../lib/schema.mjs';
 import { DEFAULT_SITE, DEFAULT_PAGES, DEFAULT_CATEGORIES } from '../lib/defaults.mjs';
 import { hashPassword } from '../lib/crypto.mjs';
+import { QUIZ, WORDS, ADVENTURES } from '../lib/seed.mjs';
 
 if (!process.env.DATABASE_URL) { console.error('Λείπει το DATABASE_URL (.env.local).'); process.exit(1); }
 const sql = neon(process.env.DATABASE_URL);
@@ -18,6 +19,19 @@ if (!exists) for (const [i, [name, color]] of DEFAULT_CATEGORIES.entries()) {
   await run('insert into categories(slug,name,color,sort) values($1,$2,$3,$4) on conflict do nothing', [slug, name, color, i]);
 }
 console.log('✓ Προεπιλεγμένες ρυθμίσεις και σελίδες');
+// Παιχνίδια και περιπέτειες: αρχικό περιεχόμενο μόνο όταν οι πίνακες είναι κενοί
+if (!(await run('select count(*)::int n from quiz_questions'))[0].n) for (const [q, o, c, e] of QUIZ) await run('insert into quiz_questions(question,options,correct_no,explanation) values($1,$2::jsonb,$3,$4)', [q, JSON.stringify(o), c, e]);
+if (!(await run('select count(*)::int n from words'))[0].n) for (const [w, h] of WORDS) await run('insert into words(word,hint) values($1,$2)', [w, h]);
+if (!(await run('select count(*)::int n from adventures'))[0].n) for (const a of ADVENTURES) await run("insert into adventures(slug,title,description,unlock_level,xp_reward,status,sort,scenes) values($1,$2,$3,$4,$5,'published',$6,$7::jsonb)", [a.slug, a.title, a.description, a.unlock_level, a.xp_reward, a.sort, JSON.stringify(a.scenes)]);
+console.log('✓ Παιχνίδια, κουίζ και περιπέτειες');
+// Υπάρχοντες ιστότοποι: προσθήκη του «Παιχνίδια» στο μενού αν λείπει
+const site = (await run("select value from settings where key='site'"))[0];
+if (site && Array.isArray(site.value.nav) && !site.value.nav.some((n) => n.href === '/play')) {
+  const i = site.value.nav.findIndex((n) => n.href === '/articles');
+  site.value.nav.splice(i + 1, 0, { label: 'Παιχνίδια', href: '/play', visible: true });
+  await run("update settings set value=$1::jsonb where key='site'", [JSON.stringify(site.value)]);
+  console.log('✓ Προστέθηκε το «Παιχνίδια» στο μενού');
+}
 const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME } = process.env;
 const users = (await run('select count(*)::int n from users'))[0].n;
 if (!users) {
