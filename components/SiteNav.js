@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SoundToggle from './SoundToggle';
+import Media from './Media';
 import { safeUrl } from '@/lib/util';
 
 export default function SiteNav({ name, logoUrl, items }) {
@@ -13,7 +14,7 @@ export default function SiteNav({ name, logoUrl, items }) {
   return (
     <header className="nav">
       <div className="wrap nav-in">
-        <Link href="/" className="brand" aria-label={`${name} – αρχική σελίδα`}>{logoUrl && <img src={logoUrl} alt="" width="130" height="48" />}</Link>
+        <Link href="/" className="brand" aria-label={`${name} – αρχική σελίδα`}>{logoUrl && <Media src={logoUrl} alt="" width="130" height="48" loading="eager" />}</Link>
         <nav id="mainnav" className={open ? 'open' : ''} aria-label="Κύρια πλοήγηση">
           <ul>{items.map((n, i) => <li key={i}><Link href={safeUrl(n.href)} aria-current={active(n.href) ? 'page' : undefined} className={active(n.href) ? 'on' : ''}>{n.label}</Link></li>)}</ul>
         </nav>

@@ -1,30 +1,102 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { api, toast, uploadImage, uploadPdf } from '@/lib/clientUpload';
+import { api, toast, uploadImage, uploadPdf, uploadVideo, isVideoFile } from '@/lib/clientUpload';
+import { isVideoUrl, parseVideo, buildVideoUrl, stripHash } from '@/lib/media';
 
-export function MediaPicker({ onPick, onClose }) {
+export function MediaPicker({ onPick, onClose, allowVideo = true }) {
   const [rows, setRows] = useState(null), [q, setQ] = useState(''), [prog, setProg] = useState(null);
-  const load = () => api('/api/admin/media' + (q ? `?q=${encodeURIComponent(q)}` : '')).then((r) => setRows(r.filter((x) => x.mime.startsWith('image/')))).catch((e) => toast(e.message, 'oops'));
+  const ok = (m) => m.mime.startsWith('image/') || (allowVideo && m.mime.startsWith('video/'));
+  const load = () => api('/api/admin/media' + (q ? `?q=${encodeURIComponent(q)}` : '')).then((r) => setRows(r.filter(ok))).catch((e) => toast(e.message, 'oops'));
   useEffect(() => { const t = setTimeout(load, 200); return () => clearTimeout(t); }, [q]);
-  const up = async (f) => { if (!f) return; try { setProg(0); const r = await uploadImage(f, { onProgress: setProg }); toast('Η εικόνα ανέβηκε!'); onPick(r.url); } catch (e) { toast(e.message, 'oops'); } setProg(null); };
+  const up = async (f) => {
+    if (!f) return;
+    try { setProg(0); const url = isVideoFile(f) ? await uploadVideo(f, { onProgress: setProg }) : (await uploadImage(f, { onProgress: setProg })).url; toast(isVideoFile(f) ? 'Το βίντεο ανέβηκε!' : 'Η εικόνα ανέβηκε!'); onPick(url); } catch (e) { toast(e.message, 'oops'); }
+    setProg(null);
+  };
   return (
     <div className="modal-back" onClick={onClose}><div className="modal wide" role="dialog" aria-modal="true" aria-label="Βιβλιοθήκη πολυμέσων" onClick={(e) => e.stopPropagation()}>
-      <button type="button" className="modal-x" onClick={onClose} aria-label="Κλείσιμο">✕</button><h3>Επιλογή εικόνας</h3>
-      <div className="row"><input placeholder="Αναζήτηση…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Αναζήτηση εικόνων" />
-        <label className="btn btn-primary sm">Νέα εικόνα<input type="file" hidden accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" onChange={(e) => up(e.target.files[0])} /></label></div>
+      <button type="button" className="modal-x" onClick={onClose} aria-label="Κλείσιμο">✕</button><h3>{allowVideo ? 'Επιλογή εικόνας ή βίντεο' : 'Επιλογή εικόνας'}</h3>
+      <div className="row"><input placeholder="Αναζήτηση…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Αναζήτηση" />
+        <label className="btn btn-primary sm">{allowVideo ? 'Νέο αρχείο' : 'Νέα εικόνα'}<input type="file" hidden accept={allowVideo ? 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime,video/ogg' : 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml'} onChange={(e) => { up(e.target.files[0]); e.target.value = ''; }} /></label></div>
       {prog !== null && <div className="bar"><span style={{ width: `${prog * 100}%` }} /></div>}
-      {!rows ? <p>Φόρτωση…</p> : !rows.length ? <p className="muted">Δεν υπάρχουν εικόνες ακόμα. Ανέβασε την πρώτη!</p> : <div className="mgrid">{rows.map((m) => <button key={m.id} type="button" className="mitem" onClick={() => onPick(m.url)} title={m.name}><img src={m.url} alt={m.alt || m.name} loading="lazy" /><span>{m.name}</span></button>)}</div>}
+      {!rows ? <p>Φόρτωση…</p> : !rows.length ? <p className="muted">Δεν υπάρχουν αρχεία ακόμα. Ανέβασε το πρώτο!</p> : <div className="mgrid">{rows.map((m) => (
+        <button key={m.id} type="button" className="mitem" onClick={() => onPick(m.url)} title={m.name}>
+          {m.mime.startsWith('video/') ? <><video src={`${m.url}#t=0.1`} muted preload="metadata" playsInline /><b className="vbadge">🎬 Βίντεο</b></> : <img src={m.url} alt={m.alt || m.name} loading="lazy" />}<span>{m.name}</span></button>))}</div>}
     </div></div>
   );
 }
-export function ImageField({ value, onChange }) {
-  const [pick, setPick] = useState(false);
+
+function VideoWarning({ onCancel, onOk, background }) {
+  return (
+    <div className="modal-back" onClick={onCancel}><div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="vw-t" onClick={(e) => e.stopPropagation()}>
+      <h3 id="vw-t">⚠️ Επέλεξες βίντεο εκεί που θα έμπαινε εικόνα</h3>
+      <p>Μπορείς να το κάνεις, αλλά πρόσεξε:</p>
+      <ul className="warnlist">
+        <li>Το βίντεο <b>δεν θα φαίνεται</b> σε κοινοποιήσεις (Facebook, WhatsApp…), σε αποτελέσματα αναζήτησης και σε μικρογραφίες.</li>
+        <li>Τα βίντεο είναι <b>βαριά</b>: μπορεί να επιβραδύνουν τη σελίδα, ειδικά στο κινητό, και να γεμίσουν τον χώρο αποθήκευσης.</li>
+        <li>Προτίμησε αρχεία <b>MP4 (H.264)</b> ή <b>WebM</b>, και αν γίνεται κάτω από 20 MB.</li>
+        {background && <li>Ως φόντο ενότητας το βίντεο παίζει πάντα <b>χωρίς ήχο και σε επανάληψη</b>, χωρίς χειριστήρια.</li>}
+        <li>Μέσα σε κάρτες και συνδέσμους, ένα βίντεο με χειριστήρια μπορεί να μπερδεύει τους επισκέπτες.</li>
+      </ul>
+      <div className="row wrap"><button type="button" className="btn btn-primary" onClick={onOk}>Συνέχεια με το βίντεο</button><button type="button" className="btn btn-ghost" onClick={onCancel}>Επιλογή άλλου αρχείου</button></div>
+    </div></div>
+  );
+}
+
+/** Ρυθμίσεις βίντεο: player ή «κινούμενη εικόνα», χειριστήρια, αυτόματη αναπαραγωγή, επανάληψη, ήχος, προσαρμογή, εικόνα προεπισκόπησης. */
+export function VideoOptions({ url, background = false, onCancel, onDone }) {
+  const [o, setO] = useState(() => parseVideo(url)); const [pp, setPp] = useState(false);
+  const set = (p) => setO((x) => ({ ...x, ...p }));
+  const v = background ? { ...o, controls: false, autoplay: true, loop: true, muted: true } : { ...o, muted: o.muted || o.autoplay };
+  return (
+    <div className="modal-back" onClick={onCancel}><div className="modal wide" role="dialog" aria-modal="true" aria-labelledby="vo-t" onClick={(e) => e.stopPropagation()}>
+      <button type="button" className="modal-x" onClick={onCancel} aria-label="Κλείσιμο">✕</button>
+      <h3 id="vo-t">🎬 Ρυθμίσεις βίντεο</h3>
+      <div className="vopt">
+        <video key={JSON.stringify(v)} src={stripHash(url)} poster={v.poster || undefined} controls={v.controls} autoPlay={v.autoplay} loop={v.loop} muted={v.muted} playsInline className="vopt-prev" style={{ objectFit: v.fit }} />
+        <div>
+          {!background && <div className="row wrap presets">
+            <button type="button" className="btn btn-ghost sm" onClick={() => set({ controls: true, autoplay: false, loop: false, muted: false })}>🎛 Σαν player (με χειριστήρια)</button>
+            <button type="button" className="btn btn-ghost sm" onClick={() => set({ controls: false, autoplay: true, loop: true, muted: true })}>🌀 Σαν κινούμενη εικόνα</button></div>}
+          {background ? <p className="muted">Ως φόντο το βίντεο παίζει αυτόματα, χωρίς ήχο και σε επανάληψη. Μπορείς να αλλάξεις μόνο την προσαρμογή και την εικόνα προεπισκόπησης.</p> : (<>
+            <label className="chk"><input type="checkbox" checked={o.controls} onChange={(e) => set({ controls: e.target.checked })} /> Εμφάνιση player (χειριστήρια αναπαραγωγής)</label>
+            <label className="chk"><input type="checkbox" checked={o.autoplay} onChange={(e) => set({ autoplay: e.target.checked })} /> Αυτόματη αναπαραγωγή <small>(παίζει μόνο χωρίς ήχο)</small></label>
+            <label className="chk"><input type="checkbox" checked={o.loop} onChange={(e) => set({ loop: e.target.checked })} /> Επανάληψη (loop)</label>
+            <label className="chk"><input type="checkbox" checked={o.muted || o.autoplay} disabled={o.autoplay} onChange={(e) => set({ muted: e.target.checked })} /> Χωρίς ήχο</label></>)}
+          <div className="fld"><label htmlFor="vo-fit">Προσαρμογή στο πλαίσιο</label>
+            <select id="vo-fit" value={o.fit} onChange={(e) => set({ fit: e.target.value })}><option value="cover">Γέμισμα του χώρου (κόβονται τα άκρα)</option><option value="contain">Ολόκληρο το βίντεο (χωρίς περικοπή)</option></select></div>
+          <div className="fld"><label>Εικόνα προεπισκόπησης (poster)<small>Εμφανίζεται πριν ξεκινήσει το βίντεο.</small></label>
+            <div className="row wrap">{o.poster && <img src={o.poster} alt="" className="imgf-prev" />}
+              <button type="button" className="btn btn-ghost sm" onClick={() => setPp(true)}>{o.poster ? 'Αλλαγή' : 'Επιλογή εικόνας'}</button>
+              {o.poster && <button type="button" className="btn btn-ghost sm" onClick={() => set({ poster: '' })}>Αφαίρεση</button>}</div></div>
+        </div>
+      </div>
+      <div className="row wrap"><button type="button" className="btn btn-primary" onClick={() => onDone(buildVideoUrl(url, o))}>Εφαρμογή</button><button type="button" className="btn btn-ghost" onClick={onCancel}>Άκυρο</button></div>
+      {pp && <MediaPicker allowVideo={false} onClose={() => setPp(false)} onPick={(u) => { set({ poster: u }); setPp(false); }} />}
+    </div></div>
+  );
+}
+
+/** Επιλογή πολυμέσου: αν επιλεγεί βίντεο, εμφανίζεται πρώτα προειδοποίηση και μετά οι ρυθμίσεις. */
+export function PickMedia({ onClose, onPick, allowVideo = true, background = false }) {
+  const [p, setP] = useState(null);
+  if (p?.stage === 'warn') return <VideoWarning background={background} onCancel={() => setP(null)} onOk={() => setP({ ...p, stage: 'opts' })} />;
+  if (p?.stage === 'opts') return <VideoOptions url={p.url} background={background} onCancel={() => setP(null)} onDone={onPick} />;
+  return <MediaPicker allowVideo={allowVideo} onClose={onClose} onPick={(u) => (isVideoUrl(u) ? setP({ url: u, stage: 'warn' }) : onPick(u))} />;
+}
+
+export function ImageField({ value, onChange, noVideo = false, bg = false }) {
+  const [pick, setPick] = useState(false), [opts, setOpts] = useState(false);
+  const vid = isVideoUrl(value);
   return (
     <div className="imgf">
-      {value ? <img src={value} alt="" className="imgf-prev" /> : <div className="imgf-prev empty">Χωρίς εικόνα</div>}
-      <div className="col"><button type="button" className="btn btn-ghost sm" onClick={() => setPick(true)}>{value ? 'Αλλαγή' : 'Επιλογή εικόνας'}</button>
+      {value ? (vid ? <video src={`${stripHash(value)}#t=0.1`} poster={parseVideo(value).poster || undefined} muted preload="metadata" className="imgf-prev" /> : <img src={value} alt="" className="imgf-prev" />) : <div className="imgf-prev empty">Χωρίς εικόνα</div>}
+      <div className="col">{vid && <span className="pill published">🎬 Βίντεο</span>}
+        <button type="button" className="btn btn-ghost sm" onClick={() => setPick(true)}>{value ? 'Αλλαγή' : noVideo ? 'Επιλογή εικόνας' : 'Επιλογή εικόνας / βίντεο'}</button>
+        {vid && <button type="button" className="btn btn-ghost sm" onClick={() => setOpts(true)}>Ρυθμίσεις βίντεο</button>}
         {value && <button type="button" className="btn btn-ghost sm" onClick={() => onChange('')}>Αφαίρεση</button>}</div>
-      {pick && <MediaPicker onClose={() => setPick(false)} onPick={(u) => { onChange(u); setPick(false); }} />}
+      {pick && <PickMedia allowVideo={!noVideo} background={bg} onClose={() => setPick(false)} onPick={(u) => { onChange(u); setPick(false); }} />}
+      {opts && <VideoOptions url={value} background={bg} onCancel={() => setOpts(false)} onDone={(u) => { onChange(u); setOpts(false); }} />}
     </div>
   );
 }
@@ -57,7 +129,7 @@ export function HtmlEditor({ value, onChange }) {
       </div>
       <div ref={ref} className="rte-body prose" contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label="Κείμενο άρθρου"
         onInput={() => onChange(ref.current.innerHTML)} onPaste={(e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')); }} />
-      {pick && <MediaPicker onClose={() => setPick(false)} onPick={(u) => { setPick(false); cmd('insertImage', u); }} />}
+      {pick && <MediaPicker allowVideo={false} onClose={() => setPick(false)} onPick={(u) => { setPick(false); cmd('insertImage', u); }} />}
     </div>
   );
 }
@@ -72,7 +144,7 @@ export function Field({ f, value, onChange, options = [] }) {
   switch (f.t) {
     case 'area': return <div className="fld">{L}<textarea id={id} rows={f.rows || 4} value={v} onChange={(e) => onChange(e.target.value)} /></div>;
     case 'html': return <div className="fld"><label>{f.label}</label><HtmlEditor value={v} onChange={onChange} /></div>;
-    case 'image': return <div className="fld"><label>{f.label}</label><ImageField value={v} onChange={onChange} /></div>;
+    case 'image': return <div className="fld"><label>{f.label}</label><ImageField value={v} onChange={onChange} noVideo={f.noVideo} bg={f.bg} /></div>;
     case 'pdf': return <div className="fld"><label>{f.label}</label><PdfField value={v} onChange={onChange} /></div>;
     case 'bool': return <div className="fld chk"><label><input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} /> {f.label}{f.hint && <small>{f.hint}</small>}</label></div>;
     case 'select': { const opts = f.opts?.map((o) => (typeof o === 'string' ? { v: o, l: f.labels?.[o] || o } : o)) || options || []; return <div className="fld">{L}<select id={id} value={v} onChange={(e) => onChange(f.num ? (e.target.value === '' ? null : +e.target.value) : e.target.value)}>{f.empty && <option value="">{f.empty}</option>}{opts.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}</select></div>; }
@@ -92,9 +164,9 @@ export function ImagesField({ f, value, onChange }) {
   const list = Array.isArray(value) ? value : []; const [pick, setPick] = useState(false);
   return (
     <div className="fld"><label>{f.label}</label>
-      <div className="thumbs">{list.map((u, i) => <div key={i} className="thumb"><img src={u} alt="" /><button type="button" aria-label="Αφαίρεση εικόνας" onClick={() => onChange(list.filter((_, j) => j !== i))}>✕</button></div>)}
+      <div className="thumbs">{list.map((u, i) => <div key={i} className="thumb">{isVideoUrl(u) ? <><video src={`${stripHash(u)}#t=0.1`} muted preload="metadata" /><b className="vbadge">🎬</b></> : <img src={u} alt="" />}<button type="button" aria-label="Αφαίρεση" onClick={() => onChange(list.filter((_, j) => j !== i))}>✕</button></div>)}
         <button type="button" className="thumb add" onClick={() => setPick(true)}>+ Προσθήκη</button></div>
-      {pick && <MediaPicker onClose={() => setPick(false)} onPick={(u) => { onChange([...list, u]); setPick(false); }} />}
+      {pick && <PickMedia onClose={() => setPick(false)} onPick={(u) => { onChange([...list, u]); setPick(false); }} />}
     </div>
   );
 }

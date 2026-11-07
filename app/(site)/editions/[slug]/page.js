@@ -5,6 +5,7 @@ import Pic from '@/components/Pic';
 import Viewer from '@/components/Viewer';
 import { MascotSay } from '@/components/Mascot';
 import { fmtDate } from '@/lib/util';
+import { imageOnly } from '@/lib/media';
 
 async function load(params, sp) {
   const admin = sp?.preview ? await getAdmin() : null;
@@ -15,7 +16,7 @@ export async function generateMetadata({ params, searchParams }) {
   if (!e) return { title: 'Δεν βρέθηκε το τεύχος' };
   return { title: e.title, description: e.description?.slice(0, 160) || `Τεύχος της σχολικής εφημερίδας${e.school_year ? ` (${e.school_year})` : ''}.`,
     alternates: { canonical: `/editions/${e.slug}` }, robots: e.status === 'draft' ? { index: false } : undefined,
-    openGraph: { title: e.title, images: e.cover_url ? [e.cover_url] : undefined } };
+    openGraph: { title: e.title, images: imageOnly(e.cover_url) ? [imageOnly(e.cover_url)] : undefined } };
 }
 export default async function EditionPage({ params, searchParams }) {
   const e = await load(params, searchParams);

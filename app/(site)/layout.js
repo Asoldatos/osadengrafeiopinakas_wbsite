@@ -4,6 +4,7 @@ import { getAdmin } from '@/lib/auth';
 import SiteNav from '@/components/SiteNav';
 import Footer from '@/components/Footer';
 import Mascot from '@/components/Mascot';
+import Media from '@/components/Media';
 import { safeUrl } from '@/lib/util';
 
 export const dynamic = 'force-dynamic';
@@ -17,7 +18,7 @@ export default async function SiteLayout({ children }) {
     return (
       <main className="maint board" id="main">
         <div className="wrap center-page">
-          {m.imageUrl ? <img src={m.imageUrl} alt="" className="maint-img" /> : <Mascot mood="work" size={220} />}
+          {m.imageUrl ? <Media src={m.imageUrl} alt="" className="maint-img" /> : <Mascot mood="work" size={220} />}
           <h1 className="h1">{m.title}</h1><p className="lede">{m.message}</p>
         </div>
       </main>

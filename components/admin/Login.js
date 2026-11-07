@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { MascotSay } from '../Mascot';
 import { api } from '@/lib/clientUpload';
 
@@ -17,7 +18,8 @@ export default function Login({ name }) {
         <form onSubmit={creds} className="stack-form">
           <div className="fld"><label htmlFor="em">Email</label><input id="em" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus /></div>
           <div className="fld"><label htmlFor="pw">Κωδικός πρόσβασης</label><input id="pw" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} required /></div>
-          {err && <p className="err" role="alert">{err}</p>}<button className="btn btn-primary block" disabled={busy}>{busy ? 'Σύνδεση…' : 'Σύνδεση'}</button></form>
+          {err && <p className="err" role="alert">{err}</p>}<button className="btn btn-primary block" disabled={busy}>{busy ? 'Σύνδεση…' : 'Σύνδεση'}</button>
+          <Link className="linkbtn forgot-link" href="/editor-panel/forgot">Ξέχασες τον κωδικό σου;</Link></form>
       ) : (
         <form onSubmit={second} className="stack-form"><div className="fld"><label htmlFor="cd">{rec ? 'Κωδικός ανάκτησης' : 'Κωδικός επαλήθευσης (6 ψηφία)'}</label>
           <input id="cd" inputMode={rec ? 'text' : 'numeric'} autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} required autoFocus /></div>

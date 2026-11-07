@@ -25,7 +25,7 @@ export default function SettingsForm() {
       <div className="card form-card">
         {tab === 'identity' && <>{T('name', 'Όνομα ιστοτόπου')}{T('tagline', 'Σύνθημα (tagline)')}{T('description', 'Περιγραφή (SEO / κοινοποιήσεις)', 'area')}
           {T('logoUrl', 'Λογότυπο (διαφανές) – μενού, υποσέλιδο, hero', 'image')}{T('logoBgUrl', 'Λογότυπο με φόντο (πίνακας)', 'image')}
-          {T('faviconUrl', 'Favicon', 'image', { hint: 'Αρχικά είναι το επίσημο αρχείο favicon του σχολείου.' })}{T('ogImage', 'Εικόνα κοινοποίησης (Open Graph)', 'image')}</>}
+          {T('faviconUrl', 'Favicon', 'image', { hint: 'Αρχικά είναι το επίσημο αρχείο favicon του σχολείου.', noVideo: true })}{T('ogImage', 'Εικόνα κοινοποίησης (Open Graph)', 'image', { noVideo: true })}</>}
         {tab === 'design' && <><h3>Χρώματα</h3><div className="grid2">{Object.entries(COLORS).map(([k, l]) => T(`colors.${k}`, l, 'color'))}</div>
           <h3>Γραμματοσειρές</h3>{T('fonts.heading', 'Τίτλοι', 'select', { opts: FONTS })}{T('fonts.body', 'Κείμενο άρθρων', 'select', { opts: FONTS })}<p className="muted small">Όλες οι γραμματοσειρές υποστηρίζουν πλήρως τα ελληνικά, με τόνους και διαλυτικά.</p></>}
         {tab === 'nav' && <><p className="muted">Τα κείμενα, οι προορισμοί και η ορατότητα των στοιχείων του κύριου μενού.</p>

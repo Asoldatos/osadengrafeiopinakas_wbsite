@@ -3,6 +3,7 @@ import { Comfortaa, Literata, Manrope } from 'next/font/google';
 import { getSite } from '@/lib/data';
 import { MascotProvider } from '@/components/Mascot';
 import { SITE_URL } from '@/lib/util';
+import { imageOnly } from '@/lib/media';
 
 const comfortaa = Comfortaa({ subsets: ['greek', 'latin'], variable: '--f-comfortaa', display: 'swap' });
 const literata = Literata({ subsets: ['greek', 'latin'], variable: '--f-literata', display: 'swap' });
@@ -14,8 +15,8 @@ export async function generateMetadata() {
     metadataBase: new URL(SITE_URL),
     title: { default: s.name, template: `%s · ${s.name}` },
     description: s.description,
-    icons: { icon: [{ url: s.faviconUrl || '/favicon.png' }], apple: '/apple-touch-icon.png' },
-    openGraph: { siteName: s.name, locale: 'el_GR', type: 'website', title: s.name, description: s.description, images: s.ogImage ? [s.ogImage] : [] },
+    icons: { icon: [{ url: imageOnly(s.faviconUrl) || '/favicon.png' }], apple: '/apple-touch-icon.png' },
+    openGraph: { siteName: s.name, locale: 'el_GR', type: 'website', title: s.name, description: s.description, images: imageOnly(s.ogImage) ? [imageOnly(s.ogImage)] : [] },
     twitter: { card: 'summary_large_image' },
     alternates: { canonical: '/' },
   };

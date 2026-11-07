@@ -31,7 +31,7 @@ export default async function Dashboard() {
           {!act.length ? <p className="muted">Δεν υπάρχει ακόμα δραστηριότητα.</p> : <ul className="feed">{act.map((x, i) => <li key={i}><b>{x.action}</b>{x.detail && `: ${x.detail}`}<small>{x.user_name} · {new Date(x.ts).toLocaleString('el-GR')}</small></li>)}</ul>}</section>
       </div>
       <section className="card"><h2>Πρόσφατες μεταφορτώσεις</h2>
-        {!media.length ? <p className="muted">Δεν έχουν ανέβει αρχεία ακόμα.</p> : <div className="mrow">{media.map((m) => m.mime.startsWith('image/') ? <img key={m.id} src={m.url} alt={m.name} loading="lazy" /> : <span key={m.id} className="pdfthumb sm" title={m.name}>PDF</span>)}</div>}</section>
+        {!media.length ? <p className="muted">Δεν έχουν ανέβει αρχεία ακόμα.</p> : <div className="mrow">{media.map((m) => m.mime.startsWith('image/') ? <img key={m.id} src={m.url} alt={m.name} loading="lazy" /> : <span key={m.id} className="pdfthumb sm" title={m.name}>{m.mime.startsWith('video/') ? '🎬' : 'PDF'}</span>)}</div>}</section>
     </div>
   );
 }

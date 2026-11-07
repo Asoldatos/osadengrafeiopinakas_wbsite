@@ -8,7 +8,7 @@ import { fmtDate } from '@/lib/util';
 
 const PAGES = [['home', 'Αρχική'], ['about', 'Σχετικά με εμάς'], ['team', 'Η ομάδα μας'], ['contact', 'Επικοινωνία']];
 const DEV = { desktop: '100%', tablet: '820px', mobile: '390px' };
-const STYLE_FIELDS = [{ k: 'bg', label: 'Χρώμα φόντου', t: 'color' }, { k: 'bgImage', label: 'Εικόνα φόντου', t: 'image' }, { k: 'padTop', label: 'Κενό πάνω (px)', t: 'num' }, { k: 'padBottom', label: 'Κενό κάτω (px)', t: 'num' }];
+const STYLE_FIELDS = [{ k: 'bg', label: 'Χρώμα φόντου', t: 'color' }, { k: 'bgImage', label: 'Εικόνα ή βίντεο φόντου', t: 'image', bg: true }, { k: 'padTop', label: 'Κενό πάνω (px)', t: 'num' }, { k: 'padBottom', label: 'Κενό κάτω (px)', t: 'num' }];
 
 export default function Builder({ site }) {
   const [slug, setSlug] = useState('home'), [secs, setSecs] = useState(null), [pub, setPub] = useState(null), [sel, setSel] = useState(null);

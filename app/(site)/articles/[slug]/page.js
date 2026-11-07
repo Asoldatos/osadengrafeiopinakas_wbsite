@@ -5,6 +5,7 @@ import { getAdmin } from '@/lib/auth';
 import Pic from '@/components/Pic';
 import ReadingProgress from '@/components/ReadingProgress';
 import ShareButtons from '@/components/ShareButtons';
+import { imageOnly } from '@/lib/media';
 import { fmtDate, toEmbed, safeUrl, SITE_URL } from '@/lib/util';
 
 async function load(params, sp) {
@@ -18,7 +19,7 @@ export async function generateMetadata({ params, searchParams }) {
   return {
     title: a.seo_title || a.title, description: desc, alternates: { canonical: `/articles/${a.slug}` },
     robots: a.status !== 'published' ? { index: false } : undefined,
-    openGraph: { type: 'article', title: a.seo_title || a.title, description: desc, publishedTime: a.date, images: a.cover_url ? [a.cover_url] : undefined },
+    openGraph: { type: 'article', title: a.seo_title || a.title, description: desc, publishedTime: a.date, images: imageOnly(a.cover_url) ? [imageOnly(a.cover_url)] : undefined },
   };
 }
 export default async function ArticlePage({ params, searchParams }) {
@@ -29,7 +30,7 @@ export default async function ArticlePage({ params, searchParams }) {
   const mins = Math.max(1, Math.round(words / 200));
   const url = `${SITE_URL}/articles/${a.slug}`;
   const ld = { '@context': 'https://schema.org', '@type': 'NewsArticle', headline: a.title, description: a.subtitle || undefined, datePublished: a.date, dateModified: a.updated_at,
-    image: a.cover_url ? [a.cover_url] : undefined, author: a.author_name ? [{ '@type': 'Person', name: a.author_name }] : undefined, publisher: { '@type': 'Organization', name: site.name }, mainEntityOfPage: url, inLanguage: 'el' };
+    image: imageOnly(a.cover_url) ? [imageOnly(a.cover_url)] : undefined, author: a.author_name ? [{ '@type': 'Person', name: a.author_name }] : undefined, publisher: { '@type': 'Organization', name: site.name }, mainEntityOfPage: url, inLanguage: 'el' };
   return (
     <>
       <ReadingProgress />

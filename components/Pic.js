@@ -1,8 +1,11 @@
 import Image from 'next/image';
+import Media from './Media';
+import { isVideoUrl } from '@/lib/media';
 
-/** Εικόνα με σταθερή αναλογία· βελτιστοποίηση μέσω next/image για αρχεία του ιστοτόπου και του Blob. */
+/** Εικόνα (ή βίντεο) με σταθερή αναλογία· βελτιστοποίηση μέσω next/image για εικόνες του ιστοτόπου και του Blob. */
 export default function Pic({ src, alt = '', ratio = '16/10', className = '', sizes = '(max-width: 800px) 100vw, 50vw', priority = false, fit = 'cover' }) {
   if (!src) return <div className={`pic pic-empty ${className}`} style={{ aspectRatio: ratio }} aria-hidden="true" />;
+  if (isVideoUrl(src)) return <div className={`pic pic-video ${className}`} style={{ aspectRatio: ratio }}><Media src={src} alt={alt} fit={fit === 'cover' ? undefined : fit} /></div>;
   const own = src.startsWith('/') || src.includes('.public.blob.vercel-storage.com');
   const svg = /\.svg(\?|$)/i.test(src);
   return (

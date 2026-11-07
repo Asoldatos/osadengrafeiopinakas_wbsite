@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { createContext, useContext } from 'react';
 import Mascot, { MascotSay } from './Mascot';
 import Pic from './Pic';
+import Media from './Media';
+import { isVideoUrl } from '@/lib/media';
 import { fmtDate, safeUrl, toEmbed, cx } from '@/lib/util';
 
 export const EditCtx = createContext({ editing: false, onText: () => {}, site: {} });
@@ -51,7 +53,7 @@ function Hero({ s, p }) {
         <div className="hero-copy">
           <Ed id={s.id} path="eyebrow" tag="p" className="eyebrow">{p.eyebrow}</Ed>
           {p.showLogo && site.logoUrl
-            ? <h1 className="hero-logo"><img src={site.logoUrl} alt={p.title || site.name} width="869" height="322" /></h1>
+            ? <h1 className="hero-logo"><Media src={site.logoUrl} alt={p.title || site.name} width="869" height="322" loading="eager" /></h1>
             : <Ed id={s.id} path="title" tag="h1" className="hero-title">{p.title}</Ed>}
           <Ed id={s.id} path="subtitle" tag="p" className="hero-sub">{p.subtitle}</Ed>
           <div className="btns"><Btn href={p.ctaHref}>{p.ctaLabel}</Btn><Btn href={p.cta2Href} kind="light">{p.cta2Label}</Btn></div>
@@ -200,12 +202,13 @@ export default function Sections({ sections = [], data, site, editing = false, s
       {sections.filter((s) => editing || !s.hidden).map((s) => {
         const C = RENDER[s.type]; if (!C) return null;
         const st = s.style || {};
-        const style = { paddingTop: st.padTop, paddingBottom: st.padBottom, ...(st.bg ? { background: st.bg } : {}), ...(st.bgImage ? { backgroundImage: `url("${encodeURI(st.bgImage)}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}) };
+        const style = { paddingTop: st.padTop, paddingBottom: st.padBottom, ...(st.bg ? { background: st.bg } : {}), ...(st.bgImage && !isVideoUrl(st.bgImage) ? { backgroundImage: `url("${encodeURI(st.bgImage)}")`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}) };
         return (
           <section key={s.id} data-sec={s.id} style={style} aria-label={undefined}
             className={cx('sec', `sec-${s.type}`, editing && 'sec-edit', selectedId === s.id && 'is-sel', s.hidden && 'is-hidden')}
             onClickCapture={editing ? (e) => { if (e.target.closest('a')) e.preventDefault(); onSelect?.(s.id); } : undefined}>
             {editing && <span className="sec-tag">{s.type}{s.hidden ? ' · κρυφή' : ''}</span>}
+            {st.bgImage && isVideoUrl(st.bgImage) && <div className="sec-bgv" aria-hidden="true"><Media src={st.bgImage} background /></div>}
             <C s={s} p={s.props || {}} data={data} />
           </section>);
       })}
