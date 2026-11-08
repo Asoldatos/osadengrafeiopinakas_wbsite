@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import HotspotModal, { hotspotIcon } from './HotspotModal';
 import { MascotSay } from './Mascot';
+import PrintButton from './play/PrintButton';
 
 function Thumb({ pdf, i, active, onGo }) {
   const ref = useRef(null); const [seen, setSeen] = useState(false);
@@ -21,7 +22,7 @@ function Thumb({ pdf, i, active, onGo }) {
   return <button ref={ref} type="button" className={`th${active ? ' on' : ''}`} onClick={() => onGo(i)} aria-label={`Μετάβαση στη σελίδα ${i + 1}`} aria-current={active ? 'true' : undefined}><canvas /><span>{i + 1}</span></button>;
 }
 
-export default function Viewer({ edition, hotspots = [], printUrl, printLocked }) {
+export default function Viewer({ edition, hotspots = [], printUrl, printLocked, dlOk = false }) {
   const root = useRef(null), host = useRef(null), flipRef = useRef(null), els = useRef([]), done = useRef(new Set()), pdfRef = useRef(null);
   const [status, setStatus] = useState('loading'); const [pdfDoc, setPdfDoc] = useState(null);
   const [page, setPage] = useState(0), [total, setTotal] = useState(0), [zoom, setZoom] = useState(1);
@@ -118,7 +119,7 @@ export default function Viewer({ edition, hotspots = [], printUrl, printLocked }
           <button type="button" className="icon-btn" onClick={() => setZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))} disabled={zoom >= 3} aria-label="Μεγέθυνση">+</button>
           <button type="button" className="icon-btn" onClick={toggleFull} aria-pressed={full} aria-label={full ? 'Έξοδος από πλήρη οθόνη' : 'Πλήρης οθόνη'} title="Πλήρης οθόνη (F)">⛶</button>
           {printLocked && <a className="icon-btn" href={printLocked} aria-label="Συνδέσου για λήψη εκτυπώσιμου PDF" title="Συνδέσου για να κατεβάσεις ή να εκτυπώσεις">🔒⬇</a>}
-          {printUrl && <a className="icon-btn" href={printUrl} aria-label="Λήψη εκτυπώσιμου PDF" title="Λήψη εκτυπώσιμου PDF">⬇</a>}
+          {printUrl && <PrintButton slug={edition.slug} ready={dlOk} icon />}
         </div>
       </div>
       <div className="vw-body">

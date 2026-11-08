@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { api, toast } from '@/lib/clientUpload';
 import { Field } from './Fields';
 
-const TABS = [['identity', 'Ταυτότητα'], ['design', 'Χρώματα και γραμματοσειρές'], ['nav', 'Μενού'], ['footer', 'Υποσέλιδο'], ['announce', 'Ανακοίνωση'], ['accounts', 'Λογαριασμοί μαθητών'], ['mascot', 'Κιμωλάκης'], ['maint', 'Συντήρηση']];
+const TABS = [['identity', 'Ταυτότητα'], ['design', 'Χρώματα και γραμματοσειρές'], ['nav', 'Μενού'], ['footer', 'Υποσέλιδο'], ['announce', 'Ανακοίνωση'], ['accounts', 'Λογαριασμοί μαθητών'], ['newsletter', 'Ενημερωτικό δελτίο'], ['mascot', 'Κιμωλάκης'], ['maint', 'Συντήρηση']];
 const COLORS = { paper: 'Χαρτί (φόντο)', paper2: 'Χαρτί 2 (πιο σκούρο)', ink: 'Μελάνι (κείμενο)', board: 'Πίνακας (πράσινο)', c1: 'Κυανό', c2: 'Κόκκινο', c3: 'Κίτρινο', c4: 'Μοβ', c5: 'Μπλε', c6: 'Πορτοκαλί' };
 const FONTS = [{ v: 'comfortaa', l: 'Comfortaa – στρογγυλή, παιχνιδιάρικη' }, { v: 'literata', l: 'Literata – σειρήτ, για ανάγνωση' }, { v: 'manrope', l: 'Manrope – σύγχρονη, καθαρή' }];
-const MSGS = { empty: 'Κενή κατάσταση (γενικά)', noResults: 'Αναζήτηση χωρίς αποτελέσματα', loading: 'Φόρτωση', error: 'Σφάλμα', notFound: 'Η σελίδα δεν βρέθηκε (404)', maintenance: 'Συντήρηση', login: 'Σελίδα σύνδεσης', twofa: 'Ρύθμιση 2FA', twofaDone: 'Επιτυχής ενεργοποίηση 2FA', published: 'Επιτυχής δημοσίευση', saved: 'Αποθήκευση', upload: 'Μεταφόρτωση αρχείων', adminTip: 'Συμβουλή στον πίνακα διαχείρισης', editions: 'Κανένα τεύχος ακόμα', articles: 'Κανένα άρθρο ακόμα', team: 'Καμία ομάδα ακόμα', locked: 'Κλειδωμένο περιεχόμενο (χρειάζεται λογαριασμός)', welcome: 'Καλωσόρισμα νέου μαθητή', verifyOk: 'Επιβεβαίωση email', levelUp: 'Ανέβηκε επίπεδο', gameWin: 'Νίκη σε παιχνίδι', gameLose: 'Ήττα σε παιχνίδι', downloadLogin: 'Λήψη/εκτύπωση χωρίς λογαριασμό' };
+const MSGS = { empty: 'Κενή κατάσταση (γενικά)', noResults: 'Αναζήτηση χωρίς αποτελέσματα', loading: 'Φόρτωση', error: 'Σφάλμα', notFound: 'Η σελίδα δεν βρέθηκε (404)', maintenance: 'Συντήρηση', login: 'Σελίδα σύνδεσης', twofa: 'Ρύθμιση 2FA', twofaDone: 'Επιτυχής ενεργοποίηση 2FA', published: 'Επιτυχής δημοσίευση', saved: 'Αποθήκευση', upload: 'Μεταφόρτωση αρχείων', adminTip: 'Συμβουλή στον πίνακα διαχείρισης', editions: 'Κανένα τεύχος ακόμα', articles: 'Κανένα άρθρο ακόμα', team: 'Καμία ομάδα ακόμα', locked: 'Κλειδωμένο περιεχόμενο (χρειάζεται λογαριασμός)', welcome: 'Καλωσόρισμα νέου μαθητή', verifyOk: 'Επιβεβαίωση email', levelUp: 'Ανέβηκε επίπεδο', gameWin: 'Νίκη σε παιχνίδι', gameLose: 'Ήττα σε παιχνίδι', downloadLogin: 'Λήψη/εκτύπωση χωρίς λογαριασμό', newsletterThanks: 'Εγγραφή στο ενημερωτικό (μετά την αποστολή)', newsletterConfirmed: 'Επιβεβαίωση συνδρομής ενημερωτικού', newsletterBye: 'Διαγραφή από το ενημερωτικό', newsletterConfirmBubble: 'Email επιβεβαίωσης συνδρομής: τι λέει ο Κιμωλάκης', newsletterWelcomeBubble: 'Email καλωσορίσματος: τι λέει ο Κιμωλάκης', otpLogin: 'Email κωδικού νέας συσκευής: τι λέει ο Κιμωλάκης', otpDownload: 'Email κωδικού λήψης εγγράφου: τι λέει ο Κιμωλάκης' };
 const setIn = (o, path, v) => { const [k, ...r] = path; return { ...o, [k]: r.length ? setIn(o?.[k] || {}, r, v) : v }; };
 
 export default function SettingsForm() {
@@ -52,6 +52,12 @@ export default function SettingsForm() {
             <button type="button" className="icon-btn sm" aria-label="Διαγραφή" onClick={() => list('footer.social', (l) => l.filter((_, j) => j !== i))}>🗑</button></div>))}
           <button type="button" className="btn btn-ghost sm" onClick={() => list('footer.social', (l) => [...l, { label: '', url: '' }])}>+ Προσθήκη συνδέσμου</button></>}
         {tab === 'announce' && <>{T('announcement.enabled', 'Εμφάνιση ανακοίνωσης στην κορυφή όλων των σελίδων', 'bool')}{T('announcement.text', 'Κείμενο')}{T('announcement.link', 'Σύνδεσμος (προαιρετικός)')}</>}
+        {tab === 'newsletter' && <>
+          {T('newsletter.enabled', 'Ενεργό ενημερωτικό δελτίο (επιτρέπονται νέες εγγραφές)', 'bool')}
+          {T('newsletter.footerForm', 'Φόρμα εγγραφής στο υποσέλιδο όλων των σελίδων', 'bool')}
+          {T('newsletter.title', 'Τίτλος')}{T('newsletter.text', 'Κείμενο', 'area')}{T('newsletter.button', 'Κείμενο κουμπιού')}{T('newsletter.placeholder', 'Κείμενο στο πεδίο email')}
+          {T('newsletter.maintenanceText', 'Κείμενο στη σελίδα συντήρησης', 'area')}
+          <p className="muted small">Τα μηνύματα που λέει ο Κιμωλάκης στα email και στις σελίδες του ενημερωτικού αλλάζουν στην καρτέλα «Κιμωλάκης». Η σύνταξη και η αποστολή γίνονται από το «Ενημερωτικό δελτίο» και τους «Συνδρομητές» στο αριστερό μενού.</p></>}
         {tab === 'accounts' && <>
           {T('accounts.registrationOpen', 'Επιτρέπονται νέες εγγραφές μαθητών', 'bool')}
           {T('accounts.printRequiresAccount', 'Η λήψη και η εκτύπωση τευχών απαιτεί λογαριασμό μαθητή', 'bool', { hint: 'Προστατεύει από ρομπότ και μαζικές λήψεις. Συνιστάται.' })}

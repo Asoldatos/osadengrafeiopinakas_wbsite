@@ -3,7 +3,7 @@ import { q } from '@/lib/db';
 import { tooMany, recordFail, clientIp } from '@/lib/auth';
 import { json, body } from '@/lib/guard';
 import { sroute } from '@/lib/sguard';
-import { consumeToken, createStudentSession, studentCookie } from '@/lib/student';
+import { consumeToken, createStudentSession, studentCookie, addDevice } from '@/lib/student';
 
 export const POST = sroute(async (req) => {
   const k = `verify-ip:${clientIp(req)}`;
@@ -12,7 +12,9 @@ export const POST = sroute(async (req) => {
   const st = await consumeToken(token, 'verify');
   if (!st) { await recordFail(k); return json({ error: 'Ο σύνδεσμος δεν ισχύει πια ή έχει ήδη χρησιμοποιηθεί.' }, 400); }
   await q('update students set verified=true, last_login=now() where id=$1', [st.id]);
+  await q("update subscribers set status='active', confirmed_at=now() where email=$1 and status='pending' and source='student'", [st.email]);
   const res = NextResponse.json({ ok: true, nickname: st.nickname });
   res.cookies.set(studentCookie(await createStudentSession(st.id)));
+  res.cookies.set(await addDevice(st.id));         // μόλις απέδειξε το email του: η συσκευή είναι αξιόπιστη
   return res;
 }, { open: true });

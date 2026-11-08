@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Mascot from '../Mascot';
 import { api } from '@/lib/clientUpload';
 import { AVATARS } from '@/lib/progress.mjs';
+import SecuritySettings from './SecuritySettings';
 
 export default function AccountSettings({ nickname, avatar }) {
   const r = useRouter(); const [nick, setNick] = useState(nickname), [av, setAv] = useState(avatar), [msg, setMsg] = useState(''), [err, setErr] = useState('');
@@ -21,6 +22,7 @@ export default function AccountSettings({ nickname, avatar }) {
         <div className="fld"><label htmlFor="cp">Τρέχων κωδικός</label><input id="cp" type="password" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} /></div>
         <div className="fld"><label htmlFor="np">Νέος κωδικός (τουλάχιστον 8 χαρακτήρες)</label><input id="np" type="password" autoComplete="new-password" value={nw} onChange={(e) => setNw(e.target.value)} /></div>
         <button type="button" className="btn btn-primary sm" onClick={() => run(async () => { await api('/api/account/password', { method: 'POST', body: { current: cur, next: nw } }); setCur(''); setNw(''); }, 'Ο κωδικός άλλαξε!')}>Αλλαγή κωδικού</button></section>
+      <SecuritySettings />
       <section className="card"><h2 className="h3">Αποσύνδεση και διαγραφή</h2>
         <div className="btns"><button type="button" className="btn btn-ghost sm" onClick={async () => { await api('/api/account/logout', { method: 'POST' }); r.replace('/'); r.refresh(); }}>Αποσύνδεση</button>
           {!askDel && <button type="button" className="btn btn-danger sm" onClick={() => setAskDel(true)}>Διαγραφή λογαριασμού…</button>}</div>

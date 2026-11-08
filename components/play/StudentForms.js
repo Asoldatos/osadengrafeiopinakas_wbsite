@@ -12,7 +12,7 @@ const Card = ({ title, children, mood, text }) => (
 );
 
 export function RegisterForm({ siteKey, domains }) {
-  const [f, setF] = useState({ nickname: '', email: '', password: '', consent: false }), [cf, setCf] = useState(''), [hp, setHp] = useState('');
+  const [f, setF] = useState({ nickname: '', email: '', password: '', consent: false, newsletter: false }), [cf, setCf] = useState(''), [hp, setHp] = useState('');
   const [err, setErr] = useState(''), [busy, setBusy] = useState(false), [sent, setSent] = useState(false), [show, setShow] = useState(false);
   const t0 = useRef(Date.now());
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
@@ -32,6 +32,7 @@ export function RegisterForm({ siteKey, domains }) {
           <button type="button" onClick={() => setShow(!show)} aria-label={show ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'}>{show ? '🙈' : '👁'}</button></div></div>
         <div className="hp" aria-hidden="true"><label>Μην συμπληρώσεις αυτό το πεδίο<input tabIndex={-1} autoComplete="off" value={hp} onChange={(e) => setHp(e.target.value)} /></label></div>
         <label className="chk consent"><input type="checkbox" checked={f.consent} onChange={(e) => set('consent', e.target.checked)} required /><span>Έχω διαβάσει τους <Link href="/privacy" target="_blank">όρους και το απόρρητο</Link> και είμαι 15 ετών ή μεγαλύτερος/η ή έχω τη συγκατάθεση γονέα/κηδεμόνα.</span></label>
+        <label className="chk consent"><input type="checkbox" checked={f.newsletter} onChange={(e) => set('newsletter', e.target.checked)} /><span>Θέλω να λαμβάνω το ενημερωτικό δελτίο στο email μου (προαιρετικό).</span></label>
         <Turnstile siteKey={siteKey} onToken={setCf} />
         {err && <p className="err" role="alert">{err}</p>}
         <button className="btn btn-primary block" disabled={busy || (!!siteKey && !cf)}>{busy ? 'Δημιουργία…' : 'Δημιούργησε τον λογαριασμό'}</button>
@@ -42,25 +43,38 @@ export function RegisterForm({ siteKey, domains }) {
 }
 
 export function LoginForm({ next }) {
-  const r = useRouter(); const [email, setEmail] = useState(''), [pw, setPw] = useState(''), [err, setErr] = useState(''), [unv, setUnv] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState('');
-  const submit = async (e) => {
-    e.preventDefault(); setBusy(true); setErr(''); setUnv(false); setNote('');
-    try { await api('/api/account/login', { method: 'POST', body: { email, password: pw } }); r.replace(safeNext(next)); r.refresh(); }
-    catch (x) { setErr(x.message); setUnv(/επιβεβαιώσεις το email/.test(x.message)); }
-    setBusy(false);
-  };
-  const resend = async () => { try { await api('/api/account/resend', { method: 'POST', body: { email } }); setNote('Στείλαμε νέο μήνυμα επιβεβαίωσης!'); } catch (x) { setErr(x.message); } };
+  const r = useRouter(); const [step, setStep] = useState('creds'), [email, setEmail] = useState(''), [pw, setPw] = useState(''), [code, setCode] = useState(''), [rec, setRec] = useState(false);
+  const [err, setErr] = useState(''), [unv, setUnv] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState('');
+  const done = () => { r.replace(safeNext(next)); r.refresh(); };
+  const go = (res) => { setCode(''); if (res.step === 'done') done(); else setStep(res.step); };
+  const run = async (fn) => { setBusy(true); setErr(''); setUnv(false); setNote(''); try { go(await fn()); } catch (x) { setErr(x.message); setUnv(/επιβεβαιώσεις το email/.test(x.message)); if (/έληξε\. Συνδέσου ξανά/.test(x.message)) setStep('creds'); } setBusy(false); };
+  const creds = (e) => { e.preventDefault(); run(() => api('/api/account/login', { method: 'POST', body: { email, password: pw } })); };
+  const second = (e) => { e.preventDefault(); run(() => api('/api/account/login/verify', { method: 'POST', body: rec ? { recovery: code } : { code } })); };
+  const resend = async () => { setErr(''); try { await api('/api/account/login/resend', { method: 'POST' }); setNote('Στείλαμε νέο κωδικό στο email σου.'); } catch (x) { setErr(x.message); } };
+  const resendVerify = async () => { try { await api('/api/account/resend', { method: 'POST', body: { email } }); setNote('Στείλαμε νέο μήνυμα επιβεβαίωσης!'); } catch (x) { setErr(x.message); } };
+  const Msgs = () => (<>{err && <p className="err" role="alert">{err}</p>}{note && <p className="ok" role="status">{note}</p>}</>);
+  if (step === 'otp') return (
+    <Card title="Νέα συσκευή" mood="phone" text="Νέα συσκευή! Για να σιγουρευτώ ότι είσαι εσύ, έστειλα έναν κωδικό στο email σου.">
+      <form onSubmit={second} className="stack-form"><div className="fld"><label htmlFor="oc">Κωδικός από το email<small>6 ψηφία · ισχύει για 5 λεπτά</small></label><input id="oc" inputMode="numeric" autoComplete="one-time-code" maxLength={7} value={code} onChange={(e) => setCode(e.target.value)} required autoFocus /></div><Msgs />
+        <button className="btn btn-primary block" disabled={busy}>{busy ? 'Έλεγχος…' : 'Επιβεβαίωση'}</button></form>
+      <p className="center"><button type="button" className="linkbtn" onClick={resend}>Στείλε νέο κωδικό</button> · <button type="button" className="linkbtn" onClick={() => { setStep('creds'); setErr(''); }}>Άκυρο</button></p>
+    </Card>);
+  if (step === 'totp') return (
+    <Card title="Επαλήθευση δύο βημάτων" mood="phone" text="Άνοιξε την εφαρμογή επαλήθευσης στο κινητό σου και γράψε τον κωδικό που βλέπεις.">
+      <form onSubmit={second} className="stack-form"><div className="fld"><label htmlFor="tc">{rec ? 'Κωδικός ανάκτησης' : 'Κωδικός 6 ψηφίων'}</label><input id="tc" inputMode={rec ? 'text' : 'numeric'} autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} required autoFocus /></div>
+        <button type="button" className="linkbtn" onClick={() => { setRec(!rec); setCode(''); }}>{rec ? 'Χρήση κωδικού από την εφαρμογή' : 'Έχασα το κινητό μου: χρήση κωδικού ανάκτησης'}</button><Msgs />
+        <button className="btn btn-primary block" disabled={busy}>{busy ? 'Έλεγχος…' : 'Σύνδεση'}</button></form>
+    </Card>);
   return (
     <Card title="Σύνδεση μαθητή" mood="happy" text="Γεια σου! Δείξε μου ποιος είσαι να συνεχίσουμε το παιχνίδι.">
-      <form onSubmit={submit} className="stack-form">
+      <form onSubmit={creds} className="stack-form">
         <div className="fld"><label htmlFor="le">Email</label><input id="le" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" autoFocus /></div>
         <div className="fld"><label htmlFor="lp">Κωδικός</label><input id="lp" type="password" value={pw} onChange={(e) => setPw(e.target.value)} required autoComplete="current-password" /></div>
-        {err && <p className="err" role="alert">{err}</p>}{note && <p className="ok" role="status">{note}</p>}
-        {unv && <button type="button" className="linkbtn" onClick={resend}>Στείλε ξανά το email επιβεβαίωσης</button>}
+        <Msgs />{unv && <button type="button" className="linkbtn" onClick={resendVerify}>Στείλε ξανά το email επιβεβαίωσης</button>}
         <button className="btn btn-primary block" disabled={busy}>{busy ? 'Σύνδεση…' : 'Σύνδεση'}</button>
       </form>
       <p className="center"><Link className="linkbtn" href="/account/forgot">Ξέχασες τον κωδικό σου;</Link></p>
-      <p className="muted small center">Δεν έχεις λογαριασμό; <Link href={`/account/register`}>Φτιάξε έναν δωρεάν</Link></p>
+      <p className="muted small center">Δεν έχεις λογαριασμό; <Link href="/account/register">Φτιάξε έναν δωρεάν</Link></p>
     </Card>
   );
 }

@@ -6,6 +6,7 @@ import { getSite } from '@/lib/data';
 import Link from 'next/link';
 import Pic from '@/components/Pic';
 import Viewer from '@/components/Viewer';
+import PrintButton from '@/components/play/PrintButton';
 import { MascotSay } from '@/components/Mascot';
 import { fmtDate } from '@/lib/util';
 import { imageOnly } from '@/lib/media';
@@ -42,12 +43,12 @@ export default async function EditionPage({ params, searchParams }) {
         <div><h1 className="h1">{e.title}</h1>
           <p className="meta big">{[e.pub_date && fmtDate(e.pub_date), e.school_year && `Σχολική χρονιά ${e.school_year}`].filter(Boolean).join(' · ')}</p>
           {e.description && <p className="lede">{e.description}</p>}
-          {printOpen && <p><a className="btn btn-ghost" href={`/api/pdf/print/${e.slug}?download=1`}>⬇ Λήψη εκτυπώσιμου PDF</a></p>}
+          {printOpen && <p><PrintButton slug={e.slug} ready={!!adminU || acc.printRequiresAccount === false || !!st?.dl_ok} /></p>}
           {printLocked && <p><Link className="btn btn-ghost" href={loginHref}>🔒 Συνδέσου για λήψη εκτυπώσιμου PDF</Link></p>}
         </div>
       </div>
       <div className="wrap viewer-wrap">
-        {canRead ? <Viewer edition={{ slug: e.slug, title: e.title }} hotspots={hs} printUrl={printOpen ? `/api/pdf/print/${e.slug}?download=1` : null} printLocked={printLocked ? loginHref : null} />
+        {canRead ? <Viewer edition={{ slug: e.slug, title: e.title }} hotspots={hs} printUrl={printOpen ? `/api/pdf/print/${e.slug}?download=1` : null} printLocked={printLocked ? loginHref : null} dlOk={!!adminU || acc.printRequiresAccount === false || !!st?.dl_ok} />
           : readLocked && e.digital_pdf_url ? <MascotSay mood="wave" k="downloadLogin" size={110}><div className="btns"><Link className="btn btn-primary" href={loginHref}>Σύνδεση</Link><Link className="btn btn-ghost" href="/account/register">Φτιάξε λογαριασμό</Link></div></MascotSay>
           : <MascotSay mood="oops" text="Η ψηφιακή έκδοση αυτού του τεύχους δεν είναι διαθέσιμη προς το παρόν." />}
       </div>

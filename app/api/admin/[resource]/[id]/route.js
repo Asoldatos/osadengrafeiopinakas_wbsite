@@ -2,15 +2,15 @@ import { revalidatePath } from 'next/cache';
 import { del } from '@vercel/blob';
 import { q, logActivity } from '@/lib/db';
 import { route, json, body } from '@/lib/guard';
-import { cfgFor, uniqueSlug } from '@/lib/crud';
+import { cfgFor, uniqueSlug, assertRole } from '@/lib/crud';
 
-export const GET = route(async (_req, { params }) => {
-  const cfg = cfgFor(params.resource);
+export const GET = route(async (_req, { params }, user) => {
+  const cfg = cfgFor(params.resource); assertRole(cfg, user);
   const r = await q(`select ${cfg.select} where t.id=$1`, [+params.id]);
   return r[0] ? json(r[0]) : json({ error: 'Δεν βρέθηκε.' }, 404);
 });
 export const PUT = route(async (req, { params }, user) => {
-  const cfg = cfgFor(params.resource);
+  const cfg = cfgFor(params.resource); assertRole(cfg, user);
   const id = +params.id;
   const data = await body(req);
   const clean = {};
@@ -34,7 +34,7 @@ export const PUT = route(async (req, { params }, user) => {
   return json((await q(`select ${cfg.select} where t.id=$1`, [id]))[0]);
 });
 export const DELETE = route(async (_req, { params }, user) => {
-  const cfg = cfgFor(params.resource);
+  const cfg = cfgFor(params.resource); assertRole(cfg, user);
   const id = +params.id;
   const row = (await q(`select * from ${cfg.table} where id=$1`, [id]))[0];
   if (!row) return json({ error: 'Δεν βρέθηκε.' }, 404);

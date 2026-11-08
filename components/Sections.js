@@ -4,6 +4,7 @@ import { createContext, useContext } from 'react';
 import Mascot, { MascotSay } from './Mascot';
 import Pic from './Pic';
 import Media from './Media';
+import NewsletterForm from './NewsletterForm';
 import { isVideoUrl } from '@/lib/media';
 import { fmtDate, safeUrl, toEmbed, cx } from '@/lib/util';
 
@@ -192,9 +193,14 @@ function Contact({ s, p }) {
     </div>
   );
 }
+function Newsletter({ s, p }) {
+  const { site } = useContext(EditCtx), n = site.newsletter || {};
+  return <div className="wrap narrow"><div className="nl-card"><Ed id={s.id} path="title" tag="h2" className="h2">{p.title}</Ed><Ed id={s.id} path="text" tag="p" className="lede">{p.text}</Ed>
+    <NewsletterForm button={p.button} placeholder={n.placeholder} thanks={site.mascot?.messages?.newsletterThanks} /></div></div>;
+}
 const Custom = ({ p }) => <div className="wrap narrow prose" dangerouslySetInnerHTML={{ __html: p.html || '' }} />;
 
-const RENDER = { hero: Hero, pageHeader: PageHeader, latestEdition: LatestEdition, featured: Featured, recent: Recent, categories: Categories, team: Team, about: TextImage, textImage: TextImage, banner: Banner, video: Video, gallery: Gallery, announcement: Announcement, contact: Contact, custom: Custom };
+const RENDER = { hero: Hero, pageHeader: PageHeader, latestEdition: LatestEdition, featured: Featured, recent: Recent, categories: Categories, team: Team, about: TextImage, textImage: TextImage, banner: Banner, video: Video, gallery: Gallery, announcement: Announcement, contact: Contact, newsletter: Newsletter, custom: Custom };
 
 export default function Sections({ sections = [], data, site, editing = false, selectedId, onSelect, onText }) {
   return (

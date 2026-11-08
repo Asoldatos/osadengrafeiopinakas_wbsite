@@ -6,6 +6,7 @@ import { sroute } from '@/lib/sguard';
 import { getSite } from '@/lib/data';
 import { mailConfigured } from '@/lib/mail.mjs';
 import { sendVerifyMail } from '@/lib/student';
+import { randomToken } from '@/lib/crypto.mjs';
 import { verifyTurnstile } from '@/lib/turnstile';
 import { validEmail, passwordOk, cleanNickname, domainAllowed } from '@/lib/students.mjs';
 
@@ -34,6 +35,7 @@ export const POST = sroute(async (req) => {
     st = (await q('insert into students(email,nickname,nick_lower,password_hash,consent_at) values($1,$2,$3,$4,now()) returning id,email,nickname',
       [email, nick.value, nick.value.toLowerCase(), hashPassword(b.password)]))[0];
   } catch (e) { if (String(e.code) === '23505') return json({ error: 'Αυτό το όνομα χρήστη υπάρχει ήδη. Διάλεξε άλλο!' }, 409); throw e; }
+  if (b.newsletter === true) await q("insert into subscribers(email, token, source, status) values($1,$2,'student','pending') on conflict (email) do nothing", [email, randomToken(24)]);   // ενεργοποιείται όταν επιβεβαιωθεί το email
   try { await sendVerifyMail(st); } catch (e) { console.error('Αποτυχία email επιβεβαίωσης:', e.message); }
   return json({ ok: true });
 }, { open: true });

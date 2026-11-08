@@ -57,7 +57,7 @@ export default function Crud({ resource, noun, fields, columns, defaults = {}, s
                 {reorder && <><button type="button" className="icon-btn sm" onClick={() => move(i, -1)} aria-label="Μετακίνηση πάνω">↑</button><button type="button" className="icon-btn sm" onClick={() => move(i, 1)} aria-label="Μετακίνηση κάτω">↓</button></>}
                 {r.status !== undefined && r.status !== null && <button type="button" className="btn btn-ghost sm" onClick={() => toggle(r)}>{r.status === 'published' ? 'Απόκρυψη' : 'Δημοσίευση'}</button>}
                 {previewPath && <a className="btn btn-ghost sm" href={previewPath(r)} target="_blank" rel="noopener noreferrer">Προεπισκόπηση</a>}
-                {extraActions?.(r)}
+                {extraActions?.(r, load)}
                 <button type="button" className="btn btn-primary sm" onClick={() => setEdit({ ...r })}>Επεξεργασία</button>
               </td>
             </tr>))}</tbody></table></div>)}

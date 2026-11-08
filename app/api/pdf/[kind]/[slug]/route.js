@@ -18,7 +18,9 @@ export const GET = route(async (req, { params }) => {
   const st = admin ? null : await getStudent();
   const needs = kind === 'print' ? acc.printRequiresAccount !== false : acc.requireForReading === true;
   if (needs && !admin && !st) return json({ error: 'Για αυτή την ενέργεια χρειάζεται λογαριασμός μαθητή.', login: true }, 401);
+  if (needs && kind === 'print' && !admin && st && !st.dl_ok) return json({ error: 'Χρειάζεται επιβεβαίωση με κωδικό από το email σου.', otp: true }, 403);
   const dl = new URL(req.url).searchParams.get('download') === '1';
+  if (new URL(req.url).searchParams.get('check') === '1') return json({ ok: true });   // έλεγχος πρόσβασης χωρίς λήψη/καταγραφή
   if (kind === 'print' && st && dl && !req.headers.get('range')) {
     const n = (await q("select count(*)::int n from downloads where student_id=$1 and ts > now() - interval '1 hour'", [st.id]))[0].n;
     if (n >= 20) return json({ error: 'Έχεις κατεβάσει πολλά αρχεία σε λίγη ώρα. Δοκίμασε ξανά αργότερα.' }, 429);

@@ -13,6 +13,7 @@ export const POST = sroute(async (req, _c, st) => {
   const { password = '' } = await body(req);
   const row = (await q('select password_hash from students where id=$1', [st.id]))[0];
   if (!verifyPassword(String(password), row.password_hash)) { await recordFail(k); return json({ error: 'Ο κωδικός δεν είναι σωστός.' }, 401); }
+  await q('delete from subscribers where email=$1', [st.email]);
   await q('delete from students where id=$1', [st.id]);
   const res = NextResponse.json({ ok: true });
   res.cookies.set(clearStudentCookie());

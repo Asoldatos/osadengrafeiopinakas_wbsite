@@ -1,10 +1,10 @@
 import { revalidatePath } from 'next/cache';
 import { q, logActivity } from '@/lib/db';
-import { cfgFor, uniqueSlug } from '@/lib/crud';
+import { cfgFor, uniqueSlug, assertRole } from '@/lib/crud';
 import { route, json, body } from '@/lib/guard';
 
-export const GET = route(async (req, { params }) => {
-  const cfg = cfgFor(params.resource);
+export const GET = route(async (req, { params }, user) => {
+  const cfg = cfgFor(params.resource); assertRole(cfg, user);
   const url = new URL(req.url);
   const p = []; let w = '1=1';
   for (const f of cfg.filter || []) { const v = url.searchParams.get(f); if (v) { p.push(+v); w += ` and t.${f}=$${p.length}`; } }
@@ -14,7 +14,7 @@ export const GET = route(async (req, { params }) => {
   return json(rows);
 });
 export const POST = route(async (req, { params }, user) => {
-  const cfg = cfgFor(params.resource);
+  const cfg = cfgFor(params.resource); assertRole(cfg, user);
   if (cfg.noCreate) return json({ error: 'Δεν επιτρέπεται η δημιουργία από εδώ.' }, 405);
   const data = await body(req);
   if (cfg.titleCol && !String(data[cfg.titleCol] || '').trim()) return json({ error: 'Συμπληρώστε τον τίτλο / το όνομα.' }, 400);
