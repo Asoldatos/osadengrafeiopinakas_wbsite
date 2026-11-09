@@ -66,7 +66,7 @@ export default function SettingsForm() {
           <p className="muted small">Οι εγγραφές απαιτούν ρυθμισμένη αποστολή email (Brevo ή Resend). Για πρόσθετη προστασία από ρομπότ μπορείς να ενεργοποιήσεις το Cloudflare Turnstile (οδηγίες στο README). Τα κείμενα απορρήτου επεξεργάζονται από τον Σχεδιαστή, στη σελίδα «privacy».</p></>}
         {tab === 'mascot' && <>{T('mascot.enabled', 'Εμφάνιση του Κιμωλάκη στον ιστότοπο', 'bool')}<p className="muted">Τα μηνύματα που λέει ο Κιμωλάκης σε κάθε περίσταση.</p>{Object.entries(MSGS).map(([k, l]) => T(`mascot.messages.${k}`, l, 'area', { rows: 2 }))}</>}
         {tab === 'maint' && <>{T('maintenance.enabled', 'Ενεργοποίηση λειτουργίας συντήρησης', 'bool', { hint: 'Οι επισκέπτες θα βλέπουν μόνο τη σελίδα συντήρησης. Οι διαχειριστές εξακολουθούν να βλέπουν τον ιστότοπο.' })}
-          {T('maintenance.title', 'Τίτλος')}{T('maintenance.message', 'Μήνυμα', 'area')}{T('maintenance.imageUrl', 'Εικόνα (αν μείνει κενή εμφανίζεται ο Κιμωλάκης με κράνος)', 'image')}</>}
+          {T('maintenance.title', 'Τίτλος')}{T('maintenance.eta', 'Πότε επιστρέφουμε (προαιρετικό)', 'text', { hint: 'Π.χ. «Επιστρέφουμε Δευτέρα στις 10:00». Εμφανίζεται ως σημείωση κάτω από το μήνυμα.' })}{T('maintenance.message', 'Μήνυμα', 'area')}{T('maintenance.imageUrl', 'Εικόνα (αν μείνει κενή εμφανίζεται ο Κιμωλάκης με κράνος)', 'image')}</>}
       </div>
     </div>
   );

@@ -5,16 +5,17 @@ import { getSite } from '@/lib/data';
 import { MascotSay } from '@/components/Mascot';
 export const metadata = { title: 'Πίνακας ελέγχου' };
 
+const safe = (p, fb) => p.catch((e) => { console.error('Πίνακας ελέγχου:', e.message); return fb; });
 export default async function Dashboard() {
   const u = await getAdmin(); const site = await getSite();
   const [a, ed, w, act, media, stu, sub] = await Promise.all([
     q("select count(*)::int total, count(*) filter (where status='published' and (publish_at is null or publish_at<=now()))::int pub, count(*) filter (where status='draft')::int draft, count(*) filter (where status='published' and publish_at>now())::int sched from articles"),
     q("select count(*)::int total, count(*) filter (where status='published')::int pub from editions"),
     q('select count(*)::int total from authors'),
-    q('select user_name, action, detail, ts from activity order by id desc limit 10'),
-    q("select id,url,name,mime from media order by id desc limit 8"),
-    q('select count(*)::int total, count(*) filter (where verified)::int ver from students'),
-    q("select count(*) filter (where status='active')::int active from subscribers"),
+    safe(q('select user_name, action, detail, ts from activity order by id desc limit 10'), []),
+    safe(q("select id,url,name,mime from media order by id desc limit 8"), []),
+    safe(q('select count(*)::int total, count(*) filter (where verified)::int ver from students'), [{ total: 0, ver: 0 }]),
+    safe(q("select count(*) filter (where status='active')::int active from subscribers"), [{ active: 0 }]),
   ]);
   const cards = [['Συνολικά άρθρα', a[0].total], ['Δημοσιευμένα', a[0].pub], ['Πρόχειρα', a[0].draft], ['Προγραμματισμένα', a[0].sched], ['Τεύχη', ed[0].total], ['Συντάκτες', w[0].total], ['Λογαριασμοί μαθητών', stu[0].total], ['Επιβεβαιωμένοι', stu[0].ver], ['Συνδρομητές newsletter', sub[0].active]];
   return (
