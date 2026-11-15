@@ -14,17 +14,20 @@ const Chalk = () => (
   </svg>
 );
 
-/** Σελίδα συντήρησης: μενού, φόρμα ενημερωτικού και πλαϊνό πάνελ «Απόρρητο» (το περιεχόμενο μετακινείται ομαλά αριστερά, οι πληροφορίες ανοίγουν δεξιά). */
-export default function MaintenanceView({ site, privacy }) {
+/** Σελίδα συντήρησης: μενού, φόρμα ενημερωτικού και πλαϊνό πάνελ («Απόρρητο», «Βοήθεια email») (το περιεχόμενο μετακινείται ομαλά αριστερά, οι πληροφορίες ανοίγουν δεξιά). */
+export default function MaintenanceView({ site, panels = {} }) {
   const path = usePathname();
-  const [open, setOpen] = useState(path === '/privacy' && !!privacy);
-  const closeRef = useRef(null), btnRef = useRef(null), first = useRef(true);
+  const fromPath = path === '/privacy' ? 'privacy' : path === '/email-help' ? 'help' : null;
+  const [panel, setPanel] = useState(fromPath && panels[fromPath] ? fromPath : null);
+  const open = !!panel && !!panels[panel], data = open ? panels[panel] : null;
+  const closeRef = useRef(null), lastBtn = useRef(null), first = useRef(true);
+  const show = (key, el) => { if (el) lastBtn.current = el; setPanel(panel === key ? null : key); };
   const m = site.maintenance || {}, n = site.newsletter || {};
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    if (open) closeRef.current?.focus(); else btnRef.current?.focus();
+    if (open) closeRef.current?.focus(); else lastBtn.current?.focus();
   }, [open]);
-  useEffect(() => { const k = (e) => e.key === 'Escape' && setOpen(false); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
+  useEffect(() => { const k = (e) => e.key === 'Escape' && setPanel(null); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
   const toNews = () => { const el = document.getElementById('newsletter'); el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el?.querySelector('input[type=email]')?.focus({ preventScroll: true }), 450); };
   return (
     <div className={`maint board${open ? ' with-panel' : ''}`}>
@@ -33,7 +36,8 @@ export default function MaintenanceView({ site, privacy }) {
         {site.logoUrl && <Media src={site.logoUrl} alt={site.name} className="maint-logo" width="130" height="48" loading="eager" />}
         <nav aria-label="Μενού" className="maint-nav">
           {n.enabled !== false && <button type="button" className="btn btn-light sm" aria-label={n.title || 'Ενημερωτικό δελτίο'} onClick={toNews}>💌 <span>{n.title || 'Ενημερωτικό δελτίο'}</span></button>}
-          {privacy && <button ref={btnRef} type="button" className="btn btn-light sm" aria-expanded={open} aria-label="Απόρρητο" aria-controls="privacy-panel" onClick={() => setOpen(!open)}>🔒 <span>Απόρρητο</span></button>}
+          {panels.help && <button type="button" className="btn btn-light sm" aria-label="Βοήθεια για τα email" aria-expanded={panel === 'help'} aria-controls="side-panel" onClick={(e) => show('help', e.currentTarget)}>📬 <span>Βοήθεια email</span></button>}
+          {panels.privacy && <button type="button" className="btn btn-light sm" aria-label="Απόρρητο" aria-expanded={panel === 'privacy'} aria-controls="side-panel" onClick={(e) => show('privacy', e.currentTarget)}>🔒 <span>Απόρρητο</span></button>}
         </nav></div></header>
       <div className="maint-split">
         <main className="maint-main" id="main">
@@ -42,14 +46,13 @@ export default function MaintenanceView({ site, privacy }) {
             <h1 className="h1">{m.title}</h1><p className="lede">{m.message}</p>
             {m.eta && <p className="eta">⏱️ {m.eta}</p>}
           </div>
-          {n.enabled !== false && <div className="maint-news"><NewsletterForm id="newsletter" dark title={n.title} text={n.maintenanceText || n.text} button={n.button} placeholder={n.placeholder} thanks={site.thanks} onPrivacy={privacy ? () => setOpen(true) : undefined} /></div>}
+          {n.enabled !== false && <div className="maint-news"><NewsletterForm id="newsletter" dark title={n.title} text={n.maintenanceText || n.text} button={n.button} placeholder={n.placeholder} thanks={site.thanks} onPrivacy={panels.privacy ? () => setPanel('privacy') : undefined} onHelp={panels.help ? () => setPanel('help') : undefined} /></div>}
         </main>
-        {privacy && (
-          <aside id="privacy-panel" className="maint-panel" aria-label="Απόρρητο και όροι χρήσης" aria-hidden={!open}>
-            <div className="maint-panel-in">
-              <button ref={closeRef} type="button" className="modal-x" onClick={() => setOpen(false)} aria-label="Κλείσιμο">✕</button>
-              <h2 className="h2">{privacy.title}</h2>{privacy.subtitle && <p className="lede">{privacy.subtitle}</p>}
-              <div className="prose" dangerouslySetInnerHTML={{ __html: privacy.html }} />
+        {Object.keys(panels).length > 0 && (
+          <aside id="side-panel" className="maint-panel" aria-label={data?.title || 'Πληροφορίες'} aria-hidden={!open}>
+            <div className="maint-panel-in" key={panel}>
+              <button ref={closeRef} type="button" className="modal-x" onClick={() => setPanel(null)} aria-label="Κλείσιμο">✕</button>
+              {data && <><h2 className="h2">{data.title}</h2>{data.subtitle && <p className="lede">{data.subtitle}</p>}<div className="prose" dangerouslySetInnerHTML={{ __html: data.html }} /></>}
             </div>
           </aside>)}
       </div>

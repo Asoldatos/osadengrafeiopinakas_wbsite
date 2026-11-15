@@ -6,11 +6,19 @@ export function MascotProvider({ enabled = true, messages = {}, children }) {
   return <Ctx.Provider value={{ enabled, messages }}>{children}</Ctx.Provider>;
 }
 export const useMascot = () => useContext(Ctx);
+/** Στολή του Κιμωλάκη (π.χ. «santa» στα Χριστούγεννα). Ορίζεται από το εποχιακό θέμα. */
+const CostumeCtx = createContext('none');
+export const CostumeProvider = ({ costume = 'none', children }) => <CostumeCtx.Provider value={costume}>{children}</CostumeCtx.Provider>;
+export const useCostume = () => useContext(CostumeCtx);
 
 const INK = '#1D2A26', CHALK = '#FFFDF3';
+const RED = '#C8102E';
+const ArmCtx = createContext(false);
 const Arm = ({ d, hx, hy, cls }) => (
   <g className={cls}>
-    <path d={d} fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />
+    <ArmCtx.Consumer>{(santa) => (santa
+      ? <><path d={d} fill="none" stroke={INK} strokeWidth="11" strokeLinecap="round" /><path className="m-sleeve" d={d} fill="none" stroke={RED} strokeWidth="7" strokeLinecap="round" /></>
+      : <path d={d} fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />)}</ArmCtx.Consumer>
     <circle cx={hx} cy={hy} r="7" fill={CHALK} stroke={INK} strokeWidth="4" />
   </g>
 );
@@ -19,10 +27,37 @@ const Eye = ({ x, rx = 5, ry = 7 }) => (
 );
 const Arc = ({ x }) => <path d={`M${x - 7} 101 Q${x} 90 ${x + 7} 101`} fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />;
 
+/* Στολή Άγιου Βασίλη: παλτό, ζώνη, γένια, μουστάκι, σκούφος. Κάθε μέρος έχει δική του κλάση για τα εφέ «μεταμόρφωσης». */
+const SantaCoat = () => (
+  <g className="m-santa m-coat">
+    <path d="M58 132 H142 V176 Q142 206 112 206 H88 Q58 206 58 176 Z" fill={RED} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <rect x="94" y="132" width="12" height="64" rx="3" fill="#fff" stroke={INK} strokeWidth="3" />
+    <rect x="58" y="150" width="84" height="16" fill={INK} /><rect x="93" y="147" width="14" height="22" rx="3" fill="#F6C453" stroke={INK} strokeWidth="3" />
+    <rect x="58" y="193" width="84" height="15" rx="7" fill="#fff" stroke={INK} strokeWidth="4" />
+  </g>
+);
+const SantaBeard = () => (
+  <g className="m-santa m-beard">
+    <path d="M66 108 Q56 140 74 164 Q86 182 100 184 Q114 182 126 164 Q144 140 134 108 Q122 128 100 128 Q78 128 66 108 Z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
+    <path d="M78 150 q6 6 12 0 M108 156 q6 6 12 0 M92 170 q8 6 16 0" fill="none" stroke="#E6E1D6" strokeWidth="3" strokeLinecap="round" />
+    <ellipse cx="89" cy="114" rx="11" ry="7" fill="#fff" stroke={INK} strokeWidth="3" /><ellipse cx="111" cy="114" rx="11" ry="7" fill="#fff" stroke={INK} strokeWidth="3" />
+  </g>
+);
+const SantaHat = () => (
+  <g className="m-santa m-hat">
+    <path d="M60 42 C62 16 96 2 128 10 C146 14 156 30 148 44" fill={RED} stroke={INK} strokeWidth="5" strokeLinejoin="round" />
+    <path d="M70 30 Q96 14 122 18" fill="none" stroke="#E03A55" strokeWidth="5" strokeLinecap="round" opacity=".7" />
+    <rect x="52" y="38" width="96" height="17" rx="8" fill="#fff" stroke={INK} strokeWidth="4" />
+    <circle className="m-pom" cx="153" cy="46" r="9" fill="#fff" stroke={INK} strokeWidth="3.5" />
+  </g>
+);
+
 /** Κιμωλάκης – ο επίσημος μασκότ. Διαφορετικές διαθέσεις/πόζες, κινούμενα μέρη με CSS. */
-export default function Mascot({ mood = 'happy', size = 160, className = '', title }) {
+export default function Mascot({ mood = 'happy', size = 160, className = '', title, costume: forced }) {
   const { enabled } = useMascot();
+  const ctxCostume = useCostume();
   if (!enabled) return null;
+  const santa = (forced ?? ctxCostume) === 'santa';
   const arc = mood === 'celebrate';
   const mouth = {
     happy: <path d="M88 120 Q100 134 112 120" fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />,
@@ -35,9 +70,9 @@ export default function Mascot({ mood = 'happy', size = 160, className = '', tit
     oops: <path d="M88 131 Q100 119 112 131" fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />,
   }[mood] || null;
   return (
-    <svg className={`mascot ${className}`} viewBox="0 0 200 250" width={size} height={size * 1.25} role="img" aria-label={title || 'Κιμωλάκης, ο μασκότ μας'}>
+    <svg className={`mascot${santa ? ' is-santa' : ''} ${className}`} viewBox="0 0 200 250" width={size} height={size * 1.25} role="img" aria-label={title || 'Κιμωλάκης, ο μασκότ μας'}>
       <ellipse cx="100" cy="238" rx="50" ry="8" fill="rgba(0,0,0,.14)" />
-      <g className="m-float">
+      <ArmCtx.Provider value={santa}><g className="m-float">
         <path d="M84 200 L80 228 M116 200 L120 228" stroke={INK} strokeWidth="6" strokeLinecap="round" />
         <ellipse cx="75" cy="232" rx="12" ry="6" fill={INK} /><ellipse cx="125" cy="232" rx="12" ry="6" fill={INK} />
         {/* σώμα-κιμωλία */}
@@ -45,9 +80,11 @@ export default function Mascot({ mood = 'happy', size = 160, className = '', tit
         <path d="M70 62 Q65 120 72 176" fill="none" stroke="#EDE5CC" strokeWidth="7" strokeLinecap="round" />
         <rect x="58" y="152" width="84" height="30" fill="#1FA0FF" stroke={INK} strokeWidth="5" />
         <path d="M70 167 h18 M96 167 h8" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity=".8" />
+        {santa && <SantaCoat />}
         <circle cx="76" cy="52" r="1.8" fill="#cfc7ae" /><circle cx="124" cy="60" r="1.5" fill="#cfc7ae" /><circle cx="108" cy="46" r="1.3" fill="#cfc7ae" />
         {/* πρόσωπο */}
         <circle cx="74" cy="118" r="8" fill="#FF9FA3" opacity=".65" /><circle cx="126" cy="118" r="8" fill="#FF9FA3" opacity=".65" />
+        {santa && <SantaBeard />}
         {arc ? (<><Arc x={84} /><Arc x={116} /></>) : mood === 'confused' ? (<><Eye x={84} rx={6.5} ry={8.5} /><Eye x={116} rx={4} ry={5} /><path d="M76 84 L92 89 M108 87 L124 82" stroke={INK} strokeWidth="4" strokeLinecap="round" /></>)
           : mood === 'reading' ? (<><Eye x={84} ry={3.6} /><Eye x={116} ry={3.6} /></>)
           : mood === 'oops' ? (<><Eye x={84} /><Eye x={116} /><path d="M75 90 L92 83 M108 83 L125 90" stroke={INK} strokeWidth="4" strokeLinecap="round" /><path d="M78 110 q-5 9 0 12 q5 -3 0 -12z" fill="#7FD3FF" stroke={INK} strokeWidth="2" /></>)
@@ -69,10 +106,11 @@ export default function Mascot({ mood = 'happy', size = 160, className = '', tit
           : mood === 'work' ? (<><Arm d="M58 120 Q38 132 36 158" hx={36} hy={162} />
               <path d="M170 70 L184 28" stroke="#9aa5ad" strokeWidth="9" strokeLinecap="round" /><circle cx="185" cy="24" r="10" fill="none" stroke="#9aa5ad" strokeWidth="7" strokeDasharray="44 20" />
               <Arm d="M142 118 Q168 112 170 74" hx={170} hy={72} cls="m-hammer" />
-              <path d="M60 46 Q100 -4 140 46 Z" fill="#FFC21F" stroke={INK} strokeWidth="5" strokeLinejoin="round" /><rect x="52" y="42" width="96" height="11" rx="5.5" fill="#FFC21F" stroke={INK} strokeWidth="5" /></>)
+              {!santa && <><path d="M60 46 Q100 -4 140 46 Z" fill="#FFC21F" stroke={INK} strokeWidth="5" strokeLinejoin="round" /><rect x="52" y="42" width="96" height="11" rx="5.5" fill="#FFC21F" stroke={INK} strokeWidth="5" /></>}</>)
           : mood === 'oops' ? (<><Arm d="M58 122 Q46 150 50 176" hx={50} hy={180} /><Arm d="M142 122 Q154 150 150 176" hx={150} hy={180} /></>)
           : (<><Arm d="M58 120 Q38 132 36 158" hx={36} hy={162} /><Arm d="M142 120 Q162 132 164 158" hx={164} hy={162} /></>)}
-      </g>
+        {santa && <SantaHat />}
+      </g></ArmCtx.Provider>
       {mood === 'celebrate' && (<g className="m-conf">
         <path className="m-pop" d="M20 30 l4 9 9 1 -7 6 2 9 -8 -5 -8 5 2 -9 -7 -6 9 -1z" fill="#FFC21F" stroke={INK} strokeWidth="2" />
         <path className="m-pop d2" d="M170 24 l3 7 7 1 -5 5 2 7 -7 -4 -6 4 2 -7 -5 -5 7 -1z" fill="#00C8E0" stroke={INK} strokeWidth="2" />

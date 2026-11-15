@@ -2,15 +2,15 @@ import { revalidatePath } from 'next/cache';
 import { del } from '@vercel/blob';
 import { q, logActivity } from '@/lib/db';
 import { route, json, body } from '@/lib/guard';
-import { cfgFor, uniqueSlug, assertRole } from '@/lib/crud';
+import { cfgFor, uniqueSlug, assertPerm, publishGuard } from '@/lib/crud';
 
 export const GET = route(async (_req, { params }, user) => {
-  const cfg = cfgFor(params.resource); assertRole(cfg, user);
+  const cfg = cfgFor(params.resource); assertPerm(cfg, user, true);
   const r = await q(`select ${cfg.select} where t.id=$1`, [+params.id]);
   return r[0] ? json(r[0]) : json({ error: 'Δεν βρέθηκε.' }, 404);
 });
 export const PUT = route(async (req, { params }, user) => {
-  const cfg = cfgFor(params.resource); assertRole(cfg, user);
+  const cfg = cfgFor(params.resource); assertPerm(cfg, user);
   const id = +params.id;
   const data = await body(req);
   const clean = {};
@@ -19,6 +19,12 @@ export const PUT = route(async (req, { params }, user) => {
   if (cfg.slug && ('slug' in clean || cfg.titleCol in clean) && clean.slug !== undefined) clean.slug = await uniqueSlug(cfg, clean.slug || clean[cfg.titleCol], id);
   else delete clean.slug;
   if (cfg.validate) { const cl = {}; for (const [k, v] of Object.entries(clean)) if (cfg.cols[k]) cl[k] = cfg.cols[k].c(v); const msg = cfg.validate(cl); if (msg) return json({ error: msg }, 400); }
+  if (cfg.publish || cfg.editable) {
+    const cur = (await q(`select * from ${cfg.table} where id=$1`, [id]))[0];
+    if (!cur) return json({ error: 'Δεν βρέθηκε.' }, 404);
+    if (cfg.editable && !cfg.editable(cur)) return json({ error: 'Αυτό το στοιχείο έχει ήδη σταλεί ή στέλνεται και δεν αλλάζει πια.' }, 409);
+    if (cfg.publish) { const c2 = {}; for (const k of ['status', 'publish_at']) if (k in clean) c2[k] = cfg.cols[k].c(clean[k]); publishGuard(cfg, user, cur, c2); }
+  }
   const sets = [], vals = [];
   for (const [k, v] of Object.entries(clean)) {
     const d = cfg.cols[k]; const val = d.c(v); vals.push(d.json ? JSON.stringify(val) : val);
@@ -34,10 +40,12 @@ export const PUT = route(async (req, { params }, user) => {
   return json((await q(`select ${cfg.select} where t.id=$1`, [id]))[0]);
 });
 export const DELETE = route(async (_req, { params }, user) => {
-  const cfg = cfgFor(params.resource); assertRole(cfg, user);
+  const cfg = cfgFor(params.resource); assertPerm(cfg, user);
   const id = +params.id;
   const row = (await q(`select * from ${cfg.table} where id=$1`, [id]))[0];
   if (!row) return json({ error: 'Δεν βρέθηκε.' }, 404);
+  if (cfg.deletable && !cfg.deletable(row)) return json({ error: 'Δεν μπορεί να διαγραφεί όσο στέλνεται.' }, 409);
+  if (cfg.publish && row.status === 'published') publishGuard(cfg, user, row, { status: 'draft' });
   await q(`delete from ${cfg.table} where id=$1`, [id]);
   const urls = params.resource === 'media' ? [row.url] : params.resource === 'editions' ? [row.digital_pdf_url, row.print_pdf_url] : [];
   for (const u of urls.filter((x) => x && x.includes('.public.blob.vercel-storage.com'))) { try { await del(u); } catch {} }

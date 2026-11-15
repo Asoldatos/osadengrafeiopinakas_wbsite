@@ -14,5 +14,5 @@ export default function Page() {
     {st && <div className="stats"><div className="stat"><b>{st.active}</b><span>Ενεργοί συνδρομητές</span></div><div className="stat"><b>{st.pending}</b><span>Περιμένουν επιβεβαίωση</span></div><div className="stat"><b>{st.unsub}</b><span>Έχουν διαγραφεί</span></div></div>}
     <p className="muted">Εδώ βλέπεις όλα τα email που έχουν γραφτεί. Μόνο οι «Ενεργοί» λαμβάνουν μηνύματα. Κάθε εγγραφή επιβεβαιώνεται με email και κάθε μήνυμα έχει σύνδεσμο διαγραφής.</p>
     <p><a className="btn btn-ghost sm" href="/api/admin/newsletter/export">⬇ Λήψη λίστας (CSV)</a></p>
-    <Crud resource="subscribers" noun="συνδρομητής" fields={fields} columns={columns} noNew emptyKey="empty" /></>);
+    <Crud noToggle resource="subscribers" noun="συνδρομητής" fields={fields} columns={columns} noNew emptyKey="empty" /></>);
 }

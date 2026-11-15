@@ -2,13 +2,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import SoundToggle from './SoundToggle';
+import SoundControls from './audio/SoundControls';
+import { ThemeToggle, Lights, useSeasonal } from './theme/ThemeRuntime';
 import Media from './Media';
 import Mascot from './Mascot';
 import { safeUrl } from '@/lib/util';
 
 export default function SiteNav({ name, logoUrl, items, student }) {
-  const path = usePathname(); const [open, setOpen] = useState(false);
+  const path = usePathname(); const [open, setOpen] = useState(false); const sea = useSeasonal();
   useEffect(() => setOpen(false), [path]);
   useEffect(() => { const k = (e) => e.key === 'Escape' && setOpen(false); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
   const active = (h) => (h === '/' ? path === '/' : path === h || path.startsWith(h + '/'));
@@ -21,9 +22,11 @@ export default function SiteNav({ name, logoUrl, items, student }) {
         </nav>
         {student ? <Link href="/account" className="acct" aria-label={`Ο λογαριασμός μου: ${student.nickname}, επίπεδο ${student.level}`}><Mascot mood={student.avatar} size={28} /><span className="acct-t">{student.nickname}<small>Επ. {student.level}</small></span></Link>
           : <Link href="/account/login" className="btn btn-primary sm acct-login">Σύνδεση</Link>}
-        <SoundToggle />
+        <ThemeToggle />
+        <SoundControls showMusic={sea.active} />
         <button type="button" className="burger" aria-expanded={open} aria-controls="mainnav" onClick={() => setOpen(!open)}><span className="sr-only">{open ? 'Κλείσιμο μενού' : 'Άνοιγμα μενού'}</span><i /><i /><i /></button>
       </div>
+      <Lights />
     </header>
   );
 }

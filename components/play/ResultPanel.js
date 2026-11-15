@@ -1,4 +1,6 @@
 'use client';
+import { useEffect } from 'react';
+import { audio } from '../audio/engine';
 import { MascotSay } from '../Mascot';
 import { BADGES } from '@/lib/progress.mjs';
 import { levelInfo } from '@/lib/progress.mjs';
@@ -6,6 +8,7 @@ import { levelInfo } from '@/lib/progress.mjs';
 /** Αποτέλεσμα παιχνιδιού: XP, επίπεδο, νέα παράσημα. xp = απάντηση του διακομιστή (ή null για επισκέπτες). */
 export default function ResultPanel({ mood = 'celebrate', title, lines = [], xp, guest, error, children }) {
   const info = xp ? levelInfo(xp.total) : null;
+  useEffect(() => { if (xp?.leveledUp || xp?.badges?.length) audio().ui('sparkle'); else if (xp?.gained > 0 || mood === 'celebrate') audio().ui('success', { volume: 0.8 }); }, [xp]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="result" role="status" aria-live="polite">
       <MascotSay mood={xp?.leveledUp ? 'celebrate' : mood} text={xp?.leveledUp ? `Ανέβηκες στο επίπεδο ${xp.level}! Συνέχισε έτσι!` : title} size={110} />

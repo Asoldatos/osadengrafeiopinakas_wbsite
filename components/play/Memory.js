@@ -4,6 +4,7 @@ import Mascot from '../Mascot';
 import ResultPanel from './ResultPanel';
 import { dealMemory } from '@/lib/games.mjs';
 import { api } from '@/lib/clientUpload';
+import { audio } from '../audio/engine';
 
 export default function Memory({ signedIn }) {
   const [cards, setCards] = useState([]), [open, setOpen] = useState([]), [matched, setMatched] = useState(new Set()), [moves, setMoves] = useState(0), [now, setNow] = useState(0), [res, setRes] = useState(null), [started, setStarted] = useState(false);
@@ -20,6 +21,7 @@ export default function Memory({ signedIn }) {
   const flip = (i) => {
     if (lock.current || res || done.current.has(i) || openRef.current.includes(i)) return;
     if (!t0.current) { t0.current = Date.now(); setNow(Date.now()); setStarted(true); }
+    audio().flip();
     const o = [...openRef.current, i]; openRef.current = o; setOpen(o);
     if (o.length < 2) return;
     mv.current += 1; setMoves(mv.current);

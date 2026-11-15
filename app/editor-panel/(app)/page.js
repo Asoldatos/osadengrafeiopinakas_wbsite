@@ -3,16 +3,17 @@ import { q } from '@/lib/db';
 import { getAdmin } from '@/lib/auth';
 import { getSite } from '@/lib/data';
 import { MascotSay } from '@/components/Mascot';
+import { can } from '@/lib/perms.mjs';
 export const metadata = { title: 'Πίνακας ελέγχου' };
 
 const safe = (p, fb) => p.catch((e) => { console.error('Πίνακας ελέγχου:', e.message); return fb; });
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }) {
   const u = await getAdmin(); const site = await getSite();
   const [a, ed, w, act, media, stu, sub] = await Promise.all([
     q("select count(*)::int total, count(*) filter (where status='published' and (publish_at is null or publish_at<=now()))::int pub, count(*) filter (where status='draft')::int draft, count(*) filter (where status='published' and publish_at>now())::int sched from articles"),
     q("select count(*)::int total, count(*) filter (where status='published')::int pub from editions"),
     q('select count(*)::int total from authors'),
-    safe(q('select user_name, action, detail, ts from activity order by id desc limit 10'), []),
+    safe(q(`select user_name, action, detail, ts from activity ${u.role === 'superadmin' ? '' : "where user_id is null or user_id not in (select id from users where role='superadmin')"} order by id desc limit 10`), []),
     safe(q("select id,url,name,mime from media order by id desc limit 8"), []),
     safe(q('select count(*)::int total, count(*) filter (where verified)::int ver from students'), [{ total: 0, ver: 0 }]),
     safe(q("select count(*) filter (where status='active')::int active from subscribers"), [{ active: 0 }]),
@@ -21,12 +22,14 @@ export default async function Dashboard() {
   return (
     <div>
       <h1>Καλώς ήρθες{u.name ? `, ${u.name}` : ''}!</h1>
+      {searchParams?.denied && <div className="card warn" role="alert"><MascotSay mood="oops" text="Δεν έχεις δικαίωμα πρόσβασης σε εκείνη την ενότητα. Αν το χρειάζεσαι, ζήτησέ το από τον Superadmin." size={80} /></div>}
       <div className="stats">{cards.map(([l, n]) => <div key={l} className="stat"><b>{n}</b><span>{l}</span></div>)}</div>
       {!u.totp_enabled && <div className="card warn"><MascotSay mood="phone" k="twofa" size={90}><Link className="btn btn-primary sm" href="/editor-panel/security">Ενεργοποίηση 2FA</Link></MascotSay></div>}
       <div className="cols">
         <section className="card"><h2>Γρήγορες ενέργειες</h2><div className="qa">
-          <Link className="btn btn-primary" href="/editor-panel/articles">📝 Νέο άρθρο</Link><Link className="btn btn-ghost" href="/editor-panel/editions">📰 Νέο τεύχος</Link>
-          {u.role === 'admin' && <Link className="btn btn-ghost" href="/editor-panel/builder">🎨 Σχεδιαστής ιστοτόπου</Link>}<Link className="btn btn-ghost" href="/editor-panel/media">🖼️ Πολυμέσα</Link></div>
+          {can(u, 'content') && <Link className="btn btn-primary" href="/editor-panel/articles">📝 Νέο άρθρο</Link>}{can(u, 'editions') && <Link className="btn btn-ghost" href="/editor-panel/editions">📰 Νέο τεύχος</Link>}
+          {can(u, 'appearance') && <Link className="btn btn-ghost" href="/editor-panel/builder">🎨 Σχεδιαστής ιστοτόπου</Link>}{can(u, 'uploads') && <Link className="btn btn-ghost" href="/editor-panel/media">🖼️ Πολυμέσα</Link>}
+          {can(u, 'themes') && <Link className="btn btn-ghost" href="/editor-panel/themes">🎄 Χριστούγεννα</Link>}{can(u, 'admins') && <Link className="btn btn-ghost" href="/editor-panel/admins">🛡️ Διαχειριστές</Link>}</div>
           <h2>Κατάσταση ιστοτόπου</h2>
           <p><span className={`pill ${site.maintenance?.enabled ? 'draft' : 'published'}`}>{site.maintenance?.enabled ? 'Λειτουργία συντήρησης' : 'Σε λειτουργία'}</span> · Βάση δεδομένων: <span className="pill published">συνδεδεμένη</span></p>
         </section>

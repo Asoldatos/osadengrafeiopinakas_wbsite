@@ -33,14 +33,14 @@ export const GET = route(async (req, { params }) => {
   if (new URL(req.url).searchParams.get('revisions'))
     return json(await q('select id,note,user_name,created_at from revisions where slug=$1 order by id desc limit 40', [params.slug]));
   return json({ draft: r.draft, published: r.published, updated_at: r.updated_at });
-}, { role: 'admin' });
+}, { perm: 'appearance' });
 
 export const PUT = route(async (req, { params }) => {
   const { draft } = await body(req);
   const clean = cleanSections(draft);
   const r = await q('update pages set draft=$1::jsonb, updated_at=now() where slug=$2 returning slug', [JSON.stringify(clean), params.slug]);
   return r.length ? json({ ok: true, savedAt: new Date().toISOString() }) : json({ error: 'Δεν βρέθηκε η σελίδα.' }, 404);
-}, { role: 'admin' });
+}, { perm: 'appearance' });
 
 export const POST = route(async (req, { params }, user) => {
   const action = new URL(req.url).searchParams.get('action');
@@ -66,4 +66,4 @@ export const POST = route(async (req, { params }, user) => {
     return json({ ok: true, draft: rev.data });
   }
   return json({ error: 'Άγνωστη ενέργεια.' }, 400);
-}, { role: 'admin' });
+}, { perm: 'appearance' });

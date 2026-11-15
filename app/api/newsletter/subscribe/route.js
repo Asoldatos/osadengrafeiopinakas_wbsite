@@ -26,7 +26,8 @@ export const POST = sroute(async (req) => {
   if (!(await verifyTurnstile(b.cf, ip))) return json({ error: 'Ο έλεγχος «δεν είμαι ρομπότ» δεν πέρασε. Δοκίμασε ξανά.' }, 400);
   const token = randomToken(32), name = cleanText(b.name, 60).trim();
   const ex = (await q('select id, status from subscribers where email=$1', [email]))[0];
-  if (ex?.status === 'active') return json({ ok: true });             // δεν αποκαλύπτουμε ότι υπάρχει ήδη
+  // Ρητό μήνυμα «ήδη εγγεγραμμένος» (ζητήθηκε για καλύτερη εμπειρία). Το όριο αιτημάτων ανά IP/email περιορίζει την κατάχρηση.
+  if (ex?.status === 'active') return json({ error: site.mascot?.messages?.newsletterAlready || 'Είσαι ήδη εγγεγραμμένος στο ενημερωτικό δελτίο!', already: true }, 409);
   if (ex) await q("update subscribers set status='pending', confirm_hash=$1, confirm_expires=now() + interval '48 hours', unsub_at=null where id=$2", [sha256(token), ex.id]);
   else await q("insert into subscribers(email, name, token, source, confirm_hash, confirm_expires) values($1,$2,$3,'site',$4, now() + interval '48 hours')", [email, name, randomToken(24), sha256(token)]);
   try {

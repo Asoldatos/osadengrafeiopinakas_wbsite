@@ -12,14 +12,16 @@ export const POST = route(async (req) => {
   const ip = clientIp(req);
   const lock = await checkLock('login', e, ip);
   if (lock.locked) return json({ error: lockMessage(lock.minutes), locked: true }, 429);
-  const r = await q('select * from users where email=$1', [e]);
+  const r = await q('select * from users where email=$1 or lower(username)=$1', [e]);
   const u = r[0];
   const ok = verifyPassword(String(password), u ? u.password_hash : DUMMY_HASH) && !!u;
-  if (!ok) { await registerFailure('login', e, ip, u || null, '/editor-panel/forgot'); return json({ error: 'Λάθος email ή κωδικός.' }, 401); }
+  if (!ok) { await registerFailure('login', e, ip, u || null, '/editor-panel/forgot'); return json({ error: 'Λάθος στοιχεία σύνδεσης ή κωδικός.' }, 401); }
+  if (u.disabled) return json({ error: 'Ο λογαριασμός έχει απενεργοποιηθεί. Επικοινωνήστε με τον διαχειριστή.' }, 403);
   await clearFailures('login', e, ip);
+  await q('update users set last_login=now() where id=$1', [u.id]);
   const { token, ttl } = await createSession(u.id, u.totp_enabled);
   if (!u.totp_enabled) await logActivity(u, 'Σύνδεση');
-  const res = NextResponse.json({ ok: true, need2fa: u.totp_enabled });
+  const res = NextResponse.json({ ok: true, need2fa: u.totp_enabled, mustChange: u.must_change });
   res.cookies.set(sessionCookie(token, ttl));
   return res;
 }, { open: true });

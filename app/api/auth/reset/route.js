@@ -17,7 +17,7 @@ export const POST = route(async (req) => {
   if (!row) return bad();
   const claimed = await q('update password_resets set used_at=now() where id=$1 and used_at is null returning id', [row.id]);
   if (!claimed.length) return bad();
-  await q('update users set password_hash=$1 where id=$2', [hashPassword(password), row.user_id]);
+  await q('update users set password_hash=$1, must_change=false where id=$2', [hashPassword(password), row.user_id]);
   await q('delete from sessions where user_id=$1', [row.user_id]);
   await q('delete from attempts where key like $2 or key=$1', [`2fa:${row.user_id}`, `login:%:${row.email}`]);
   await logActivity(row, 'Επαναφορά κωδικού μέσω email');

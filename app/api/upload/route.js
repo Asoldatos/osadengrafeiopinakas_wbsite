@@ -38,4 +38,4 @@ export const POST = route(async (req, _c, user) => {
   } else row = (await q('insert into media(url,name,mime,size) values($1,$2,$3,$4) returning *', [blob.url, `${base}.${ext}`, mime, buf.length]))[0];
   await logActivity(user, 'Μεταφόρτωση εικόνας', row.name);
   return json(row, 201);
-});
+}, { perm: 'uploads' });

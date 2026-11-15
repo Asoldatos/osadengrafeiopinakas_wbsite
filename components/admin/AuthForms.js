@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { MascotSay } from '../Mascot';
 import { api } from '@/lib/clientUpload';
+import JunkHint from '../JunkHint';
 
 export function ForgotForm({ name }) {
   const [email, setEmail] = useState(''), [err, setErr] = useState(''), [busy, setBusy] = useState(false), [sent, setSent] = useState(false);
@@ -11,7 +12,7 @@ export function ForgotForm({ name }) {
     <main className="login board" id="main"><div className="login-card">
       <MascotSay mood={sent ? 'celebrate' : 'confused'} text={sent ? 'Το γράμμα έφυγε! Έλεγξε το email σου (και τον φάκελο ανεπιθύμητων).' : 'Ξέχασες τον κωδικό σου; Δεν πειράζει, θα στείλουμε ένα μήνυμα να βάλεις νέο!'} size={110} />
       <h1>{sent ? 'Έλεγξε το email σου' : 'Επαναφορά κωδικού'}</h1><p className="muted">{name}</p>
-      {sent ? (<><p>Αν υπάρχει λογαριασμός με το email <b>{email}</b>, μόλις στείλαμε έναν σύνδεσμο επαναφοράς. Ισχύει για <b>1 ώρα</b>.</p><p className="muted small">Δεν ήρθε τίποτα σε λίγα λεπτά; Κοίταξε στα ανεπιθύμητα ή δοκίμασε ξανά.</p></>) : (
+      {sent ? (<><p>Αν υπάρχει λογαριασμός με το email <b>{email}</b>, μόλις στείλαμε έναν σύνδεσμο επαναφοράς. Ισχύει για <b>1 ώρα</b>.</p><p className="muted small">Δεν ήρθε τίποτα σε λίγα λεπτά; Κοίταξε στα ανεπιθύμητα ή δοκίμασε ξανά.</p><JunkHint /></>) : (
         <form onSubmit={submit} className="stack-form">
           <div className="fld"><label htmlFor="fe">Το email του λογαριασμού σου</label><input id="fe" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus /></div>
           {err && <p className="err" role="alert">{err}</p>}<button className="btn btn-primary block" disabled={busy}>{busy ? 'Αποστολή…' : 'Στείλε μου σύνδεσμο'}</button></form>)}

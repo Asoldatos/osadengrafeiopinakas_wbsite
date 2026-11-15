@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MascotSay } from '../Mascot';
 import Turnstile from './Turnstile';
+import JunkHint from '../JunkHint';
 import { api } from '@/lib/clientUpload';
 
 const safeNext = (n) => (typeof n === 'string' && n.startsWith('/') && !n.startsWith('//') ? n : '/account');
@@ -21,7 +22,7 @@ export function RegisterForm({ siteKey, domains }) {
     try { await api('/api/account/register', { method: 'POST', body: { ...f, website: hp, cf, t: Date.now() - t0.current } }); setSent(true); } catch (x) { setErr(x.message); }
     setBusy(false);
   };
-  if (sent) return <Card title="Έλεγξε το email σου!" mood="celebrate" text="Σου έστειλα ένα γράμμα! Πάτα τον σύνδεσμο μέσα και είσαι έτοιμος να παίξεις."><p>Αν όλα πήγαν καλά, στείλαμε ένα μήνυμα στο <b>{f.email}</b>. Πάτα τον σύνδεσμο για να επιβεβαιώσεις τον λογαριασμό σου. Κοίταξε και στα ανεπιθύμητα.</p><p><Link className="linkbtn" href="/account/login">Πήγαινε στη σύνδεση</Link></p></Card>;
+  if (sent) return <Card title="Έλεγξε το email σου!" mood="celebrate" text="Σου έστειλα ένα γράμμα! Πάτα τον σύνδεσμο μέσα και είσαι έτοιμος να παίξεις."><p>Αν όλα πήγαν καλά, στείλαμε ένα μήνυμα στο <b>{f.email}</b>. Πάτα τον σύνδεσμο για να επιβεβαιώσεις τον λογαριασμό σου. Κοίταξε και στα ανεπιθύμητα.</p><JunkHint /><p><Link className="linkbtn" href="/account/login">Πήγαινε στη σύνδεση</Link></p></Card>;
   return (
     <Card title="Φτιάξε λογαριασμό μαθητή" mood="wave" text="Δωρεάν και σε ένα λεπτό! Ξεκλειδώνεις παιχνίδια, περιπέτειες, πόντους και παράσημα.">
       <ul className="perks"><li>🎮 Επιπλέον παιχνίδια και κουίζ</li><li>🗺️ Περιπέτειες με τον Κιμωλάκη</li><li>🏅 Πόντοι, επίπεδα και παράσημα</li><li>🖨️ Λήψη και εκτύπωση τευχών</li></ul>
@@ -58,6 +59,7 @@ export function LoginForm({ next }) {
       <form onSubmit={second} className="stack-form"><div className="fld"><label htmlFor="oc">Κωδικός από το email<small>6 ψηφία · ισχύει για 5 λεπτά</small></label><input id="oc" inputMode="numeric" autoComplete="one-time-code" maxLength={7} value={code} onChange={(e) => setCode(e.target.value)} required autoFocus /></div><Msgs />
         <button className="btn btn-primary block" disabled={busy}>{busy ? 'Έλεγχος…' : 'Επιβεβαίωση'}</button></form>
       <p className="center"><button type="button" className="linkbtn" onClick={resend}>Στείλε νέο κωδικό</button> · <button type="button" className="linkbtn" onClick={() => { setStep('creds'); setErr(''); }}>Άκυρο</button></p>
+      <JunkHint />
     </Card>);
   if (step === 'totp') return (
     <Card title="Επαλήθευση δύο βημάτων" mood="phone" text="Άνοιξε την εφαρμογή επαλήθευσης στο κινητό σου και γράψε τον κωδικό που βλέπεις.">
@@ -93,7 +95,7 @@ export function VerifyClient({ token }) {
 export function ForgotForm({ siteKey }) {
   const [email, setEmail] = useState(''), [cf, setCf] = useState(''), [err, setErr] = useState(''), [busy, setBusy] = useState(false), [sent, setSent] = useState(false);
   const submit = async (e) => { e.preventDefault(); setBusy(true); setErr(''); try { await api('/api/account/forgot', { method: 'POST', body: { email, cf } }); setSent(true); } catch (x) { setErr(x.message); } setBusy(false); };
-  if (sent) return <Card title="Έλεγξε το email σου" mood="celebrate" text="Το γράμμα έφυγε! Κοίταξε και στα ανεπιθύμητα."><p>Αν υπάρχει λογαριασμός με το email <b>{email}</b>, στείλαμε έναν σύνδεσμο που ισχύει για 1 ώρα.</p></Card>;
+  if (sent) return <Card title="Έλεγξε το email σου" mood="celebrate" text="Το γράμμα έφυγε! Κοίταξε και στα ανεπιθύμητα."><p>Αν υπάρχει λογαριασμός με το email <b>{email}</b>, στείλαμε έναν σύνδεσμο που ισχύει για 1 ώρα.</p><JunkHint /></Card>;
   return (
     <Card title="Ξέχασες τον κωδικό σου;" mood="confused" text="Δεν πειράζει! Γράψε το email σου και θα σου στείλω έναν σύνδεσμο για νέο κωδικό.">
       <form onSubmit={submit} className="stack-form"><div className="fld"><label htmlFor="fe">Email</label><input id="fe" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus /></div>

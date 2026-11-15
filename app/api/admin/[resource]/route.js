@@ -1,10 +1,10 @@
 import { revalidatePath } from 'next/cache';
 import { q, logActivity } from '@/lib/db';
-import { cfgFor, uniqueSlug, assertRole } from '@/lib/crud';
+import { cfgFor, uniqueSlug, assertPerm, publishGuard } from '@/lib/crud';
 import { route, json, body } from '@/lib/guard';
 
 export const GET = route(async (req, { params }, user) => {
-  const cfg = cfgFor(params.resource); assertRole(cfg, user);
+  const cfg = cfgFor(params.resource); assertPerm(cfg, user, true);
   const url = new URL(req.url);
   const p = []; let w = '1=1';
   for (const f of cfg.filter || []) { const v = url.searchParams.get(f); if (v) { p.push(+v); w += ` and t.${f}=$${p.length}`; } }
@@ -14,7 +14,7 @@ export const GET = route(async (req, { params }, user) => {
   return json(rows);
 });
 export const POST = route(async (req, { params }, user) => {
-  const cfg = cfgFor(params.resource); assertRole(cfg, user);
+  const cfg = cfgFor(params.resource); assertPerm(cfg, user);
   if (cfg.noCreate) return json({ error: 'Δεν επιτρέπεται η δημιουργία από εδώ.' }, 405);
   const data = await body(req);
   if (cfg.titleCol && !String(data[cfg.titleCol] || '').trim()) return json({ error: 'Συμπληρώστε τον τίτλο / το όνομα.' }, 400);
@@ -22,6 +22,7 @@ export const POST = route(async (req, { params }, user) => {
   const cols = [], ph = [], vals = [];
   const clean = {};
   for (const k of Object.keys(cfg.cols)) if (k in data) clean[k] = data[k];
+  if (cfg.publish) { const c2 = {}; for (const k of ['status', 'publish_at']) if (k in clean) c2[k] = cfg.cols[k].c(clean[k]); publishGuard(cfg, user, null, c2); }
   if (cfg.slug) clean.slug = await uniqueSlug(cfg, clean.slug || clean[cfg.titleCol]);
   if (cfg.validate) { const cl = {}; for (const [k, v] of Object.entries(clean)) if (cfg.cols[k]) cl[k] = cfg.cols[k].c(v); const msg = cfg.validate(cl); if (msg) return json({ error: msg }, 400); }
   for (const [k, v] of Object.entries(clean)) {

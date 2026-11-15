@@ -240,3 +240,131 @@ h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0 0 .4em;font-w
   .maint-panel-in{width:100%;max-height:100vh}}
 @media(max-width:480px){.maint-nav .btn span{display:none}}
 .maint.board .maint-panel .lede{color:var(--muted)}.maint.board .maint-panel .prose a{color:var(--c5)}
+.junk{margin:10px auto 0!important;max-width:520px}.junk .say-bubble{font-size:.9rem;padding:10px 14px}.junk .say-bubble p{font-weight:600}.nl.on-dark .junk .say-bubble{color:var(--ink)}.nl.on-dark .junk .linkbtn{color:var(--c5)}
+.maint-panel .prose ol{padding-left:1.3em}.maint-panel .prose li{margin-bottom:.6em}
+
+/* ===================================================================== */
+/* ===== Ήχος ===== */
+.snd{position:relative}.snd-pop{position:absolute;right:0;top:calc(100% + 10px);z-index:70;width:250px;background:#fff;color:var(--ink);border:var(--bw) solid var(--ink);border-radius:14px;box-shadow:var(--sh);padding:12px;display:flex;flex-direction:column;gap:8px}
+.snd-row{display:flex;flex-direction:column;gap:2px;font-size:.82rem;font-weight:800}.snd-row input{width:100%;accent-color:var(--c2)}.snd-note{margin:0;font-size:.78rem;color:var(--muted)}
+/* ===== Εποχιακό θέμα: βάση ===== */
+.theme-root{transition:background-color .6s}.snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:65}
+.theme-tg.on{background:var(--c2);color:#fff}.theme-tg.pulse{animation:tgpulse 1.1s ease-in-out infinite}@keyframes tgpulse{50%{transform:scale(1.15);box-shadow:0 0 0 8px rgba(200,16,46,.25)}}
+.theme-preview-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:90;background:var(--ink);color:#fff;padding:8px 10px 8px 16px;border-radius:999px;display:flex;gap:10px;align-items:center;font-weight:700;font-size:.9rem;box-shadow:var(--sh)}
+.hero-m-btn{background:none;border:0;padding:0;cursor:pointer;display:block;border-radius:20px}.hero-m-btn:active .mascot{transform:scale(.96)}
+.candy-pop{position:absolute;left:50%;top:40%;pointer-events:none}.candy-pop i{position:absolute;font-style:normal;font-size:1.9rem;animation:candyfly 1.25s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes candyfly{0%{transform:translate(0,0) scale(.4) rotate(0);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),-150px) scale(1.1) rotate(200deg);opacity:0}}
+/* Σκουφάκι, γένια, παλτό: εφέ «μεταμόρφωσης» */
+.mascot .m-santa{transform-box:fill-box}.mascot.santa-reveal .m-hat{transform-origin:50% 100%;animation:hatdrop .9s cubic-bezier(.34,1.56,.64,1) both}
+.mascot.santa-reveal .m-beard{transform-origin:50% 0;animation:beardgrow .7s .12s cubic-bezier(.34,1.56,.64,1) both}
+.mascot.santa-reveal .m-coat{animation:coatwipe .75s .05s ease-out both}
+@keyframes hatdrop{0%{transform:translateY(-120px) rotate(-30deg);opacity:0}55%{opacity:1}100%{transform:none}}@keyframes beardgrow{from{transform:scaleY(0)}to{transform:none}}@keyframes coatwipe{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0)}}
+.mascot.is-santa .m-pom{transform-box:fill-box;transform-origin:20% 0;animation:pom 2.6s ease-in-out infinite}@keyframes pom{50%{transform:rotate(14deg) translateY(2px)}}
+/* ===== Κινηματογραφική μετάβαση ===== */
+.cine{position:fixed;inset:0;z-index:1000;overflow:hidden;cursor:default}.cine-cv{position:absolute;inset:0;width:100%;height:100%}.cine-cam{position:absolute;inset:0;pointer-events:none}
+.cine-logo{position:absolute;left:50%;top:50%;width:min(560px,78vw);opacity:0;transform:translate(-50%,-50%) scale(.4);filter:drop-shadow(0 8px 0 rgba(0,0,0,.25)) drop-shadow(0 0 30px rgba(255,255,255,.35));will-change:transform,opacity}.cine-logo img{width:100%;height:auto;display:block}
+.cine-stage{position:absolute;left:50%;top:56%;opacity:0;transform:translate(-50%,-50%) scale(0);display:flex;flex-direction:column;align-items:center;will-change:transform,opacity}
+.cine-mascot{position:relative;z-index:2;will-change:transform}.cine-mascot svg{width:min(210px,30vh);height:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+.cine-ring{position:absolute;left:50%;top:45%;width:min(380px,56vh);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:conic-gradient(from 0deg,rgba(255,255,255,0),rgba(255,236,170,.55),rgba(255,255,255,0),rgba(255,236,170,.55),rgba(255,255,255,0));-webkit-mask:radial-gradient(circle,transparent 52%,#000 54%,#000 70%,transparent 72%);mask:radial-gradient(circle,transparent 52%,#000 54%,#000 70%,transparent 72%);z-index:1}
+.cine-speech{position:relative;z-index:3;margin-top:-6px;background:#fff;color:#2A0F14;border:3px solid #2A0F14;border-radius:18px;padding:10px 18px;font:800 clamp(1rem,2.4vw,1.35rem) var(--font-head);box-shadow:5px 5px 0 #2A0F14;opacity:0;transform-origin:50% 0}
+.cine-title{position:absolute;left:50%;bottom:9vh;margin:0;transform:translate(-50%,20px);opacity:0;color:#fff;font:700 clamp(2rem,6vw,4.2rem) var(--font-head);text-shadow:0 4px 0 #2A0F14,0 0 30px rgba(255,220,150,.6);white-space:nowrap;letter-spacing:.01em}
+.cine-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,#fff 0,#fff8e1 40%,rgba(255,248,225,.6) 70%,rgba(255,255,255,0) 100%);opacity:0;pointer-events:none}
+.cine-skip{position:absolute;right:16px;bottom:16px;z-index:5;background:rgba(0,0,0,.45);color:#fff;border:2px solid rgba(255,255,255,.7);border-radius:999px;padding:8px 16px;font:800 .9rem var(--font-ui);cursor:pointer;backdrop-filter:blur(4px)}.cine-skip:hover,.cine-skip:focus-visible{background:rgba(0,0,0,.7)}
+.cine-out .cine-logo{width:min(420px,70vw)}
+/* ===== Παράθυρο-πρόσκληση & έναρξη ===== */
+.xpop-back{position:fixed;inset:0;z-index:950;display:grid;place-items:center;padding:16px;background:rgba(40,6,14,.55);backdrop-filter:blur(3px);animation:fadein .35s}
+.xpop{position:relative;width:min(480px,100%);background:linear-gradient(180deg,#fff 0,#FFF5F3 100%);color:#2A0F14;border:3px solid #2A0F14;border-radius:24px;box-shadow:10px 10px 0 #2A0F14;padding:26px 26px 20px;text-align:center;animation:popin .5s cubic-bezier(.34,1.56,.64,1)}
+.xpop::before{content:"";position:absolute;inset:-3px -3px auto -3px;height:16px;border-radius:24px 24px 0 0;background:repeating-linear-gradient(135deg,#C8102E 0 14px,#fff 14px 28px);border:3px solid #2A0F14;border-bottom:0}
+.xpop h2{font-size:1.7rem;margin:6px 0 8px}.xpop p{margin:0 0 6px}.xpop-m{margin:-6px auto 0;width:max-content}.xpop-m .mascot{height:auto}.xpop-snow{display:block;color:#7FB2E5;letter-spacing:10px;margin-top:6px}
+.xpop-hint{font-size:.8rem;color:#7a5a60;margin-top:12px!important}.xgate .xpop{padding-top:30px}.btn.big{font-size:1.15rem;padding:16px 26px;margin:10px auto 4px}
+.btn-xmas{--bg:#C8102E;color:#fff}.btn-xmas:hover{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 10px,transparent 10px 20px)}
+@keyframes popin{from{transform:scale(.7) translateY(30px);opacity:0}}
+/* ===== Λαμπάκια & στολίδια ===== */
+.xlights{position:absolute;left:0;right:0;bottom:-15px;height:18px;display:flex;justify-content:space-around;pointer-events:none;z-index:2;background:radial-gradient(ellipse 50% 9px at 50% 0,transparent 92%,#2A0F14 95%,transparent 100%) 0 -2px/7.14% 18px repeat-x}
+.xlights i{width:9px;height:14px;margin-top:3px;border-radius:50% 50% 45% 45%;border:1.5px solid #2A0F14;background:#C8102E;box-shadow:0 0 10px 2px currentColor;color:#ff5a6e;animation:twinkle 2s var(--d) ease-in-out infinite}
+.xlights i:nth-child(4n+2){background:#F6C453;color:#ffd76e}.xlights i:nth-child(4n+3){background:#0F9B5E;color:#43e092}.xlights i:nth-child(4n+4){background:#3A86C8;color:#73b8ff}
+@keyframes twinkle{50%{opacity:.35;box-shadow:none}}
+.xorn{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-around;pointer-events:none;z-index:3;padding:0 6%}
+.xorn-b{pointer-events:auto;background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;transform-origin:50% 0;animation:swing var(--sw) ease-in-out infinite alternate}
+.xorn-b.ra{animation:ring1 .9s ease-out,swing var(--sw) .9s ease-in-out infinite alternate}.xorn-b.rb{animation:ring2 .9s ease-out,swing var(--sw) .9s ease-in-out infinite alternate}
+.xorn-s{width:2px;height:var(--h);background:rgba(255,255,255,.75)}.xorn-ball{position:relative;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,var(--c) 30%,#3b0610 100%);border:2px solid #2A0F14;box-shadow:0 4px 10px rgba(0,0,0,.3)}
+.xorn-ball i{position:absolute;left:50%;top:-7px;width:12px;height:8px;margin-left:-6px;background:#F6C453;border:2px solid #2A0F14;border-radius:3px}
+.xorn-b:focus-visible .xorn-ball{outline:3px solid #fff;outline-offset:3px}.xorn-b:hover .xorn-ball{filter:brightness(1.15)}
+@keyframes swing{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}@keyframes ring1{0%{transform:rotate(0)}20%{transform:rotate(-18deg)}45%{transform:rotate(12deg)}70%{transform:rotate(-6deg)}100%{transform:rotate(0)}}@keyframes ring2{0%{transform:rotate(0)}20%{transform:rotate(18deg)}45%{transform:rotate(-12deg)}70%{transform:rotate(6deg)}100%{transform:rotate(0)}}
+@media(max-width:700px){.xorn-b:nth-child(n+5){display:none}.xorn-ball{width:28px;height:28px}}
+/* ===== ΧΡΙΣΤΟΥΓΕΝΝΙΑΤΙΚΗ ΕΜΦΑΝΙΣΗ ===== */
+.theme-root[data-theme=christmas]{background-color:var(--paper);background-image:radial-gradient(color-mix(in srgb,var(--c2) 9%,transparent) 1.1px,transparent 1.4px),radial-gradient(color-mix(in srgb,var(--c4) 7%,transparent) 1.1px,transparent 1.4px);background-size:26px 26px,26px 26px;background-position:0 0,13px 13px;min-height:100vh}
+.theme-root[data-theme=christmas] ::selection{background:var(--c2);color:#fff}
+.theme-root[data-theme=christmas] .board{background-color:var(--board);background-image:radial-gradient(rgba(255,255,255,.13) 1.2px,transparent 1.7px),repeating-linear-gradient(135deg,rgba(255,255,255,.035) 0 16px,transparent 16px 32px),radial-gradient(ellipse at 50% -20%,rgba(255,200,150,.25),transparent 60%);background-size:22px 22px,auto,auto}
+.theme-root[data-theme=christmas] .nav{background:color-mix(in srgb,#fff 90%,transparent);border-bottom-color:var(--ink)}
+.theme-root[data-theme=christmas] #mainnav a.on{background:var(--c2);color:#fff}
+.theme-root[data-theme=christmas] #mainnav a:hover{background:color-mix(in srgb,var(--c2) 10%,#fff)}
+.theme-root[data-theme=christmas] .btn{--bg:var(--c2);color:#fff;position:relative}.theme-root[data-theme=christmas] .btn-ghost,.theme-root[data-theme=christmas] .btn-light{--bg:#fff;color:var(--ink)}.theme-root[data-theme=christmas] .btn-dark{--bg:var(--c4);color:#fff}
+.theme-root[data-theme=christmas] .btn-primary:hover{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.2) 0 10px,transparent 10px 20px)}
+.theme-root[data-theme=christmas] .eyebrow{background:#fff;color:var(--c2)}.theme-root[data-theme=christmas] .eyebrow::before{content:"🎄 "}
+.theme-root[data-theme=christmas] .squiggle{color:var(--c4)}.theme-root[data-theme=christmas] .board .squiggle{color:#fff}
+.theme-root[data-theme=christmas] .sec-head .h2::after{content:" ❄";color:var(--c5);font-size:.62em;vertical-align:.25em}
+.theme-root[data-theme=christmas] .hero .speech{border-color:var(--c2);box-shadow:3px 3px 0 var(--c2)}
+.theme-root[data-theme=christmas] .hero .ledge{display:none}
+.theme-root[data-theme=christmas] .hero{padding-bottom:110px}
+.theme-root[data-theme=christmas] .hero::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:90px;pointer-events:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 90' preserveAspectRatio='none'%3E%3Cpath d='M0 60 C150 20 260 70 420 45 S700 10 860 48 S1100 70 1200 38 V90 H0Z' fill='%23E8F1FA'/%3E%3Cpath d='M0 72 C180 45 330 82 520 62 S860 40 1020 66 S1150 78 1200 60 V90 H0Z' fill='%23fff'/%3E%3C/svg%3E") 0 100%/100% 100% no-repeat}
+.theme-root[data-theme=christmas] .hero-mascot{z-index:2}
+.theme-root[data-theme=christmas] .rnum{color:var(--c2)}.theme-root[data-theme=christmas] .tag{border-color:var(--ink)}
+.theme-root[data-theme=christmas] .progress span{background:repeating-linear-gradient(135deg,var(--c2) 0 12px,#fff 12px 24px)}
+.theme-root[data-theme=christmas] .prose a{color:var(--c2)}.theme-root[data-theme=christmas] .prose blockquote{border-left-color:var(--c4)}
+.theme-root[data-theme=christmas] .prose.big>p:first-of-type::first-letter{color:var(--c2)}
+.theme-root[data-theme=christmas] .footer.board{background-color:#0B4F33;position:relative}
+.theme-root[data-theme=christmas] .footer.board::before{content:"";position:absolute;left:0;right:0;top:-14px;height:18px;background:radial-gradient(circle at 12px 18px,#fff 11px,transparent 12px) 0 0/24px 18px repeat-x;pointer-events:none}
+.theme-root[data-theme=christmas] .footer h2{color:#F6C453}
+/* χιόνι πάνω σε κάρτες και κουμπιά */
+.theme-root[data-theme=christmas] :is(.gcard,.pola,.card,.nl-card,.ccard,.note,.result,.board-card,.auth-card)::before{content:"";position:absolute;left:10px;right:10px;top:-9px;height:14px;pointer-events:none;z-index:2;
+  background:radial-gradient(circle at 10px 14px,#fff 9px,transparent 10px) 0 0/20px 14px repeat-x,linear-gradient(#fff,#fff) 0 9px/100% 5px no-repeat;filter:drop-shadow(0 1px 0 rgba(42,15,20,.25));border-radius:8px}
+.theme-root[data-theme=christmas] :is(.gcard,.pola,.card,.nl-card,.ccard,.result,.board-card,.auth-card){position:relative}
+.theme-root[data-theme=christmas] .btn-primary::before{content:"";position:absolute;left:8px;right:8px;top:-6px;height:9px;pointer-events:none;background:radial-gradient(circle at 6px 9px,#fff 6px,transparent 7px) 0 0/12px 9px repeat-x;filter:drop-shadow(0 1px 0 rgba(42,15,20,.3))}
+.theme-root[data-theme=christmas] .acard,.theme-root[data-theme=christmas] .feat-card{border-top:6px solid var(--c2)}
+.theme-root[data-theme=christmas] .pola:nth-child(odd)::after{content:"🎀";position:absolute;top:-14px;right:10px;font-size:1.4rem;transform:rotate(15deg)}
+.theme-root[data-theme=christmas] .ticket{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 8px,transparent 8px 16px)}
+.theme-root[data-theme=christmas] .announce{background:var(--c4)}
+@media(prefers-reduced-motion:reduce){.xlights i,.xorn-b,.mascot.is-santa .m-pom,.theme-tg.pulse{animation:none!important}}
+
+/* διορθώσεις διάταξης: στολίδια πάνω από την πλευρά του μασκότ, πιο σφιχτό μενού */
+.xorn{left:46%;padding:0 2% 0 0}.hero .speech{z-index:5}
+@media(max-width:820px){.xorn{left:0;padding:0 4%}.xorn-s{height:calc(var(--h) * .45)}}
+#mainnav a{white-space:nowrap}
+@media(max-width:1280px) and (min-width:1121px){#mainnav a{padding:8px 9px;font-size:.88rem}}
+@media(max-width:1120px){.burger{display:flex}.nav-in>.icon-btn,.nav-in>.snd{margin-left:0}#mainnav{position:absolute;inset:100% 0 auto 0;margin:0;background:var(--paper);border-bottom:var(--bw) solid var(--ink);display:none;padding:12px 20px 20px;z-index:3}
+  #mainnav.open{display:block}#mainnav ul{flex-direction:column}#mainnav a{padding:14px 16px;font-size:1.05rem}.acct,.acct-login{margin-left:auto}}
+
+/* ===== Διαχειριστές & κωδικοί ===== */
+.pill.super{background:linear-gradient(90deg,#ffe08a,#ffc53d)}
+.perm-list{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 16px}.perm-list li.no{opacity:.55}
+.perm-grid{border:2px dashed var(--ink);border-radius:14px;padding:12px 16px;margin:14px 0}.perm-grid legend{font-weight:800;padding:0 6px}.perm-grid .perm{display:block;margin:7px 0}.perm-grid .perm small{opacity:.7}.perm-grid .locked{opacity:.45}.perm-grid .presets{gap:6px;margin-bottom:8px}
+.secret-box{display:grid;gap:10px;margin:14px 0;padding:14px;border:2px solid var(--ink);border-radius:12px;background:#fff8d6}.secret-box small{display:block;font-weight:700;opacity:.7}.secret-box code{font-size:1.05rem;user-select:all;word-break:break-all}.secret-box code.big{font-size:1.35rem;letter-spacing:.06em}
+.tbl tr.dim td{opacity:.55}.nowrap{white-space:nowrap}.mt{margin-top:32px}.audit{max-height:460px;overflow:auto}
+.pwmeter{display:flex;gap:4px;margin-top:6px}.pwmeter span{flex:1;height:6px;border-radius:4px;background:#ddd}.pwmeter.s1 span:nth-child(-n+1){background:#e8573d}.pwmeter.s2 span:nth-child(-n+2){background:#f6c453}.pwmeter.s3 span:nth-child(-n+3){background:#7fd1ae}.pwmeter.s4 span{background:#0f7b4b}
+.audiothumb{display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;font-size:2rem}.audiothumb audio{width:100%;max-width:220px}
+
+/* ===== Επεξεργαστής εποχιακού θέματος ===== */
+.theme-ed .seg button.on{background:var(--ink);color:#fff}.theme-ed .seg{flex-wrap:wrap;width:max-content;max-width:100%}
+.theme-head{display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:22px;align-items:center}
+.theme-mini{border:2px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--sw-paper);box-shadow:4px 4px 0 var(--ink)}
+.tm-nav{display:flex;gap:6px;padding:8px 10px;background:var(--sw-board);border-bottom:3px solid var(--sw-paper)}.tm-nav span{width:34px;height:8px;border-radius:5px;background:var(--sw-paper);opacity:.8}
+.tm-hero{display:flex;gap:10px;align-items:center;padding:10px 12px;color:var(--sw-ink)}.tm-hero b{font-family:var(--font-display,inherit);font-size:1.05rem;display:block}.tm-hero i{display:block;width:90px;height:22px;margin-top:6px;border-radius:999px;background:var(--sw-red);border:2px solid var(--sw-ink);box-shadow:inset 0 5px 0 rgba(255,255,255,.75)}
+.tm-sw{display:flex;height:16px}.tm-sw span{flex:1}
+.theme-status h2{margin:0 0 6px}.warn-t{color:#9a6700;font-weight:700}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 12px}
+.sfx-row{border:2px dashed var(--ink);border-radius:12px;padding:10px 14px;margin:10px 0}
+.num-sm{width:96px!important;flex:none}.fld input[type=range]{flex:1;accent-color:var(--c2)}
+.liq{display:inline-flex;align-items:center;gap:2px}.liq input[type=color]{width:46px;height:36px;padding:2px}
+.card.inner{background:#fff;margin:12px 0}
+.savebar{position:sticky;bottom:12px;z-index:20;display:flex;gap:10px;align-items:center;margin-top:16px;padding:10px 14px;background:var(--ink);color:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}.savebar span{flex:1;font-weight:800}
+@media (max-width:760px){.theme-head{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pill.sched{background:#cfe6ff}.pill.failed{background:#ffc9c0}.mb{margin-bottom:10px}
+.mailprev.mobile{max-width:390px;margin:0 auto;display:block}
+.tbl td.acts{white-space:normal;min-width:240px}.tbl td.acts>*{margin:3px 0 3px 6px;display:inline-flex;vertical-align:middle}
+.xcount{display:inline-flex;gap:8px;align-items:center;margin:18px 0 0;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.95);color:#8E1023;font-weight:800;border:2px solid #2A0F14;box-shadow:3px 3px 0 #2A0F14;animation:xcount-in .6s cubic-bezier(.2,1.4,.4,1) both}
+.xcount span{display:inline-block;animation:ring1 2.4s ease-in-out infinite}
+@keyframes xcount-in{from{opacity:0;transform:translateY(10px) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.xcount,.xcount span{animation:none}}
+.theme-root[data-theme=christmas] .hero-mascot{margin-top:44px}.theme-root[data-theme=christmas] .hero-mascot .speech{top:auto;bottom:calc(100% - 34px);max-width:250px;width:max-content;line-height:1.3}
+.theme-root[data-theme=christmas] .hero-mascot{margin-top:84px}.theme-root[data-theme=christmas] .hero-mascot .speech{bottom:calc(100% + 18px)}@media (max-width:860px){.theme-root[data-theme=christmas] .hero-mascot{margin-top:70px}.theme-root[data-theme=christmas] .hero-mascot .speech{bottom:calc(100% + 4px)}}

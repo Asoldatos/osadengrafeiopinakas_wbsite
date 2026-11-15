@@ -1,10 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 import Mascot, { MascotSay } from './Mascot';
 import Pic from './Pic';
 import Media from './Media';
 import NewsletterForm from './NewsletterForm';
+import { useSeasonal, Ornaments, Countdown } from './theme/ThemeRuntime';
+import { audio } from './audio/engine';
 import { isVideoUrl } from '@/lib/media';
 import { fmtDate, safeUrl, toEmbed, cx } from '@/lib/util';
 
@@ -45,11 +47,28 @@ function ArticleMeta({ a }) {
 }
 const Tag = ({ a }) => (a.category_name ? <span className="tag" style={{ '--c': a.category_color || '#00C8E0' }}>{a.category_name}</span> : null);
 
+function HeroMascot({ p }) {
+  const sea = useSeasonal(), [i, setI] = useState(-1), [pops, setPops] = useState([]);
+  const phrases = sea.active ? String(sea.cfg?.texts?.heroPhrases || '').split('\n').map((x) => x.trim()).filter(Boolean) : [];
+  const say = sea.active && phrases.length ? (i < 0 ? sea.cfg.texts.santaSpeech : phrases[i % phrases.length]) : 'Γεια! Είμαι ο Κιμωλάκης 👋';
+  const click = () => {
+    if (sea.active) { audio().ui('jingle', { volume: 0.7, minGapMs: 250 }); setI((x) => x + 1); const id = Date.now(); setPops((a) => [...a.slice(-6), id]); setTimeout(() => setPops((a) => a.filter((x) => x !== id)), 1300); }
+    else audio().ui('pop', { volume: 0.7 });
+  };
+  return (
+    <div className="hero-mascot">
+      <div className="speech" aria-live="polite">{say}</div>
+      <button type="button" className="hero-m-btn no-sfx" onClick={click} aria-label={sea.active ? 'Ο Κιμωλάκης-Άγιος Βασίλης: πάτα για μια ευχή' : 'Ο Κιμωλάκης: πάτα για να τον χαιρετήσεις'}><Mascot mood={sea.active ? 'celebrate' : p.mascotMood || 'wave'} size={230} /></button>
+      {pops.map((id) => <span key={id} className="candy-pop" aria-hidden="true">{['🍬', '🍭', '🎁', '⭐', '🍪'].sort(() => Math.random() - 0.5).slice(0, 3).map((c, k) => <i key={k} style={{ '--dx': `${(k - 1) * 70 + (Math.random() * 30 - 15)}px` }}>{c}</i>)}</span>)}
+    </div>
+  );
+}
 function Hero({ s, p }) {
-  const { site } = useContext(EditCtx);
+  const { site, editing } = useContext(EditCtx);
   return (
     <div className="hero board">
       <Doodles />
+      {!editing && <Ornaments />}
       <div className="wrap hero-grid">
         <div className="hero-copy">
           <Ed id={s.id} path="eyebrow" tag="p" className="eyebrow">{p.eyebrow}</Ed>
@@ -58,8 +77,9 @@ function Hero({ s, p }) {
             : <Ed id={s.id} path="title" tag="h1" className="hero-title">{p.title}</Ed>}
           <Ed id={s.id} path="subtitle" tag="p" className="hero-sub">{p.subtitle}</Ed>
           <div className="btns"><Btn href={p.ctaHref}>{p.ctaLabel}</Btn><Btn href={p.cta2Href} kind="light">{p.cta2Label}</Btn></div>
+          {!editing && <Countdown />}
         </div>
-        {p.showMascot && <div className="hero-mascot"><div className="speech">Γεια! Είμαι ο Κιμωλάκης 👋</div><Mascot mood={p.mascotMood || 'wave'} size={230} /></div>}
+        {p.showMascot && (editing ? <div className="hero-mascot"><div className="speech">Γεια! Είμαι ο Κιμωλάκης 👋</div><Mascot mood={p.mascotMood || 'wave'} size={230} /></div> : <HeroMascot p={p} />)}
       </div>
       <div className="ledge" aria-hidden="true"><i /><i /><i /></div>
     </div>

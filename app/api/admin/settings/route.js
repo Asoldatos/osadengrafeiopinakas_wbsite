@@ -12,7 +12,7 @@ function clean(v, key = '') {
   if (v && typeof v === 'object') { const o = {}; for (const [k, x] of Object.entries(v)) o[cleanText(k, 60)] = clean(x, k); return o; }
   return typeof v === 'boolean' || typeof v === 'number' ? v : null;
 }
-export const GET = route(async () => json(await getSite()), { role: 'admin' });
+export const GET = route(async () => json(await getSite()), { perm: 'settings' });
 export const PUT = route(async (req, _c, user) => {
   const input = clean(await body(req));
   for (const [k, v] of Object.entries(input.colors || {})) if (!HEX.test(v)) return json({ error: `Μη έγκυρο χρώμα: ${k}` }, 400);
@@ -21,4 +21,4 @@ export const PUT = route(async (req, _c, user) => {
   revalidatePath('/', 'layout');
   await logActivity(user, 'Αλλαγή ρυθμίσεων ιστοτόπου');
   return json({ ok: true });
-}, { role: 'admin' });
+}, { perm: 'settings' });

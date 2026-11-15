@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { hashPassword } from '../lib/crypto.mjs';
-import { ensureSchema, seedDefaults } from '../lib/setup.mjs';
+import { ensureSchema, seedDefaults, backfillUsers } from '../lib/setup.mjs';
 
 if (!process.env.DATABASE_URL) { console.error('Λείπει το DATABASE_URL (.env.local).'); process.exit(1); }
 const sql = neon(process.env.DATABASE_URL);
@@ -17,4 +17,7 @@ if (!users) {
   await run("insert into users(email,name,password_hash,role) values($1,$2,$3,'admin')", [ADMIN_EMAIL.toLowerCase(), ADMIN_NAME || 'Διαχειριστής', hashPassword(ADMIN_PASSWORD)]);
   console.log('✓ Δημιουργήθηκε ο διαχειριστής', ADMIN_EMAIL, '— αφαιρέστε το ADMIN_PASSWORD από το περιβάλλον.');
 } else console.log('• Υπάρχουν ήδη χρήστες, παραλείπεται.');
+await backfillUsers(run);   // ο πρώτος διαχειριστής γίνεται Superadmin «Angel»
+const sup = (await run("select name, username, email from users where role='superadmin'"))[0];
+if (sup) console.log(`✓ Superadmin: ${sup.name} (όνομα χρήστη: ${sup.username}, ${sup.email})`);
 console.log('✓ Η βάση δεδομένων είναι ενημερωμένη.');

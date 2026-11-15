@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Mascot from '../Mascot';
+import JunkHint from '../JunkHint';
 import { api } from '@/lib/clientUpload';
 
 /** Κουμπί λήψης/εκτύπωσης: ελέγχει την πρόσβαση και, αν χρειάζεται, ζητά κωδικό μίας χρήσης από το email του μαθητή. */
@@ -24,7 +25,7 @@ export default function PrintButton({ slug, ready = false, icon = false }) {
           {stage === 'ask' && <><p>Για την ασφάλεια των τευχών και για να κρατάμε τα ρομπότ μακριά, στέλνουμε έναν <b>κωδικό μίας χρήσης</b> στο email σου. Μετά μπορείς να κατεβάζεις και να εκτυπώνεις για <b>30 λεπτά</b>.</p>
             {err && <p className="err" role="alert">{err}</p>}<div className="btns"><button type="button" className="btn btn-primary" onClick={send} disabled={busy}>{busy ? 'Αποστολή…' : 'Στείλε μου κωδικό'}</button></div></>}
           {stage === 'code' && <form onSubmit={verify} className="stack-form"><div className="fld"><label htmlFor="pbc">Κωδικός από το email<small>6 ψηφία · ισχύει για 10 λεπτά</small></label><input id="pbc" inputMode="numeric" autoComplete="one-time-code" maxLength={7} value={code} onChange={(e) => setCode(e.target.value)} required autoFocus /></div>
-            {err && <p className="err" role="alert">{err}</p>}<div className="btns"><button className="btn btn-primary" disabled={busy}>{busy ? 'Έλεγχος…' : 'Επιβεβαίωση και λήψη'}</button><button type="button" className="btn btn-ghost" onClick={send} disabled={busy}>Στείλε νέο κωδικό</button></div></form>}
+            {err && <p className="err" role="alert">{err}</p>}<div className="btns"><button className="btn btn-primary" disabled={busy}>{busy ? 'Έλεγχος…' : 'Επιβεβαίωση και λήψη'}</button><button type="button" className="btn btn-ghost" onClick={send} disabled={busy}>Στείλε νέο κωδικό</button></div><JunkHint /></form>}
           {stage === 'error' && <p className="err" role="alert">{err}</p>}
         </div></div>)}
     </>

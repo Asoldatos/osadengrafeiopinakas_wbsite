@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import HotspotModal, { hotspotIcon } from './HotspotModal';
+import { audio } from './audio/engine';
 import { MascotSay } from './Mascot';
 import PrintButton from './play/PrintButton';
 
@@ -76,7 +77,7 @@ export default function Viewer({ edition, hotspots = [], printUrl, printLocked, 
         flip = new PageFlip(el, { width: 500, height: Math.round(500 / ratio), size: 'stretch', minWidth: 240, maxWidth: 1000, minHeight: 320, maxHeight: 1600,
           showCover: true, drawShadow: true, maxShadowOpacity: 0.45, flippingTime: 750, usePortrait: true, autoSize: true, mobileScrollSupport: true, swipeDistance: 25, clickEventForward: true, useMouseEvents: true, showPageCorners: true });
         flip.loadFromHTML(pages); flipRef.current = flip;
-        flip.on('flip', (e) => { setPage(e.data); ensure(e.data); });
+        flip.on('flip', (e) => { setPage(e.data); ensure(e.data); audio().flip(); });
         ensure(0); setStatus('ready');
       } catch (e) { console.error(e); if (!dead) setStatus('error'); }
     })();

@@ -8,7 +8,7 @@ import { fmtDate } from '@/lib/util';
 const SL = { draft: 'Πρόχειρο', published: 'Δημοσιευμένο', archived: 'Αρχειοθετημένο' };
 
 /** Γενικός διαχειριστής εγγραφών: λίστα, αναζήτηση, φίλτρα, δημιουργία/επεξεργασία/διαγραφή. */
-export default function Crud({ resource, noun, fields, columns, defaults = {}, statusFilter = false, reorder = false, previewPath, extraActions, emptyKey = 'empty', noNew = false }) {
+export default function Crud({ resource, noun, fields, columns, defaults = {}, statusFilter = false, reorder = false, previewPath, extraActions, emptyKey = 'empty', noNew = false, noToggle = false }) {
   const [rows, setRows] = useState(null), [q, setQ] = useState(''), [st, setSt] = useState(''), [edit, setEdit] = useState(null), [busy, setBusy] = useState(false), [opts, setOpts] = useState({});
   const load = useCallback(() => api(`/api/admin/${resource}`).then(setRows).catch((e) => { toast(e.message, 'oops'); setRows([]); }), [resource]);
   useEffect(() => { load(); }, [load]);
@@ -55,7 +55,7 @@ export default function Crud({ resource, noun, fields, columns, defaults = {}, s
               {columns.map((c) => <td key={c.k}>{c.render ? c.render(r) : c.k === 'status' ? <span className={`pill ${r.status}`}>{SL[r.status]}</span> : c.date ? fmtDate(r[c.k]) : String(r[c.k] ?? '—')}</td>)}
               <td className="r acts">
                 {reorder && <><button type="button" className="icon-btn sm" onClick={() => move(i, -1)} aria-label="Μετακίνηση πάνω">↑</button><button type="button" className="icon-btn sm" onClick={() => move(i, 1)} aria-label="Μετακίνηση κάτω">↓</button></>}
-                {r.status !== undefined && r.status !== null && <button type="button" className="btn btn-ghost sm" onClick={() => toggle(r)}>{r.status === 'published' ? 'Απόκρυψη' : 'Δημοσίευση'}</button>}
+                {!noToggle && SL[r.status] && <button type="button" className="btn btn-ghost sm" onClick={() => toggle(r)}>{r.status === 'published' ? 'Απόκρυψη' : 'Δημοσίευση'}</button>}
                 {previewPath && <a className="btn btn-ghost sm" href={previewPath(r)} target="_blank" rel="noopener noreferrer">Προεπισκόπηση</a>}
                 {extraActions?.(r, load)}
                 <button type="button" className="btn btn-primary sm" onClick={() => setEdit({ ...r })}>Επεξεργασία</button>

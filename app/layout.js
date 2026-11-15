@@ -18,7 +18,7 @@ export async function generateMetadata() {
     icons: { icon: [{ url: imageOnly(s.faviconUrl) || '/favicon.png' }], apple: '/apple-touch-icon.png' },
     openGraph: { siteName: s.name, locale: 'el_GR', type: 'website', title: s.name, description: s.description, images: imageOnly(s.ogImage) ? [imageOnly(s.ogImage)] : [] },
     twitter: { card: 'summary_large_image' },
-    alternates: { canonical: '/' },
+    // Χωρίς canonical εδώ: κάθε σελίδα δηλώνει το δικό της (αλλιώς όλες θα «έδειχναν» στην αρχική).
   };
 }
 export const viewport = { width: 'device-width', initialScale: 1, themeColor: '#2C5E4A' };
