@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { safeUrl } from '@/lib/util';
-import Media from './Media';
+import { ThemedLogo } from './theme/ThemeRuntime';
 import NewsletterForm from './NewsletterForm';
 export default function Footer({ site, items }) {
   const f = site.footer || {}, c = f.contact || {};
@@ -8,7 +8,7 @@ export default function Footer({ site, items }) {
     <footer className="footer board">
       {site.newsletter?.enabled !== false && site.newsletter?.footerForm !== false && <div className="wrap foot-news"><NewsletterForm dark title={site.newsletter?.title} text={site.newsletter?.text} button={site.newsletter?.button} placeholder={site.newsletter?.placeholder} thanks={site.mascot?.messages?.newsletterThanks} /></div>}
       <div className="wrap foot-grid">
-        <div>{site.logoUrl && <Media src={site.logoUrl} alt={site.name} className="foot-logo" width="180" height="67" />}<p>{f.about}</p></div>
+        <div>{site.logoUrl && <ThemedLogo src={site.logoUrl} alt={site.name} className="foot-logo" width="180" height="67" loading="lazy" />}<p>{f.about}</p></div>
         <nav aria-label="Πλοήγηση υποσέλιδου"><h2>{f.linksTitle}</h2><ul>{items.map((n, i) => <li key={i}><Link href={safeUrl(n.href)}>{n.label}</Link></li>)}{(f.extraLinks || []).filter((n) => n.label).map((n, i) => <li key={`x${i}`}><Link href={safeUrl(n.href)}>{n.label}</Link></li>)}</ul></nav>
         <div><h2>{f.contactTitle}</h2><ul>
           {c.email && <li><a href={`mailto:${c.email}`}>{c.email}</a></li>}{c.phone && <li><a href={`tel:${c.phone.replace(/\s/g, '')}`}>{c.phone}</a></li>}{c.address && <li>{c.address}</li>}

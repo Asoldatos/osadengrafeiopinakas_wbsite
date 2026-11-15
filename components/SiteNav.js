@@ -3,20 +3,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SoundControls from './audio/SoundControls';
-import { ThemeToggle, Lights, useSeasonal } from './theme/ThemeRuntime';
+import { ThemeToggle, Lights, useSeasonal, useThemedLogo } from './theme/ThemeRuntime';
 import Media from './Media';
 import Mascot from './Mascot';
 import { safeUrl } from '@/lib/util';
 
 export default function SiteNav({ name, logoUrl, items, student }) {
-  const path = usePathname(); const [open, setOpen] = useState(false); const sea = useSeasonal();
+  const path = usePathname(); const [open, setOpen] = useState(false); const sea = useSeasonal(); const logo = useThemedLogo(logoUrl);
   useEffect(() => setOpen(false), [path]);
   useEffect(() => { const k = (e) => e.key === 'Escape' && setOpen(false); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
   const active = (h) => (h === '/' ? path === '/' : path === h || path.startsWith(h + '/'));
   return (
     <header className="nav">
       <div className="wrap nav-in">
-        <Link href="/" className="brand" aria-label={`${name} – αρχική σελίδα`}>{logoUrl && <Media src={logoUrl} alt="" width="130" height="48" loading="eager" />}</Link>
+        <Link href="/" className="brand" aria-label={`${name} – αρχική σελίδα`}>{logo && <Media src={logo} alt="" width="130" height="48" loading="eager" />}</Link>
         <nav id="mainnav" className={open ? 'open' : ''} aria-label="Κύρια πλοήγηση">
           <ul>{items.map((n, i) => <li key={i}><Link href={safeUrl(n.href)} aria-current={active(n.href) ? 'page' : undefined} className={active(n.href) ? 'on' : ''}>{n.label}</Link></li>)}</ul>
         </nav>

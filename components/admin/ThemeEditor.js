@@ -6,7 +6,7 @@ import { Field, ImageField } from './Fields';
 import Mascot from '../Mascot';
 import { audio } from '../audio/engine';
 
-const TABS = [['general', '📅 Ενεργοποίηση'], ['colors', '🎨 Χρώματα'], ['fx', '❄️ Εφέ'], ['texts', '✍️ Κείμενα'], ['audio', '🎵 Ήχος'], ['transition', '🎬 Μετάβαση'], ['newsletter', '💌 Newsletter']];
+const TABS = [['general', '📅 Ενεργοποίηση'], ['colors', '🎨 Χρώματα'], ['assets', '🖼️ Εικόνες'], ['fx', '❄️ Εφέ'], ['texts', '✍️ Κείμενα'], ['audio', '🎵 Ήχος'], ['transition', '🎬 Μετάβαση'], ['newsletter', '💌 Newsletter']];
 const COLOR_LABELS = { paper: 'Φόντο σελίδας', paper2: 'Δεύτερο φόντο', ink: 'Κείμενο / περιγράμματα', board: 'Πίνακας (κεφαλίδα)', c1: 'Χρώμα 1 (μέντα)', c2: 'Χρώμα 2 (κόκκινο)', c3: 'Χρώμα 3 (χρυσό)', c4: 'Χρώμα 4 (πράσινο)', c5: 'Χρώμα 5 (μπλε)', c6: 'Χρώμα 6 (πορτοκαλί)' };
 const TEXT_FIELDS = [
   ['popupTitle', 'Αναδυόμενο: τίτλος'], ['popupText', 'Αναδυόμενο: κείμενο', 3], ['popupAccept', 'Αναδυόμενο: κουμπί αποδοχής'], ['popupDecline', 'Αναδυόμενο: κουμπί απόρριψης'],
@@ -99,6 +99,12 @@ export default function ThemeEditor({ slug = 'christmas' }) {
         {tab === 'colors' && <><p className="muted small">Τα χρώματα αντικαθιστούν την παλέτα του ιστοτόπου όσο το θέμα είναι ενεργό. Κράτα καλή αντίθεση ανάμεσα σε «Κείμενο» και «Φόντο».</p>
           <div className="grid2">{Object.entries(COLOR_LABELS).map(([k, l]) => <Field key={k} f={{ k: `c-${k}`, label: l, t: 'color' }} value={v(`colors.${k}`)} onChange={(x) => set(`colors.${k}`, x)} />)}</div></>}
 
+        {tab === 'assets' && <>
+          <p className="muted small">Όσο το θέμα είναι ενεργό, αυτές οι εικόνες αντικαθιστούν τα κανονικά λογότυπα και το εικονίδιο της καρτέλας. Άφησε ένα πεδίο κενό για να μένει το κανονικό.</p>
+          {[['logoUrl', 'Λογότυπο (μενού, υποσέλιδο, email)'], ['logoLargeUrl', 'Μεγάλο λογότυπο (αρχική σελίδα και κέντρο της μετάβασης)'], ['boardLogoUrl', 'Λογότυπο με πίνακα'], ['faviconUrl', 'Εικονίδιο καρτέλας (favicon) — τετράγωνο PNG']].map(([k, l]) =>
+            <div key={k} className="fld"><label>{l}</label><ImageField value={v(`assets.${k}`)} onChange={(x) => set(`assets.${k}`, x || '')} noVideo /></div>)}
+        </>}
+
         {tab === 'fx' && <>
           {FX.map(([k, l]) => <Field key={k} f={{ k: `fx-${k}`, label: l, t: 'bool' }} value={v(`fx.${k}`)} onChange={(x) => set(`fx.${k}`, x)} />)}
           <Num label="Πλήθος νιφάδων" hint="Σε κινητά και με «λιγότερη κίνηση» μειώνεται αυτόματα." min={0} max={400} step={5} value={v('fx.snowCount')} onChange={(x) => set('fx.snowCount', x)} />
@@ -137,7 +143,7 @@ export default function ThemeEditor({ slug = 'christmas' }) {
             <div className="row wrap">{v('transition.liquidColors').map((c, i) => <span key={i} className="liq"><input type="color" value={/^#[0-9a-f]{6}$/i.test(c) ? c : '#ffffff'} onChange={(e) => set('transition.liquidColors', v('transition.liquidColors').map((x, j) => (j === i ? e.target.value : x)))} aria-label={`Στρώμα ${i + 1}`} />
               {v('transition.liquidColors').length > 1 && <button type="button" className="icon-btn sm" aria-label="Αφαίρεση" onClick={() => set('transition.liquidColors', v('transition.liquidColors').filter((_, j) => j !== i))}>✕</button>}</span>)}
               {v('transition.liquidColors').length < 8 && <button type="button" className="btn btn-ghost sm" onClick={() => set('transition.liquidColors', [...v('transition.liquidColors'), '#C8102E'])}>+ Στρώμα</button>}</div></div>
-          <div className="fld"><label>Λογότυπο στο κέντρο της μετάβασης<small>Άφησέ το κενό για το λογότυπο του ιστοτόπου.</small></label><ImageField value={v('transition.logoUrl')} onChange={(x) => set('transition.logoUrl', x || '')} noVideo /></div>
+          <div className="fld"><label>Λογότυπο στο κέντρο της μετάβασης<small>Άφησέ το κενό για το «Μεγάλο λογότυπο» από την καρτέλα Εικόνες.</small></label><ImageField value={v('transition.logoUrl')} onChange={(x) => set('transition.logoUrl', x || '')} noVideo /></div>
           {[['flash', 'Λάμψη τη στιγμή της μεταμόρφωσης'], ['confetti', 'Κομφετί στην αποκάλυψη'], ['skippable', 'Κουμπί «Παράλειψη» (και πλήκτρο Esc)'], ['particles.sparkles', 'Λάμψεις γύρω από τον Κιμωλάκη']].map(([k, l]) => <Field key={k} f={{ k: `tr-${k}`, label: l, t: 'bool' }} value={v(`transition.${k}`)} onChange={(x) => set(`transition.${k}`, x)} />)}
         </>}
 

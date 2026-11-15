@@ -14,7 +14,7 @@ export default function CinematicTransition({ theme, mode = 'in', reduced = fals
   const cfg = theme.config, tr = cfg.transition, tx = cfg.texts;
   const cvRef = useRef(null), camRef = useRef(null), logoRef = useRef(null), stageRef = useRef(null), mascotRef = useRef(null), ringRef = useRef(null), speechRef = useRef(null), titleRef = useRef(null), flashRef = useRef(null), skipRef = useRef(null);
   const [santa, setSanta] = useState(false), api = useRef({});
-  const logo = tr.logoUrl || logoUrl;
+  const logo = mode === 'out' ? logoUrl : tr.logoUrl || cfg.assets?.logoLargeUrl || cfg.assets?.logoUrl || logoUrl;
 
   useEffect(() => {
     const A = audio(), root = document.getElementById('theme-root'), cv = cvRef.current, ctx = cv.getContext('2d');

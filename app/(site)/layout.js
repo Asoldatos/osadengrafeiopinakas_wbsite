@@ -11,6 +11,7 @@ import { cookies } from 'next/headers';
 import ThemeRuntime from '@/components/theme/ThemeRuntime';
 import { getThemes, getAvailableTheme } from '@/lib/themeServer';
 import { verifyIntro } from '@/lib/activation.mjs';
+import { themeAvailability } from '@/lib/themes.mjs';
 import { can } from '@/lib/perms.mjs';
 
 export const dynamic = 'force-dynamic';
@@ -41,12 +42,15 @@ export default async function SiteLayout({ children }) {
   const canPreview = can(admin, 'themes');
   let intro = null; try { intro = verifyIntro(jar.get('ti')?.value); } catch {}
   const introTheme = intro ? themes.find((t) => t.slug === intro && t.mode !== 'off') : null;
-  const theme = avail || introTheme || (canPreview ? themes.find((t) => t.mode !== 'off') || themes[0] : null) || null;
+  // Η επιλογή του επισκέπτη θυμάται (cookie 1 έτους): όποιος το ενεργοποίησε το βλέπει αμέσως σε κάθε επίσκεψη, χωρίς να ξαναπαίξει η μετάβαση
+  // (μόνο η μουσική). Ισχύει όσο το θέμα δεν είναι απενεργοποιημένο και δεν έχει λήξει η περίοδός του.
   const [prefSlug, prefVal] = decodeURIComponent(jar.get('theme_pref')?.value || '').split(':');
-  const initialActive = !!(avail && theme && avail.slug === theme.slug && prefSlug === theme.slug && prefVal === 'on');
+  const remembered = prefVal === 'on' ? themes.find((t) => t.slug === prefSlug && t.mode !== 'off' && !(t.mode === 'auto' && themeAvailability(t).reason === 'after')) : null;
+  const theme = avail || introTheme || remembered || (canPreview ? themes.find((t) => t.mode !== 'off') || themes[0] : null) || null;
+  const initialActive = !!(theme && remembered && remembered.slug === theme.slug);
   const c = site.colors || {};
   return (
-    <ThemeRuntime theme={theme ? { slug: theme.slug, name: theme.name, config: theme.config } : null} available={!!avail} initialActive={initialActive}
+    <ThemeRuntime theme={theme ? { slug: theme.slug, name: theme.name, config: theme.config } : null} available={!!avail || initialActive} initialActive={initialActive}
       intro={!!introTheme && introTheme.slug === theme?.slug} canPreview={canPreview} logoUrl={site.logoUrl} baseColors={[c.paper || '#FBF6EA', c.c1 || '#00C8E0', c.board || '#2C5E4A']}>
       <a className="skip" href="#main">Μετάβαση στο περιεχόμενο</a>
       {m.enabled && admin && <div className="adminbar">Η λειτουργία συντήρησης είναι ΕΝΕΡΓΗ — οι επισκέπτες βλέπουν τη σελίδα συντήρησης. <Link href="/editor-panel/settings">Ρυθμίσεις</Link></div>}

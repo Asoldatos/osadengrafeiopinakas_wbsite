@@ -3,10 +3,20 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import Mascot, { CostumeProvider } from '../Mascot';
 import { audio } from '../audio/engine';
 import Snow from './Snow';
+import Media from '../Media';
 import CinematicTransition from './CinematicTransition';
 
 const Ctx = createContext({ theme: null, active: false, available: false, cfg: null, toggle: () => {}, begin: () => {} });
 export const useSeasonal = () => useContext(Ctx);
+/** Λογότυπο που αλλάζει με το εποχιακό θέμα (size: 'small' για μενού/υποσέλιδο, 'large' για αρχική). */
+export function useThemedLogo(fallback, size = 'small') {
+  const s = useContext(Ctx), a = s.active ? s.cfg?.assets : null;
+  return (size === 'large' ? a?.logoLargeUrl || a?.logoUrl : a?.logoUrl || a?.logoLargeUrl) || fallback;
+}
+export function ThemedLogo({ src, size = 'small', ...rest }) {
+  const url = useThemedLogo(src, size); if (!url) return null;
+  return <Media src={url} {...rest} />;
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const prefers = (q) => typeof window !== 'undefined' && window.matchMedia?.(q).matches;
 const readPref = (slug) => { try { const m = document.cookie.match(/(?:^|;\s*)theme_pref=([^;]+)/); const [s, v] = decodeURIComponent(m?.[1] || '').split(':'); return s === slug ? v : null; } catch { return null; } };
@@ -61,6 +71,15 @@ export default function ThemeRuntime({ theme, available = false, initialActive =
     if (gate.left <= 0) { start({ persist: gate.persist }); return; }
     const id = setTimeout(() => setGate((g) => g && { ...g, left: g.left - 1 }), 1000); return () => clearTimeout(id);
   }, [gate, start]);
+
+  // Favicon: όσο το θέμα είναι ενεργό, η καρτέλα δείχνει το εποχιακό εικονίδιο.
+  useEffect(() => {
+    const fav = active && cfg?.assets?.faviconUrl;
+    document.querySelectorAll('link[rel~="icon"]').forEach((l) => {
+      if (l.dataset.orig === undefined) l.dataset.orig = l.getAttribute('href') || '';
+      l.setAttribute('href', fav || l.dataset.orig);
+    });
+  }, [active, cfg]);
 
   // Μουσική: παίζει όσο το θέμα είναι ενεργό (ξεκινά στο πρώτο κλικ λόγω των κανόνων των browsers).
   useEffect(() => {

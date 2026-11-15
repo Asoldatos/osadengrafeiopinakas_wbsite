@@ -15,7 +15,7 @@ export async function generateMetadata() {
     metadataBase: new URL(SITE_URL),
     title: { default: s.name, template: `%s · ${s.name}` },
     description: s.description,
-    icons: { icon: [{ url: imageOnly(s.faviconUrl) || '/favicon.png' }], apple: '/apple-touch-icon.png' },
+    icons: { icon: [{ url: '/favicon.ico', sizes: 'any' }, { url: imageOnly(s.faviconUrl) || '/favicon.png', type: 'image/png' }], apple: '/apple-touch-icon.png' },
     openGraph: { siteName: s.name, locale: 'el_GR', type: 'website', title: s.name, description: s.description, images: imageOnly(s.ogImage) ? [imageOnly(s.ogImage)] : [] },
     twitter: { card: 'summary_large_image' },
     // Χωρίς canonical εδώ: κάθε σελίδα δηλώνει το δικό της (αλλιώς όλες θα «έδειχναν» στην αρχική).

@@ -5,7 +5,7 @@ import Mascot, { MascotSay } from './Mascot';
 import Pic from './Pic';
 import Media from './Media';
 import NewsletterForm from './NewsletterForm';
-import { useSeasonal, Ornaments, Countdown } from './theme/ThemeRuntime';
+import { useSeasonal, Ornaments, Countdown, useThemedLogo } from './theme/ThemeRuntime';
 import { audio } from './audio/engine';
 import { isVideoUrl } from '@/lib/media';
 import { fmtDate, safeUrl, toEmbed, cx } from '@/lib/util';
@@ -65,6 +65,7 @@ function HeroMascot({ p }) {
 }
 function Hero({ s, p }) {
   const { site, editing } = useContext(EditCtx);
+  const logo = useThemedLogo(site.logoUrl, 'large');
   return (
     <div className="hero board">
       <Doodles />
@@ -72,8 +73,8 @@ function Hero({ s, p }) {
       <div className="wrap hero-grid">
         <div className="hero-copy">
           <Ed id={s.id} path="eyebrow" tag="p" className="eyebrow">{p.eyebrow}</Ed>
-          {p.showLogo && site.logoUrl
-            ? <h1 className="hero-logo"><Media src={site.logoUrl} alt={p.title || site.name} width="869" height="322" loading="eager" /></h1>
+          {p.showLogo && logo
+            ? <h1 className="hero-logo"><Media src={logo} alt={p.title || site.name} width="869" height="322" loading="eager" /></h1>
             : <Ed id={s.id} path="title" tag="h1" className="hero-title">{p.title}</Ed>}
           <Ed id={s.id} path="subtitle" tag="p" className="hero-sub">{p.subtitle}</Ed>
           <div className="btns"><Btn href={p.ctaHref}>{p.ctaLabel}</Btn><Btn href={p.cta2Href} kind="light">{p.cta2Label}</Btn></div>
