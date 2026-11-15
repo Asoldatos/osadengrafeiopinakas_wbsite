@@ -78,9 +78,13 @@ export default function CinematicTransition({ theme, mode = 'in', reduced = fals
       onDone?.();
     };
     api.current.skip = () => {
-      A.stopSlots();
+      A.stopSlots({ pendingOnly: true });                                   // ό,τι ακούγεται ήδη τελειώνει κανονικά
       if (!covered) { covered = true; onCovered?.(); }
-      if (mode === 'in' && !musicOn) A.startMusic(music);
+      if (mode === 'in') {
+        const rv = cfg.audio.sfx?.reveal;
+        if (useAudio && rv?.url && clock() < tl.reveal[0]) A.play({ ...rv, volume: (rv.volume ?? 1) * vol }, { slot: 'cine-reveal' });   // το «τελικό» εφέ παίζει μαζί με τη μουσική
+        A.startMusicNow(music); musicOn = true;
+      }
       if (mode === 'out') A.stopMusic(600);
       finish();
     };

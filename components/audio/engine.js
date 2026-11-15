@@ -73,18 +73,23 @@ class Engine {
     const at = Math.max(c.currentTime + 0.005, when || 0), src = c.createBufferSource(), g = c.createGain(), v = spec.volume ?? 1, fi = off > 0 ? 0.012 : 0.002, fo = Math.min(0.06, dur / 4);
     src.buffer = buf; src.connect(g); g.connect(this.bus[bus] || this.bus.sfx);
     g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(v, at + fi); g.gain.setValueAtTime(v, at + dur - fo); g.gain.linearRampToValueAtTime(0, at + dur);
-    if (slot) { const prev = this.slots.get(slot); if (prev) this.fadeStop(prev, at); this.slots.set(slot, { src, g }); src.onended = () => { if (this.slots.get(slot)?.src === src) this.slots.delete(slot); }; }
+    if (slot) { const prev = this.slots.get(slot); if (prev) this.fadeStop(prev, at); this.slots.set(slot, { src, g, at }); src.onended = () => { if (this.slots.get(slot)?.src === src) this.slots.delete(slot); }; }
     src.start(at, off, dur); return { src, g };
   }
   fadeStop(h, at = 0) { try { const t = Math.max(this.ctx.currentTime, at); h.g.gain.cancelScheduledValues(t); h.g.gain.setTargetAtTime(0, t, 0.02); h.src.stop(t + 0.12); } catch {} }
-  stopSlots() { for (const [k, h] of this.slots) { this.fadeStop(h); this.slots.delete(k); } }
+  /** pendingOnly: ακυρώνει μόνο ό,τι δεν έχει ξεκινήσει ακόμη — όσα ήδη ακούγονται τελειώνουν φυσικά (χωρίς κόψιμο). */
+  stopSlots({ pendingOnly = false } = {}) { const now = this.ctx?.currentTime ?? 0; for (const [k, h] of this.slots) { if (pendingOnly && h.at <= now + 0.01) continue; this.fadeStop(h); this.slots.delete(k); } }
   /** Μουσική με βρόχο: παίζει από την αρχή μία φορά και μετά επαναλαμβάνει ΑΚΡΙΒΩΣ το τμήμα [loopStartMs, loopEndMs) για πάντα (ακρίβεια δείγματος). */
   async startMusic(spec, { when = 0, fadeInMs } = {}) {
     if (!spec?.url) return;
     if (!this.running) { this.pendingMusic = { spec, opts: { fadeInMs } }; this.ensure(); this.emit(); return; }
-    if (this.music?.url === spec.url) return;
+    if (this.music?.url === spec.url && !this.music.pending) return;
+    if (this.musicLoading === spec.url) return;                         // ήδη φορτώνει: όχι δεύτερο αντίγραφο
     this.stopMusic(400);
-    const c = this.ctx, buf = await this.load(spec.url); if (!buf) return;
+    const req = (this.musicReq = (this.musicReq || 0) + 1); this.musicLoading = spec.url;
+    const c = this.ctx, buf = await this.load(spec.url);
+    if (this.musicLoading === spec.url) this.musicLoading = null;
+    if (!buf || req !== this.musicReq) return;                        // ακυρώθηκε όσο φόρτωνε
     const src = c.createBufferSource(), g = c.createGain(), at = Math.max(c.currentTime + 0.02, when || 0), v = spec.volume ?? 0.6, fade = (fadeInMs ?? spec.fadeInMs ?? 2000) / 1000;
     src.buffer = buf; src.loop = true;
     if (spec.loopEndMs > spec.loopStartMs && spec.loopEndMs / 1000 <= buf.duration + 0.05) { src.loopStart = spec.loopStartMs / 1000; src.loopEnd = Math.min(buf.duration, spec.loopEndMs / 1000); }
@@ -93,8 +98,15 @@ class Engine {
     src.start(at, 0);
     this.music = { src, g, url: spec.url, startedAt: at, spec }; this.pendingMusic = null; this.emit();
   }
+  /** Μουσική ΤΩΡΑ: αν ήταν προγραμματισμένη για αργότερα (π.χ. «Παράλειψη» στη μετάβαση), ξεκινά αμέσως με σύντομο fade-in. */
+  async startMusicNow(spec, fadeInMs = 900) {
+    if (this.music && this.ctx && this.music.url === spec.url && this.music.startedAt <= this.ctx.currentTime + 0.05) return;
+    if (this.music && this.ctx && this.music.startedAt > this.ctx.currentTime + 0.05) { const m = this.music; this.music = null; try { m.src.stop(); } catch {} }
+    this.musicLoading = null;
+    return this.startMusic(spec, { fadeInMs });
+  }
   stopMusic(fadeMs = 900) {
-    this.pendingMusic = null;
+    this.pendingMusic = null; this.musicReq = (this.musicReq || 0) + 1; this.musicLoading = null;
     const m = this.music; this.music = null;
     if (m && this.ctx) { const t = this.ctx.currentTime; try { m.g.gain.cancelScheduledValues(t); m.g.gain.setValueAtTime(m.g.gain.value, t); m.g.gain.linearRampToValueAtTime(0.0001, t + fadeMs / 1000); m.src.stop(t + fadeMs / 1000 + 0.05); } catch {} }
     this.emit();
