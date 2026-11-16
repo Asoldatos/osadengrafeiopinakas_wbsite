@@ -20,7 +20,7 @@ export const QUALITY = {
   high: { pr: Math.min(2, devicePixelRatio || 1), shadow: 2048, snow: 9000, trees: 1, lights: 4, far: 380 },
   medium: { pr: Math.min(1.5, devicePixelRatio || 1), shadow: 1024, snow: 5000, trees: 0.8, lights: 3, far: 300 },
   low: { pr: 1, shadow: 0, snow: 2200, trees: 0.55, lights: 2, far: 220 },
-  vr: { pr: 1, shadow: 1024, snow: 3500, trees: 0.7, lights: 2, far: 260 },
+  vr: { pr: 1, shadow: 1024, snow: 4000, trees: 0.85, lights: 3, far: 300 },
 };
 export const defaultQuality = () => (DEVICE.quest ? 'vr' : DEVICE.mobile ? 'low' : 'high');
 
@@ -203,7 +203,7 @@ export class VR {
   async start() {
     const r = this.g.renderer;
     const s = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] });
-    r.xr.setReferenceSpaceType('local-floor'); r.xr.setFramebufferScaleFactor(1); try { r.xr.setFoveation(1); } catch {}
+    r.xr.setReferenceSpaceType('local-floor'); r.xr.setFramebufferScaleFactor(DEVICE.quest ? 1.25 : 1.4); try { r.xr.setFoveation(0.3); } catch {}
     await r.xr.setSession(s); this.session = s;
     s.addEventListener('end', () => { this.session = null; this.g.onVREnd?.(); });
     // γάντια στα χειριστήρια
@@ -289,7 +289,7 @@ export class UI {
   }
   /** Ζωγραφίζει διάλογο/στόχο/μηνύματα στο πάνελ που αιωρείται μπροστά στο βλέμμα μέσα στο VR. */
   drawVR() {
-    const p = this.vpanel; const any = this.cur || this.objText || this.toastText || this.hintText || this.chapText; p.visible = !!any; if (!any || !this.vdirty) return;
+    const p = this.vpanel; const any = this.cur || this.objText || this.toastText || this.hintText || this.chapText || this.tut; p.visible = !!any; if (!any || !this.vdirty) return;
     const c = this.vctx, W = 1024, H = 320; c.clearRect(0, 0, W, H); this.vdirty = false;
     const box = (y, h, col) => { c.fillStyle = col; c.beginPath(); c.roundRect(10, y, W - 20, h, 26); c.fill(); };
     c.textBaseline = 'top'; c.font = '600 34px system-ui,sans-serif';
@@ -302,6 +302,9 @@ export class UI {
       c.fillStyle = '#fff'; c.font = '600 32px system-ui,sans-serif'; const words = this.cur.text.slice(0, Math.floor(this.shown)).split(' '); let line = '', ly = y + (this.cur.who ? 56 : 20);
       for (const w of words) { if (c.measureText(line + w).width > W - 80) { c.fillText(line, 34, ly); ly += 40; line = ''; } line += w + ' '; } c.fillText(line, 34, ly);
       c.fillStyle = 'rgba(255,211,107,.85)'; c.font = '800 24px system-ui,sans-serif'; c.textAlign = 'right'; c.fillText('▶ σκανδάλη', W - 34, H - 44); c.textAlign = 'left';
+    } else if (this.tut) {
+      const t = this.tut, n = t.rows.length; box(y, Math.min(H - y - 8, 52 + n * 42), 'rgba(40,24,6,.9)'); c.fillStyle = '#f6c453'; c.font = '900 28px system-ui,sans-serif'; c.fillText('🎮 ' + t.title + (this.hintText ? '   ·   ' + this.hintText : ''), 32, y + 12);
+      t.rows.forEach((r, i) => { const ok = r.k && t.done?.includes(r.k); c.fillStyle = ok ? '#7fd1ae' : '#fff'; c.font = '700 27px system-ui,sans-serif'; c.fillText((ok ? '✓ ' : '• ') + r.text, 40, y + 52 + i * 42); });
     } else if (this.hintText) { box(y, 56, 'rgba(0,0,0,.6)'); c.fillStyle = '#fff'; c.font = '700 28px system-ui,sans-serif'; c.fillText(this.hintText, 32, y + 12); }
     this.vtex.needsUpdate = true;
   }

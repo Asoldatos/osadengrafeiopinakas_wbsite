@@ -145,31 +145,67 @@ export class World {
   }
   windowMat(day = '#7f97b8', lit = '#ffcc7a') { const m = new THREE.MeshBasicMaterial({ color: day }); m.userData = { day: new THREE.Color(day), lit: new THREE.Color(lit) }; this.windowsMats.push(m); return m; }
   // ---------------------------------------------------------------- σπίτια & χωριό
-  house(mg, win, lights, { x, z, ry, w = 9, d = 7, h = 4.2, wall = '#efe3cc', roof = '#8e2b25', xmas = false, chimney = true }) {
+  house(mg, win, lights, { x, z, ry, w = 9, d = 7, h = 4.2, wall = '#efe3cc', roof = '#8e2b25', trim = '#fbf7ef', shutter = '#2f5d4a', xmas = false, chimney = true, storeys = 1, seed = 0 }) {
     const y0 = height(x, z) - 0.3, M = (lx, ly, lz) => { const c = Math.cos(ry), s = Math.sin(ry); return [x + lx * c + lz * s, y0 + ly, z - lx * s + lz * c]; };
     const add = (geo, lx, ly, lz, col, rot = [0, 0, 0], sc) => mg.add(geo, { pos: M(lx, ly, lz), rot: [rot[0], rot[1] + ry, rot[2]], scale: sc, color: col });
-    add(new THREE.BoxGeometry(w, h, d), 0, h / 2, 0, wall);
-    add(new THREE.BoxGeometry(w + 0.3, 0.5, d + 0.3), 0, 0.25, 0, '#9c9387');
-    const a = 0.62, half = d / 2 + 0.55, len = half / Math.cos(a);
+    const B = (sx, sy, sz, lx, ly, lz, col, rot) => add(new THREE.BoxGeometry(sx, sy, sz), lx, ly, lz, col, rot);
+    const rnd = (k) => { const v = Math.sin((seed + 1) * 91.7 + k * 13.3) * 43758.5; return v - Math.floor(v); };
+    const shade = (hex, f) => '#' + new THREE.Color(hex).multiplyScalar(f).getHexString();
+    if (storeys > 1) h = 6.6;
+    const SNOW = '#fbfdff', ICE = '#d9f0ff', wallD = shade(wall, 0.9), stone = '#8f877c';
+    // πέτρινη βάση + τοίχοι με ξύλινη επένδυση (οριζόντιες σανίδες)
+    B(w + 0.36, 0.7, d + 0.36, 0, 0.35, 0, stone);
+    for (let i = 0; i < 2 * (w + d); i += 1.1) { const onW = i < w, lx = onW ? -w / 2 + i + 0.5 : 0; if (onW) for (const sz of [-1, 1]) B(0.9, 0.06, 0.06, lx, 0.72, sz * (d / 2 + 0.17), shade(stone, 0.8)); }
+    B(w, h, d, 0, h / 2, 0, wall);
+    for (let yy = 1.0; yy < h - 0.2; yy += 0.42) { B(w + 0.02, 0.05, 0.05, 0, yy, d / 2 + 0.02, wallD); B(w + 0.02, 0.05, 0.05, 0, yy, -d / 2 - 0.02, wallD); B(0.05, 0.05, d + 0.02, w / 2 + 0.02, yy, 0, wallD); B(0.05, 0.05, d + 0.02, -w / 2 - 0.02, yy, 0, wallD); }
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) B(0.28, h, 0.28, sx * (w / 2 - 0.08), h / 2, sz * (d / 2 - 0.08), trim);   // γωνίες
+    if (storeys > 1) { B(w + 0.1, 0.18, 0.12, 0, 3.55, d / 2 + 0.06, trim); B(w + 0.1, 0.18, 0.12, 0, 3.55, -d / 2 - 0.06, trim); }
+    // στέγη με προεξοχή, σανίδες, χιόνι που «κρέμεται» και παγοκρύσταλλοι
+    const a = 0.62, half = d / 2 + 0.7, len = half / Math.cos(a), ridge = h + Math.tan(a) * half;
     for (const sgn of [-1, 1]) {
-      add(new THREE.BoxGeometry(w + 0.9, 0.28, len), 0, h + Math.sin(a) * len / 2, sgn * (half / 2 - 0.05), roof, [sgn * a, 0, 0]);
-      add(new THREE.BoxGeometry(w + 1, 0.24, len * 0.97), 0, h + Math.sin(a) * len / 2 + Math.cos(a) * 0.24, sgn * (half / 2 - 0.05 + Math.sin(a) * 0.24), '#fbfdff', [sgn * a, 0, 0]);   // χιόνι στη στέγη
+      const cy = h + Math.sin(a) * len / 2, cz = sgn * (half / 2 - 0.05), rot = [sgn * a, 0, 0];
+      B(w + 1.1, 0.26, len, 0, cy, cz, roof, rot);
+      for (const sx of [-1, 1]) B(0.16, 0.42, len + 0.05, sx * (w / 2 + 0.55), cy - 0.08, cz, trim, rot);   // σανίδες αετώματος
+      const n = 0.26; B(w + 1.2, 0.26, len * 0.98, 0, cy + Math.cos(a) * n, cz + sgn * Math.sin(a) * n, SNOW, rot);   // χιόνι στη στέγη
+      const ez = sgn * (half - 0.05 + Math.sin(a) * n), ey = h + Math.cos(a) * n - 0.05;
+      add(new THREE.CylinderGeometry(0.2, 0.2, w + 1.2, 10), 0, ey, ez, SNOW, [0, 0, Math.PI / 2]);   // στρογγυλεμένο χείλος χιονιού
+      for (let lx = -w / 2 - 0.4; lx <= w / 2 + 0.4; lx += 0.38 + rnd(lx) * 0.3) { const L = 0.18 + rnd(lx * 3 + sgn) * 0.55; add(new THREE.ConeGeometry(0.05 + L * 0.06, L, 5), lx, ey - 0.12 - L / 2, ez - sgn * 0.02, ICE, [Math.PI, 0, 0]); }
     }
-    const ridge = h + Math.tan(a) * half;
-    const tri = new THREE.BufferGeometry(); const hw = w / 2;
-    for (const sgn of [-1, 1]) { const pos = new Float32Array([sgn * hw, h, -half + 0.5, sgn * hw, h, half - 0.5, sgn * hw, ridge - 0.25, 0]); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.computeVertexNormals(); if (sgn < 0) g.index = null; mg.add(sgn < 0 ? flip(g) : g, { matrix: new THREE.Matrix4().compose(new THREE.Vector3(x, y0, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0, 'YXZ')), new THREE.Vector3(1, 1, 1)), color: wall }); }
-    add(new THREE.BoxGeometry(1.5, 2.4, 0.15), 0, 1.2, d / 2 + 0.05, '#6b3d23');   // πόρτα
-    add(new THREE.BoxGeometry(0.12, 0.12, 0.12), 0.5, 1.2, d / 2 + 0.16, '#d9b44a');
-    add(new THREE.BoxGeometry(2.2, 0.15, 1.2), 0, 2.75, d / 2 + 0.55, '#fbfdff');   // υπόστεγο με χιόνι
-    const wins = [[-w / 2 + 1.6, d / 2], [w / 2 - 1.6, d / 2], [-w / 2 + 1.6, -d / 2], [w / 2 - 1.6, -d / 2]];
-    for (const [lx, lz] of wins) {
-      const zz = lz + Math.sign(lz) * 0.06; add(new THREE.BoxGeometry(1.5, 1.4, 0.12), lx, 2.4, zz, '#ffffff');
-      win.add(new THREE.PlaneGeometry(1.2, 1.1), { pos: M(lx, 2.4, lz + Math.sign(lz) * 0.14), rot: [0, ry + (lz < 0 ? Math.PI : 0), 0] });
-      add(new THREE.BoxGeometry(1.7, 0.12, 0.35), lx, 1.65, lz + Math.sign(lz) * 0.2, '#fbfdff');
-    }
-    for (const lz of [-d / 4, d / 4]) for (const sx of [-1, 1]) { win.add(new THREE.PlaneGeometry(1.1, 1.1), { pos: M(sx * (w / 2 + 0.07), 2.4, lz), rot: [0, ry + sx * Math.PI / 2, 0] }); add(new THREE.BoxGeometry(0.12, 1.35, 1.4), sx * (w / 2 + 0.01), 2.4, lz, '#ffffff'); }
-    if (chimney) { const cx = w / 4, cz = -half / 3, cy = h + Math.tan(a) * (half - Math.abs(cz)); add(new THREE.BoxGeometry(0.9, 2.2, 0.9), cx, cy + 0.6, cz, '#7a4a3a'); add(new THREE.BoxGeometry(1.05, 0.25, 1.05), cx, cy + 1.75, cz, '#fbfdff'); const p = M(cx, cy + 1.9, cz); this.chimneys.push({ x: p[0], y: p[1], z: p[2] }); }
-    if (xmas) { const cols = ['#ff3b3b', '#ffd23b', '#3bff7a', '#3bb4ff', '#ff6ad5']; const n = 16; for (let i = 0; i <= n; i++) { const t = i / n, lx = -w / 2 - 0.3 + t * (w + 0.6); lights.add(new THREE.SphereGeometry(0.09, 6, 5), { pos: M(lx, h - 0.05 - Math.sin(t * Math.PI * 4) * 0.12, d / 2 + 0.35), color: cols[i % cols.length] }); } }
+    add(new THREE.CylinderGeometry(0.24, 0.24, w + 1.2, 10), 0, ridge + 0.2, -0.05, SNOW, [0, 0, Math.PI / 2]);
+    const hw = w / 2;
+    for (const sgn of [-1, 1]) { const pos = new Float32Array([sgn * hw, h, -half + 0.7, sgn * hw, h, half - 0.7, sgn * hw, ridge - 0.25, 0]); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.computeVertexNormals(); const mx = new THREE.Matrix4().compose(new THREE.Vector3(x, y0, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0, 'YXZ')), new THREE.Vector3(1, 1, 1)); mg.add(g, { matrix: mx, color: wallD }); mg.add(flip(g), { matrix: mx, color: wallD }); }
+    // στρογγυλό παράθυρο στο αέτωμα
+    for (const sx of [-1, 1]) { add(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 16), sx * (hw + 0.04), h + 0.9, 0, trim, [0, 0, Math.PI / 2]); win.add(new THREE.CircleGeometry(0.32, 16), { pos: M(sx * (hw + 0.1), h + 0.9, 0), rot: [0, ry + sx * Math.PI / 2, 0] }); }
+    // πόρτα με πλαίσιο, ταμπλάδες, σκαλιά, υπόστεγο με κολόνες και φανάρι
+    const dz = d / 2;
+    B(1.9, 2.75, 0.14, 0, 1.45, dz + 0.04, trim); B(1.45, 2.42, 0.14, 0, 1.33, dz + 0.1, shade(roof, 0.75));
+    for (const py of [0.75, 1.75]) for (const px of [-0.33, 0.33]) B(0.5, 0.75, 0.05, px, py, dz + 0.18, shade(roof, 0.6));
+    add(new THREE.SphereGeometry(0.07, 8, 6), 0.52, 1.25, dz + 0.22, '#e3b94a');
+    B(2.6, 0.24, 1.3, 0, 0.12, dz + 0.65, stone); B(2.2, 0.24, 0.9, 0, 0.36, dz + 0.45, shade(stone, 1.1)); B(2.62, 0.08, 1.32, 0, 0.27, dz + 0.65, SNOW);
+    for (const sx of [-1, 1]) { B(0.18, 2.9, 0.18, sx * 1.15, 1.45, dz + 1.15, trim); }
+    B(2.9, 0.2, 1.6, 0, 2.95, dz + 0.75, roof, [-0.12, 0, 0]); B(3.0, 0.2, 1.7, 0, 3.12, dz + 0.75, SNOW, [-0.12, 0, 0]);
+    for (let lx = -1.4; lx <= 1.4; lx += 0.42) { const L = 0.15 + rnd(lx * 7) * 0.3; add(new THREE.ConeGeometry(0.045, L, 5), lx, 2.78 - L / 2, dz + 1.55, ICE, [Math.PI, 0, 0]); }
+    { const p = M(-1.3, 2.25, dz + 0.2); B(0.16, 0.3, 0.16, -1.3, 2.25, dz + 0.12, '#23262b'); this.lamps.push({ x: p[0], y: p[1], z: p[2], small: true }); }
+    if (xmas) { add(new THREE.TorusGeometry(0.34, 0.11, 8, 18), 0, 2.0, dz + 0.24, '#1f6b3a'); add(new THREE.SphereGeometry(0.1, 8, 6), 0, 1.7, dz + 0.3, '#c8102e'); for (let i = 0; i < 6; i++) add(new THREE.SphereGeometry(0.05, 6, 5), Math.cos(i) * 0.34, 2.0 + Math.sin(i) * 0.34, dz + 0.33, i % 2 ? '#ffd23b' : '#ff3b3b'); }
+    // παράθυρα: πλαίσιο, σταυρός, παντζούρια, περβάζι με χιόνι και ζαρντινιέρα
+    const rows = storeys > 1 ? [2.2, 5.1] : [2.3];
+    const winAt = (lx, ly, lz, face) => {
+      const o = Math.sign(lz), zz = lz + o * 0.06;
+      B(1.5, 1.45, 0.12, lx, ly, zz, trim); win.add(new THREE.PlaneGeometry(1.2, 1.15), { pos: M(lx, ly, lz + o * 0.13), rot: [0, ry + (o < 0 ? Math.PI : 0), 0] });
+      B(0.08, 1.15, 0.05, lx, ly, lz + o * 0.16, trim); B(1.2, 0.08, 0.05, lx, ly + 0.05, lz + o * 0.16, trim);
+      for (const sx of [-1, 1]) B(0.5, 1.45, 0.08, lx + sx * 1.02, ly, lz + o * 0.09, shutter);
+      B(1.75, 0.1, 0.36, lx, ly - 0.78, lz + o * 0.2, trim); B(1.75, 0.1, 0.38, lx, ly - 0.7, lz + o * 0.21, SNOW);
+      if (face && ly < 3) { B(1.4, 0.3, 0.3, lx, ly - 1.02, lz + o * 0.3, shade(roof, 0.8)); B(1.42, 0.1, 0.32, lx, ly - 0.83, lz + o * 0.3, SNOW); }
+    };
+    for (const ly of rows) for (const lz of [dz, -dz]) for (const lx of [-w / 2 + 1.7, w / 2 - 1.7]) winAt(lx, ly, lz, lz > 0);
+    if (storeys > 1) for (const lz of [dz]) winAt(0, 5.1, lz, false);
+    for (const ly of rows) for (const lz of [-d / 4, d / 4]) for (const sx of [-1, 1]) { win.add(new THREE.PlaneGeometry(1.0, 1.1), { pos: M(sx * (w / 2 + 0.08), ly, lz), rot: [0, ry + sx * Math.PI / 2, 0] }); B(0.12, 1.35, 1.3, sx * (w / 2 + 0.01), ly, lz, trim); B(0.36, 0.1, 1.5, sx * (w / 2 + 0.18), ly - 0.68, lz, SNOW); }
+    // καμινάδα από τούβλα
+    if (chimney) { const cx = w / 4, cz = -half / 3, cy = h + Math.tan(a) * (half - Math.abs(cz)); B(0.95, 2.4, 0.95, cx, cy + 0.5, cz, '#8a4a3a'); for (let k = 0; k < 4; k++) B(0.99, 0.05, 0.99, cx, cy + 0.2 + k * 0.4, cz, '#6a3328'); B(1.15, 0.22, 1.15, cx, cy + 1.75, cz, '#5a2e25'); B(1.2, 0.18, 1.2, cx, cy + 1.95, cz, SNOW); const p = M(cx, cy + 1.9, cz); this.chimneys.push({ x: p[0], y: p[1], z: p[2] }); }
+    if (xmas) { const cols = ['#ff3b3b', '#ffd23b', '#3bff7a', '#3bb4ff', '#ff6ad5'], n = 22; for (let i = 0; i <= n; i++) { const t = i / n, lx = -w / 2 - 0.5 + t * (w + 1); lights.add(new THREE.SphereGeometry(0.09, 6, 5), { pos: M(lx, h - 0.25 - Math.abs(Math.sin(t * Math.PI * 5)) * 0.22, half - 0.02), color: cols[i % cols.length] }); } }
+    // μικρός φράχτης και γραμματοκιβώτιο μπροστά
+    if (rnd(9) > 0.35) { const fz = dz + 3.6; for (let lx = -w / 2; lx <= w / 2 + 0.01; lx += 0.7) { if (Math.abs(lx) < 1.3) continue; B(0.12, 0.9, 0.08, lx, 0.65, fz, trim); B(0.16, 0.08, 0.12, lx, 1.12, fz, SNOW); } for (const yy of [0.5, 0.9]) for (const sx of [-1, 1]) B(w / 2 - 1.3, 0.08, 0.05, sx * (w / 4 + 0.65), yy, fz, trim); }
+    B(0.1, 1.1, 0.1, w / 2 - 0.5, 0.75, dz + 3.2, '#4a3426'); B(0.45, 0.32, 0.6, w / 2 - 0.5, 1.4, dz + 3.2, xmas ? '#c8102e' : '#2b6cb0'); B(0.5, 0.08, 0.66, w / 2 - 0.5, 1.6, dz + 3.2, SNOW);
     this.g.phys.box(x, z, w / 2, d / 2, ry, h + 2);
     return { door: M(0, 0, d / 2 + 1.4) };
   }
@@ -181,7 +217,8 @@ export class World {
       [-16, 44, 1, true], [-16, 26, 1], [-16, 8, 1, true], [-16, -24, 1], [-16, -44, 1],
       [34, 32, -1], [34, 14, -1, true], [-34, 30, 1, true], [-34, 12, 1], [-36, -36, 1, true], [30, -44, -1],
     ];
-    list.forEach(([x, z, side, xm], i) => { const r = this.house(mg, win, lights, { x, z, ry: side * Math.PI / 2, wall: walls[i % walls.length], roof: roofs[i % roofs.length], xmas: !!xm, w: 8.5 + (i % 3), d: 7 + (i % 2) }); if (i === 0) this.homeDoorPos = r.door; });
+    const shutters = ['#2f5d4a', '#8e2b25', '#2b4f7a', '#5d3a2e', '#3a6b6b'];
+    list.forEach(([x, z, side, xm], i) => { const r = this.house(mg, win, lights, { x, z, ry: side * Math.PI / 2, wall: walls[i % walls.length], roof: roofs[i % roofs.length], shutter: shutters[(i * 3) % shutters.length], xmas: !!xm, w: 8.5 + (i % 3), d: 7 + (i % 2), storeys: i % 3 === 1 ? 2 : 1, seed: i }); if (i === 0) this.homeDoorPos = r.door; });
     // φανάρια δρόμου
     for (let z = 56; z >= -56; z -= 16) for (const sx of [-1, 1]) this.lamp(mg, sx * 5.2, z + (sx > 0 ? 8 : 0));
     for (let x = -50; x <= 66; x += 18) if (Math.abs(x) > 8) this.lamp(mg, x, 4.6);
@@ -191,9 +228,9 @@ export class World {
     const winMesh = new THREE.Mesh(win.build(), this.windowMat()); this.scene.add(winMesh);
     const lm = new THREE.Mesh(lights.build(), this.lightsMat); this.scene.add(lm);
     // φανάρια: λάμπες + λάμψεις
-    const bulbs = new Merger(); for (const l of this.lamps) bulbs.add(new THREE.SphereGeometry(0.22, 10, 8), { pos: [l.x, l.y, l.z] });
+    const bulbs = new Merger(); for (const l of this.lamps) bulbs.add(new THREE.SphereGeometry(l.small ? 0.11 : 0.22, 10, 8), { pos: [l.x, l.y, l.z] });
     this.scene.add(new THREE.Mesh(bulbs.build(), this.bulbMat));
-    for (const l of this.lamps) { const s = new THREE.Sprite(this.glowMat); s.position.set(l.x, l.y, l.z); s.scale.set(3.2, 3.2, 1); this.scene.add(s); }
+    for (const l of this.lamps) { const s = new THREE.Sprite(this.glowMat); s.position.set(l.x, l.y, l.z); s.scale.setScalar(l.small ? 1.5 : 3.2); this.scene.add(s); }
   }
   lamp(mg, x, z) {
     const y = height(x, z); mg.add(new THREE.CylinderGeometry(0.09, 0.13, 4.2, 8), { pos: [x, y + 2.1, z], color: '#23262b' });

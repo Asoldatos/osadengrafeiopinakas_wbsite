@@ -16,11 +16,9 @@ export class VRMenu {
   }
   /** Ανοίγει μια σελίδα: { title, sub, text: [γραμμές], buttons: [{ label, sub, fn, primary }] }. Επιστρέφει όταν πατηθεί κάποιο κουμπί που κλείνει το μενού. */
   show(page) {
-    this.page = page; this.open = true; this.group.visible = true; this.hover = -1; this.g.menuOpen = true;
-    // τοποθέτηση μπροστά στο βλέμμα
-    const cam = this.g.camera, head = new THREE.Vector3(), dir = new THREE.Vector3(); cam.getWorldPosition(head); cam.getWorldDirection(dir);
-    const yaw = Math.atan2(dir.x, dir.z), local = this.g.rig.worldToLocal(head.clone().add(new THREE.Vector3(Math.sin(yaw) * 1.5, -0.12, Math.cos(yaw) * 1.5)));
-    this.group.position.copy(local); this.group.rotation.set(0, yaw + Math.PI - this.g.rig.rotation.y, 0);
+    const wasOpen = this.open; this.page = page; this.open = true; this.hover = -1; this.g.menuOpen = true;
+    // Η θέση υπολογίζεται μέσα στο update(), όταν το κράνος έχει ήδη δώσει τη θέση του κεφαλιού (όχι εδώ, που μπορεί να είναι ακόμα η παλιά κάμερα).
+    if (!wasOpen) { this.place = 3; this.group.visible = false; }
     this.draw(); this.g.audio.play('../../audio/sfx/pop.mp3', { vol: 0.35 });
   }
   close() { this.open = false; this.group.visible = false; this.g.menuOpen = false; for (const r of this.rays) r.visible = false; this.dot.visible = false; }
@@ -47,8 +45,21 @@ export class VRMenu {
     this.tex.needsUpdate = true;
   }
   /** Κάθε καρέ (μόνο μέσα στο VR). */
+  /** Βάζει το πάνελ 1.4 μ. μπροστά στο κεφάλι (σε συντεταγμένες του rig). */
+  placeNow(smooth = false) {
+    const cam = this.g.camera, head = cam.position; if (!(head.y > 0.2 && head.y < 3)) return false;
+    const h = new THREE.Euler().setFromQuaternion(cam.quaternion, 'YXZ').y, want = new THREE.Vector3(head.x - Math.sin(h) * 1.4, head.y - 0.1, head.z - Math.cos(h) * 1.4);
+    if (smooth) { this.group.position.lerp(want, 0.08); let d = h - this.group.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); this.group.rotation.y += d * 0.08; }
+    else { this.group.position.copy(want); this.group.rotation.set(0, h, 0); }
+    this.group.visible = true; return true;
+  }
   update() {
     if (!this.open || !this.g.inVR) return;
+    if (this.place > 0) { this.place--; if (this.place === 0 && !this.placeNow()) this.place = 1; if (!this.group.visible) return; }
+    else { // ακολουθεί το βλέμμα αν γυρίσεις πολύ μακριά
+      const h = new THREE.Euler().setFromQuaternion(this.g.camera.quaternion, 'YXZ').y; let d = h - this.group.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d));
+      if (Math.abs(d) > 0.75 || this.following) { this.following = Math.abs(d) > 0.05; this.placeNow(true); }
+    }
     let hover = -1, hit = null; const vr = this.g.vr;
     vr.hands.forEach((h, i) => {
       const r = this.rays[i], o = new THREE.Vector3(), q = new THREE.Quaternion(); h.ctl.getWorldPosition(o); h.ctl.getWorldQuaternion(q);

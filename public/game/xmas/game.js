@@ -3,6 +3,7 @@ import { THREE, QUALITY, DEVICE, Physics, AudioSys, Input, VR, UI, clamp, lerp, 
 import { World, height, P, LAKE_Y } from './world.js';
 import { makeKid, makeBeacon } from './actors.js';
 import { VRMenu } from './vrmenu.js';
+import { tutMark } from './tutorial.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 export class Game {
@@ -21,6 +22,7 @@ export class Game {
     this.p = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: -0.15, ground: true, mode: 'walk', speed: 0, stepT: 0, coyote: 0 };
     this.camMode = DEVICE.touch ? 'third' : 'third'; this.camDist = 3.8; this.camPos = new THREE.Vector3(); this.firstFrame = true;
     this.inter = []; this.npcs = []; this.balls = []; this.canThrow = false; this.onBallHit = null; this.waiters = []; this.t = 0; this.paused = false; this.locked = false;
+    let tut = '1'; try { tut = localStorage.getItem('kimo3d:tut') ?? '1'; } catch {} this.settings = { tutorials: tut !== '0' };
     this.beacon = makeBeacon(); this.beacon.g.visible = false; this.scene.add(this.beacon.g);
     this.splat = this.makeSplats(); this.fadeSphere = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 12), new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide, transparent: true, opacity: 0, depthTest: false })); this.fadeSphere.renderOrder = 1000; this.camera.add(this.fadeSphere);
     // πατημασιές στο χιόνι (κυκλικός «buffer»)
@@ -66,7 +68,7 @@ export class Game {
   throwBall(from, dir, speed = 17, owner = 'player') {
     const m = new THREE.Mesh(this.ballGeo, this.ballMat); m.castShadow = true; m.position.copy(from); this.scene.add(m);
     this.balls.push({ m, v: dir.clone().normalize().multiplyScalar(speed).add(new THREE.Vector3(0, owner === 'player' ? 2.6 : 3.2, 0)), owner, life: 4 });
-    if (owner === 'player') { this.kid.st.throw = 0.35; this.audio.play('../../audio/sfx/pop.mp3', { vol: 0.35, rate: 0.7 }); }
+    if (owner === 'player') { tutMark(this, 'throw', 0.34); this.kid.st.throw = 0.35; this.audio.play('../../audio/sfx/pop.mp3', { vol: 0.35, rate: 0.7 }); }
   }
   updateBalls(dt) {
     for (let i = this.balls.length - 1; i >= 0; i--) {
@@ -80,8 +82,8 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- VR
-  async enterVR() { this.audio.ensure(); const s = this.vr.start(); this.audio.unlock(); await s; this.camModePrev = this.camMode; this.camMode = 'first'; this.kid.root.visible = false; this.firstFrame = true; this.ui.vdirty = true; this.onVRStart?.(); }
-  onVREnd() { this.camMode = this.camModePrev || 'third'; this.rig.position.set(0, 0, 0); this.rig.rotation.set(0, 0, 0); this.camera.position.set(0, 0, 0); this.ui.vpanel.visible = false; this.onVRExit?.(); }
+  async enterVR() { this.audio.ensure(); const s = this.vr.start(); this.audio.unlock(); await s; this.camModePrev = this.camMode; this.camMode = 'first'; this.kid.root.visible = false; this.rig.scale.setScalar(0.85); this.camera.position.set(0, 0, 0); this.camera.quaternion.identity(); this.cine = null; this.firstFrame = true; this.ui.vdirty = true; this.onVRStart?.(); }
+  onVREnd() { this.camMode = this.camModePrev || 'third'; this.rig.scale.setScalar(1); this.rig.position.set(0, 0, 0); this.rig.rotation.set(0, 0, 0); this.camera.position.set(0, 0, 0); this.ui.vpanel.visible = false; this.onVRExit?.(); }
 
   // ---------------------------------------------------------------- βρόχος
   frame() { try { this._frame(); } catch (e) { console.error('[game]', e); if (!this._errShown) { this._errShown = true; this.ui?.toast?.('Ωπ! Κάτι πήγε στραβά, αλλά το παιχνίδι συνεχίζει.'); } this.input.endFrame(); if (this.inVR) this.vr.endFrame(); } }
@@ -116,14 +118,15 @@ export class Game {
     if (p.mode === 'sleigh') { this.kid.update(dt, 0, this.t); return; }
     const frozen = this.locked || (this.ui.cur && this.ui.cur.lock !== false);
     // κοίταγμα
-    if (!vr) { p.yaw -= inp.look.x; p.pitch = clamp(p.pitch - inp.look.y, -1.2, 0.9); }
-    else if (this.vr.state.rx && !this._snap) { this.vr.prev.snap = true; this._snap = true; const s = Math.sign(this.vr.state.rx) * -Math.PI / 6; this.rig.rotation.y += s; } else if (!this.vr.state.rx) this._snap = false;
+    if (!vr) { p.yaw -= inp.look.x; p.pitch = clamp(p.pitch - inp.look.y, -1.2, 0.9); if (Math.abs(inp.look.x) + Math.abs(inp.look.y) > 0.002) tutMark(this, 'look', 0.04); }
+    if (!vr && inp.hit('KeyV') && !this.world.indoor) { this.camMode = this.camMode === 'first' ? 'third' : 'first'; this.firstFrame = true; this.ui.toast(this.camMode === 'first' ? 'Κάμερα: πρώτο πρόσωπο' : 'Κάμερα: τρίτο πρόσωπο', 1200); }
+    else if (this.vr.state.rx && !this._snap) { this.vr.prev.snap = true; this._snap = true; const s = Math.sign(this.vr.state.rx) * -Math.PI / 6; this.rig.rotation.y += s; tutMark(this, 'look', 0.5); } else if (!this.vr.state.rx) this._snap = false;
     // κατεύθυνση κίνησης από το βλέμμα
     let ax = 0, ay = 0;
     if (!frozen) { if (vr) { ax = this.vr.state.lx; ay = -this.vr.state.ly; } else { const a = inp.axes(); ax = a.x; ay = a.y; } }
     let yaw = p.yaw; if (vr) { const d = this.headDir; yaw = Math.atan2(-d.x, -d.z); }
     const fx = -Math.sin(yaw), fz = -Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
-    const sprint = inp.down('ShiftLeft', 'ShiftRight') || (vr && this.vr.state.grip[0]);
+    const sprint = inp.down('ShiftLeft', 'ShiftRight') || (vr && this.vr.state.grip[0]) || (DEVICE.touch && !vr && Math.hypot(inp.move.x, inp.move.y) > 0.95);
     const max = (sprint ? 6.2 : 3.6) * (this.speedMul || 1);
     const wx = (fx * ay + rx * ax) * max, wz = (fz * ay + rz * ax) * max;
     const k = this.slippery && this.onIce ? 1.1 : p.ground ? 12 : 3;
@@ -131,7 +134,7 @@ export class Game {
     if (this.slippery && this.onIce && !(ax || ay)) { p.vel.x *= 1 - dt * 0.25; p.vel.z *= 1 - dt * 0.25; }
     // άλμα + βαρύτητα
     p.coyote -= dt; if (p.ground) p.coyote = 0.12;
-    if (!frozen && (inp.hit('Space') || (vr && this.vr.edge('b'))) && p.coyote > 0) { p.vel.y = 5.4; p.ground = false; p.coyote = 0; this.audio.crunch(0.3); }
+    if (!frozen && (inp.hit('Space') || (vr && this.vr.edge('b'))) && p.coyote > 0) { p.vel.y = 5.4; p.ground = false; p.coyote = 0; this.audio.crunch(0.3); tutMark(this, 'jump'); }
     p.vel.y -= 15 * dt;
     const next = new THREE.Vector3(p.pos.x + p.vel.x * dt, p.pos.y + p.vel.y * dt, p.pos.z + p.vel.z * dt);
     const floor = this.phys.resolve(next, 0.34, next.y);
@@ -141,6 +144,7 @@ export class Game {
     // όρια κόσμου
     if (next.x < 400) { const d = Math.hypot(next.x, next.z + 10); if (d > 168) { next.x *= 168 / d; next.z = (next.z + 10) * (168 / d) - 10; } }
     p.pos.copy(next); p.speed = Math.hypot(p.vel.x, p.vel.z);
+    if (p.speed > 1) tutMark(this, 'move', dt / 2); if (p.speed > 5 || (DEVICE.touch && Math.hypot(ax, ay) > 0.95 && p.speed > 3)) tutMark(this, 'sprint', dt / 1.2);
     // βήματα
     if (p.ground && p.speed > 0.6) { p.stepT -= dt * p.speed; if (p.stepT <= 0) { p.stepT = 1.25; if (this.onIce) this.audio.crunch(0.06); else this.audio.crunch(this.world.indoor ? 0.08 : 0.22); if (!this.world.indoor && !this.onIce) this.footprint(); } }
     // μοντέλο
@@ -151,7 +155,7 @@ export class Game {
     if (!this.ui.cur) for (const it of this.inter) { if (!it.on || typeof it.fn !== 'function') continue; const ip = typeof it.pos === 'function' ? it.pos() : it.pos; const dx = ip.x - p.pos.x, dz = ip.z - p.pos.z, d = Math.hypot(dx, dz); if (d < it.r && d < bd) { bd = d; best = it; } }
     this.focus = best;
     this.ui.hint(best ? `${vr ? 'Σκανδάλη' : DEVICE.touch ? '✋' : 'E'}: ${best.label}` : this.canThrow && !this.ui.cur ? (vr ? 'Δεξιά σκανδάλη: ρίξε χιονόμπαλα' : DEVICE.touch ? '❄: ρίξε χιονόμπαλα' : 'Κλικ: ρίξε χιονόμπαλα') : '');
-    if (best && !this.ui.cur && this.actionPressed(vr)) { this.audio.play('../../audio/sfx/click.mp3', { vol: 0.4 }); const fn = best.fn; Promise.resolve().then(() => fn(best)).catch((e) => console.error(e)); return; }
+    if (best && !this.ui.cur && this.actionPressed(vr)) { this.audio.play('../../audio/sfx/click.mp3', { vol: 0.4 }); tutMark(this, 'act'); const fn = best.fn; Promise.resolve().then(() => fn(best)).catch((e) => console.error(e)); return; }
     // ρίψη
     if (this.canThrow && !this.ui.cur && !frozen) {
       const now = this.t; if ((this._lastThrow || 0) + 0.32 > now) return;
@@ -181,6 +185,7 @@ export class Game {
   updateCamera(dt, vr) {
     const p = this.p, cam = this.camera;
     if (vr) {
+      this.kid.root.visible = false;   // στο VR ΕΙΣΑΙ το παιδί: πρώτο πρόσωπο, χωρίς σώμα μπροστά στα μάτια
       if (p.mode === 'sleigh' && this.sleighSeat) { this.sleighSeat.getWorldPosition(this.rig.position); }
       else this.rig.position.copy(p.pos);
       return;

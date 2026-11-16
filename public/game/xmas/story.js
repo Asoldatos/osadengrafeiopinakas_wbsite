@@ -2,9 +2,10 @@
 import { THREE, glowTex, canvasTex, signTex, rand, clamp, lerp, DEVICE } from './engine.js';
 import { height, P, LAKE_Y, pathX } from './world.js';
 import { makeKid, makeKimolakis, makeReindeer, makeSleigh, makeGift, makeSnowman, makeBeacon } from './actors.js';
+import { tutorial, closeTutorial, tutMark } from './tutorial.js';
 
 const MUSIC = '../../audio/christmas-music.mp3', LS = 2269665 / 44100, LE = 4386904 / 44100;
-const K = (t) => ({ who: 'Εσύ', c: 'k', text: t }), MA = (t) => ({ who: 'Μαρία', c: 'm', text: t }), NI = (t) => ({ who: 'Νίκος', c: 'n', text: t }), KI = (t) => ({ who: 'Κιμωλάκης', c: 's', text: t }), N = (t) => ({ who: '', text: t });
+const K = (t) => ({ who: 'Εσύ', c: 'k', text: t }), MA = (t) => ({ who: 'Μαρία', c: 'm', text: t }), NI = (t) => ({ who: 'Νίκος', c: 'n', text: t }), KI = (t) => ({ who: 'Κιμωλάκης', c: 's', text: t }), EL = (t) => ({ who: 'Κυρία Ελένη', c: 'e', text: t }), N = (t) => ({ who: '', text: t });
 
 export const CHAPTERS = [
   { n: 1, title: 'Χιονισμένο πρωινό', run: ch1 },
@@ -43,7 +44,8 @@ async function ch1(g, c) {
   face.position.set(0, 0, 0.071); clock.add(face); for (const sx of [-1, 1]) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.05, 10, 8), new THREE.MeshStandardMaterial({ color: 0xf6c453, metalness: 0.8, roughness: 0.3 })); b.position.set(sx * 0.1, 0.13, 0); clock.add(b); }
   clock.rotation.y = -0.4; const ci = item(g, clock, X - 2.8, 0.82, Z + 4.25, 'Κλείσε το ξυπνητήρι', 2.2);
   let ringing = true; g.tick = (dt, t) => { if (ringing && Math.floor(t * 4) !== Math.floor((t - dt) * 4) && Math.floor(t * 4) % 4 < 3) g.audio.bell(2093, 0.12); if (ringing) clock.position.x = X - 2.8 + Math.sin(t * 70) * 0.01; };
-  await g.say([N('Δευτέρα, 22 Δεκεμβρίου. 07:00.'), K('Μμμ… πέντε λεπτά ακόμα…'), N('ΝΤΡΙΝ! ΝΤΡΙΝ! ΝΤΡΙΝ!'), K('Εντάξει, εντάξει! Ξύπνησα!')]);
+  await g.say([N('Δευτέρα, 22 Δεκεμβρίου. 07:00. Η τελευταία μέρα σχολείου πριν από τις γιορτές.'), K('Μμμ… πέντε λεπτά ακόμα…'), N('ΝΤΡΙΝ! ΝΤΡΙΝ! ΝΤΡΙΝ!'), K('Εντάξει, εντάξει! Ξύπνησα!')]);
+  tutorial(g, 'move').then(() => tutorial(g, 'act'));
   g.ui.objective('Κλείσε το ξυπνητήρι'); g.setBeacon({ x: X - 2.8, z: Z + 4.25, y: 0 });
   await new Promise((r) => { ci.fn = () => { ringing = false; g.audio.play('../../audio/sfx/click.mp3', { vol: 0.6 }); g.removeInter(ci); r(); }; });
   g.setBeacon(null); g.tick = null;
@@ -53,7 +55,7 @@ async function ch1(g, c) {
   const wi = g.addInter({ pos: { x: X + 5.2, z: Z + 2.2 }, r: 2, label: 'Κοίτα έξω' });
   await new Promise((r) => { wi.fn = () => { g.removeInter(wi); r(); }; }); g.setBeacon(null);
   g.locked = true; g.p.yaw = -Math.PI / 2; g.p.pitch = 0.05;
-  await g.say([K('ΟΥΑΟΥ!'), K('ΧΙΟΝΙΖΕΙ! Όλα είναι κάτασπρα! Οι στέγες, οι δρόμοι, τα δέντρα…'), K('Λες να κλείσουν τα σχολεία; Πρέπει να το μάθω ΑΜΕΣΩΣ!')]);
+  await g.say([K('ΟΥΑΟΥ!'), K('ΧΙΟΝΙΖΕΙ! Όλα είναι κάτασπρα! Οι στέγες, οι δρόμοι, τα δέντρα…'), K('Μια στιγμή… Το γράμμα μου!'), N('Χθες το βράδυ είχες γράψει ένα γράμμα στον Άγιο Βασίλη:'), N('«Φέτος δεν θέλω δώρο. Θέλω μόνο να χιονίσει πολύ, για να παίξουμε ΟΛΟΙ μαζί.»'), N('«Υ.Γ. Πες ένα γεια στον Κιμωλάκη, την κιμωλία της τάξης μας. Νομίζω ότι την Παρασκευή μού έκλεισε το μάτι.»'), K('Η ευχή μου έπιασε;! Λες να κλείσουν και τα σχολεία; Πρέπει να το μάθω ΑΜΕΣΩΣ!')]);
   g.locked = false;
   // ντύσιμο
   const things = [
@@ -88,9 +90,11 @@ async function ch1(g, c) {
 async function ch2(g, c) {
   g.world.setIndoor(false); g.world.setTime('morning', 0.01); g.world.setTime('day', 90);
   const d = g.world.homeDoorPos || [P.homeDoor.x, 0, P.homeDoor.z]; g.teleport(d[0] - 0.5, d[2], Math.PI / 2); g.p.pitch = -0.1;
-  g.kid.root.visible = true; await g.fadeTo(0, 1.6); g.ui.chapter(c.n, c.title);
+  g.kid.root.visible = !g.inVR; await g.fadeTo(0, 1.6); g.ui.chapter(c.n, c.title);
   g.audio.musicLoop(MUSIC, LS, LE, 0.32);
   await g.say([K('Τι ωραία που τρίζει το χιόνι κάτω από τα πόδια μου!'), K('Το σχολείο είναι στο τέλος του δρόμου. Πάμε!')]);
+  tutorial(g, 'run');
+  const eleni = g.addNPC(makeKid({ coat: 0x6a2b3b, hat: 0x3a2a4a, scarf: 0xf6c453, hair: 0x3a2416, pants: 0x2a2a3a, girl: true, height: 1.32 }), 3.4, P.gate.z + 2.6, 0); eleni.look = 'player';
   g.ui.objective('Πήγαινε στο σχολείο'); g.setBeacon({ x: 0, z: P.gate.z + 3 });
   // η Μαρία περιμένει στη γωνία
   const maria = g.addNPC(makeKid({ coat: 0xff6aa8, girl: true, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10, backpack: true }), -3, 14, Math.PI); maria.look = 'player';
@@ -98,21 +102,24 @@ async function ch2(g, c) {
   await g.until(() => near(g, maria.pos, 6) || g.p.pos.z < 9);
   g.tick = null;
   if (!near(g, maria.pos, 6)) { maria.speed = 6; maria.follow = () => g.p.pos; maria.followDist = 2.5; g.say([MA('Ε! ΕΕΕ! Περίμενέ με!')]); await g.until(() => near(g, maria.pos, 3.5)); maria.follow = null; }
-  await g.say([MA('Καλημέρα! Είδες τι χιόνι έριξε;! Μοιάζει σαν να μας σκέπασε ένα τεράστιο πάπλωμα!'), K('Καλημέρα, Μαρία! Λες να έχουμε σχολείο σήμερα;'), MA('Μόνο ένας τρόπος υπάρχει να το μάθουμε. Πάμε μαζί!')]);
+  await g.say([MA('Καλημέρα! Είδες τι χιόνι έριξε;! Μοιάζει σαν να μας σκέπασε ένα τεράστιο πάπλωμα!'), K('Καλημέρα, Μαρία! Λες να έχουμε σχολείο σήμερα;'), MA('Ξέρεις τι διάβασα; Κάθε νιφάδα έχει έξι μύτες, και δεν υπάρχουν δύο ίδιες σε όλο τον κόσμο!'), MA('Άρα σήμερα έπεσαν… τρισεκατομμύρια διαφορετικές νιφάδες. Δεν μπορεί να έχουμε σχολείο. Πάμε να δούμε!')]);
   maria.follow = () => g.p.pos; maria.followDist = 2;
   // στη μέση της διαδρομής: χιονάγγελος
   await g.until(() => g.p.pos.z < -10);
-  await g.say([MA('Περίμενε! Ξέρεις να κάνεις χιονάγγελο; Ξάπλωσε και κούνα χέρια-πόδια!'), K('Χα! Αργότερα. Πρώτα το σχολείο!')]);
+  await g.say([MA('Κοίτα! Ο δρόμος δεν έχει ούτε ένα αυτοκίνητο. Όλη η πόλη κοιμάται κάτω από το χιόνι.'), K('Είναι σαν να είναι όλα δικά μας σήμερα!')]);
   await g.until(() => near(g, P.gate, 7));
   g.locked = true; g.setBeacon(null); maria.follow = null; maria.target = { x: -1.6, z: P.gate.z + 2.2 }; maria.onArrive = () => { maria.look = 'player'; };
   g.cine = { pos: new THREE.Vector3(1.5, 2.4, P.gate.z + 5), look: new THREE.Vector3(0, 1.1, P.gate.z) };
-  await g.say([K('Περίμενε, τι γράφει εκεί;'), N('«ΚΛΕΙΣΤΟ ΣΗΜΕΡΑ λόγω χιονόπτωσης»'), MA('…'), K('…'), MA('ΔΕΝ ΕΧΟΥΜΕ ΣΧΟΛΕΙΟ!!!')]);
+  await g.say([K('Περίμενε, τι γράφει εκεί;'), N('«ΚΛΕΙΣΤΟ ΣΗΜΕΡΑ λόγω χιονόπτωσης»'), EL('Καλημέρα, παιδιά! Ναι, καλά διαβάσατε. Σήμερα το σχολείο είναι κλειστό.'), MA('…'), K('…'), MA('ΔΕΝ ΕΧΟΥΜΕ ΣΧΟΛΕΙΟ!!!')]);
   maria.a.st.cheer = 2.5; g.kid.st.cheer = 2.5; confetti(g, { x: 0, y: height(0, P.gate.z + 2), z: P.gate.z + 2 });
+  await g.wait(1.2);
+  await g.say([EL('Χα χα! Πριν τρέξετε, μια ερώτηση: μήπως πήρε κανείς σας τις κιμωλίες της τάξης;'), EL('Ήρθα το πρωί να ποτίσω τα λουλούδια και… είχαν εξαφανιστεί ΟΛΕΣ.'), EL('Και στον πίνακα κάποιος είχε ζωγραφίσει ένα έλκηθρο με τρεις τάρανδους. Πολύ όμορφο, πάντως.'), MA('Εμείς; Όχι, κυρία!'), K('(Ένα έλκηθρο… ζωγραφισμένο με κιμωλία; Περίεργο…)'), EL('Καλά, καλά. Να περάσετε υπέροχα, και ντυθείτε ζεστά!')]);
+  eleni.look = null; eleni.speed = 2.4; eleni.target = { x: -22, z: P.gate.z + 12 }; eleni.onArrive = () => g.removeNPC(eleni);
   g.cine = null; g.locked = false;
   // ο Νίκος έρχεται τρέχοντας
   const nikos = g.addNPC(makeKid({ coat: 0x0f7b4b, hat: 0xf6c453, scarf: 0xc8102e, hair: 0xd9a15a, backpack: true }), 0, -20, Math.PI); nikos.speed = 5.5; nikos.target = { x: 1.6, z: P.gate.z + 3 };
   await g.wait(0.8);
-  await g.say([NI('Παιδιάαα! Το μάθατε;! Κλειστά ΟΛΑ τα σχολεία!'), NI('Όλη η γειτονιά έχει μαζευτεί στο πάρκο!'), MA('Πάμε να φτιάξουμε τον μεγαλύτερο χιονάνθρωπο του κόσμου!'), K('Και μετά ΧΙΟΝΟΠΟΛΕΜΟ!')]);
+  await g.say([NI('Παιδιάαα! Το μάθατε;! Κλειστά ΟΛΑ τα σχολεία!'), NI('Το ήξερα! Το γόνατο της γιαγιάς μου δεν κάνει ποτέ λάθος στον καιρό!'), NI('Όλη η γειτονιά έχει μαζευτεί στο πάρκο!'), MA('Τέλεια! Θα φτιάξουμε τον μεγαλύτερο χιονάνθρωπο του κόσμου. Έχω ήδη σχέδιο!'), NI('Κι ΕΓΩ θα σας νικήσω στον χιονοπόλεμο. Όπως κάθε χρόνο.'), K('Αυτό θα το δούμε!')]);
   nikos.look = null; maria.follow = () => g.p.pos; nikos.follow = () => g.p.pos; nikos.followDist = 3.2;
   g.ui.objective('Πήγαινε στο πάρκο'); g.setBeacon({ x: P.park.x - 4, z: P.park.z + 4 });
   await g.until(() => near(g, { x: P.park.x - 4, z: P.park.z + 4 }, 9));
@@ -133,7 +140,7 @@ async function ch3(g, c) {
   const stages = [['base', 0.75, 'Μεγάλη μπάλα (βάση)'], ['mid', 0.55, 'Μεσαία μπάλα (σώμα)'], ['head', 0.38, 'Μικρή μπάλα (κεφάλι)']];
   const snowMat = new THREE.MeshStandardMaterial({ color: 0xf6f9ff, roughness: 1 });
   for (const [part, target, label] of stages) {
-    g.ui.objective(`Κύλησε μια χιονόμπαλα: ${label}`, 'Περπάτα σπρώχνοντάς τη');
+    g.ui.objective(`Κύλησε μια χιονόμπαλα: ${label}`, 'Περπάτα σπρώχνοντάς τη'); if (part === 'base') tutorial(g, 'roll');
     const ball = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), snowMat); ball.castShadow = true; g.keep(ball);
     let r = 0.15, placed = false, ready = false; const bp = new THREE.Vector3(g.p.pos.x + 1.2, 0, g.p.pos.z); const fw = () => new THREE.Vector3(Math.sin(g.kid.root.rotation.y), 0, Math.cos(g.kid.root.rotation.y));
     g.setBeacon(null);
@@ -141,7 +148,7 @@ async function ch3(g, c) {
       // η μπάλα μένει μπροστά σου και κυλάει
       const f = fw(), want = new THREE.Vector3(g.p.pos.x, 0, g.p.pos.z).addScaledVector(f, 0.55 + r); const mv = Math.hypot(want.x - bp.x, want.z - bp.z);
       bp.x = lerp(bp.x, want.x, Math.min(1, dt * 8)); bp.z = lerp(bp.z, want.z, Math.min(1, dt * 8));
-      if (!ready) { r = Math.min(target, r + mv * 0.022 * (g.onIce ? 0 : 1)); if (r >= target) { ready = true; g.audio.chime([988, 1319], 0.08, 0.15); g.ui.toast('Τέλεια! Φέρ\' τη στον μπλε κύκλο.'); g.setBeacon({ x: P.snowman.x, z: P.snowman.z }); } }
+      if (mv > 0.01) tutMark(g, 'roll', dt / 3); if (!ready) { r = Math.min(target, r + mv * 0.022 * (g.onIce ? 0 : 1)); if (r >= target) { ready = true; g.audio.chime([988, 1319], 0.08, 0.15); g.ui.toast('Τέλεια! Φέρ\' τη στον μπλε κύκλο.'); g.setBeacon({ x: P.snowman.x, z: P.snowman.z }); } }
       g.ui.progress(ready ? 'Πήγαινέ τη στον κύκλο' : `Μέγεθος: ${Math.round((r / target) * 100)}%`);
       ball.scale.setScalar(r); ball.position.set(bp.x, height(bp.x, bp.z) + r * 0.92, bp.z); ball.rotation.x += mv * 2 / Math.max(r, 0.1);
       if (mv > 0.004 && Math.random() < 0.3) g.splat.burst(new THREE.Vector3(bp.x, height(bp.x, bp.z) + 0.05, bp.z), 2, 1);
@@ -175,7 +182,8 @@ async function ch3(g, c) {
   await g.say([NI('Ο ΚΑΛΥΤΕΡΟΣ ΧΙΟΝΑΝΘΡΩΠΟΣ ΤΟΥ ΚΟΣΜΟΥ!'), MA('Θα τον λέμε… Κύριο Χιονούλη!'), K('Γεια σας, κύριε Χιονούλη!')]);
   g.phys.circle(P.snowman.x, P.snowman.z, 0.8);
   // ---- χιονοπόλεμος
-  await g.say([NI('Και τώρα… ΧΙΟΝΟΠΟΛΕΜΟΣ! Εσύ εναντίον μας!'), MA('Όποιος πετύχει πρώτος 10 φορές, κερδίζει!'), NI(DEVICE.touch ? 'Πάτα το ❄ για να ρίξεις. Κρύψου πίσω από τα χιονοκάστρα!' : 'Κάνε κλικ για να ρίξεις. Κρύψου πίσω από τα χιονοκάστρα!')]);
+  await g.say([NI('Και τώρα… ΧΙΟΝΟΠΟΛΕΜΟΣ! Εσύ εναντίον μας!'), MA('Όποιος πετύχει πρώτος 10 φορές, κερδίζει!'), NI('Κρύψου πίσω από τα χιονοκάστρα — αν μπορείς!')]);
+  tutorial(g, 'throw', { max: 60 });
   const A = P.arena, spots = [[A.x - 6, A.z + 6], [A.x + 8, A.z - 4], [A.x + 1, A.z - 11], [A.x - 9, A.z - 6], [A.x + 9, A.z + 6]];
   let mine = 0, theirs = 0, rounds = 0;
   for (;;) {
@@ -197,7 +205,7 @@ async function ch3(g, c) {
   await g.say([NI('Εντάξει, εντάξει! Παραδινόμαστε! Είσαι {ο πρωταθλητής|η πρωταθλήτρια} του χιονοπόλεμου!'), MA('Είμαι μούσκεμα… Ωχ! ΤΑ ΓΑΝΤΙΑ ΜΟΥ!'), MA('Μου έπεσαν όλα στη λίμνη όταν κάναμε πατινάζ το πρωί! Και τα δικά μου και του Νίκου!'), NI('Η λίμνη είναι παγωμένη και γλιστράει πολύ. Πρόσεχε!')]);
   // ---- παγωμένη λίμνη
   g.slippery = true; const L = P.lake, cols = [0xff6aa8, 0x9b2cff, 0x0f7b4b, 0xf6c453, 0x38c7ff];
-  let gl = 0; g.ui.objective('Μάζεψε τα 5 γάντια στην παγωμένη λίμνη', '0/5'); g.setBeacon({ x: L.x, z: L.z });
+  let gl = 0; g.ui.objective('Μάζεψε τα 5 γάντια στην παγωμένη λίμνη', '0/5'); g.setBeacon({ x: L.x, z: L.z }); tutorial(g, 'ice', { max: 14 });
   const gloves = cols.map((col, i) => { const a = i * 1.26 + 0.4, r = 4 + (i % 3) * 3.5, m = new THREE.Group(); const s = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 8), new THREE.MeshStandardMaterial({ color: col })); s.scale.set(1, 0.5, 1.4); const th = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), s.material); th.position.set(0.11, 0, 0.02); m.add(s, th); m.position.set(L.x + Math.cos(a) * r, LAKE_Y + 0.08, L.z + Math.sin(a) * r); g.keep(m); const sp = glowSprite('rgba(255,240,180,1)', 1); sp.position.copy(m.position).y += 0.4; g.keep(sp); return { m, sp, got: false }; });
   maria.follow = () => ({ x: L.x + 18, z: L.z }); nikos.follow = () => ({ x: L.x + 18, z: L.z + 3 });
   g.dbg = () => gloves.filter((o) => !o.got).map((o) => o.m.position);
@@ -214,7 +222,7 @@ async function ch3(g, c) {
   g.locked = true; g.cine = { pos: new THREE.Vector3(P.snowman.x - 4, height(P.snowman.x, P.snowman.z) + 3, P.snowman.z + 6), look: new THREE.Vector3(P.snowman.x + 3, height(P.snowman.x, P.snowman.z), P.snowman.z - 4), speed: 1.4 };
   g.teleport(P.snowman.x - 2, P.snowman.z + 4, 0.6);
   maria.pos.set(P.snowman.x - 3.5, 0, P.snowman.z + 3); nikos.pos.set(P.snowman.x - 0.5, 0, P.snowman.z + 5); maria.target = nikos.target = null; maria.look = nikos.look = { x: P.snowman.x + 3, z: P.snowman.z - 4 };
-  await g.say([MA('Περιμένετε… Τι είναι αυτά εκεί, δίπλα στον Κύριο Χιονούλη;'), K('Πατημασιές… που ΛΑΜΠΟΥΝ;'), NI('Μοιάζουν φτιαγμένες από… κιμωλία!'), MA('Ποιος περπατάει με παπούτσια από κιμωλία;! Μου φαίνεται πολύ μυστήριο…'), NI('Πρέπει να γυρίσουμε σπίτι. Οι γονείς μας θα ανησυχούν.'), MA('Κι εσύ μην αργήσεις! Τα λέμε αύριο!'), K('Ναι… αύριο. Εγώ απλώς θα… ρίξω μια ματιά. Μόνο λίγο!')]);
+  await g.say([MA('Περιμένετε… Τι είναι αυτά εκεί, δίπλα στον Κύριο Χιονούλη;'), K('Πατημασιές… που ΛΑΜΠΟΥΝ;'), NI('Μοιάζουν φτιαγμένες από… κιμωλία!'), K('Οι κιμωλίες που χάθηκαν από την τάξη! Και το έλκηθρο στον πίνακα…'), MA('Ποιος περπατάει με παπούτσια από κιμωλία;! Μου φαίνεται πολύ μυστήριο…'), NI('Εμένα μου φαίνεται πολύ… τρομακτικό. Όχι ότι φοβάμαι. Απλώς λέω.'), NI('Πρέπει να γυρίσουμε σπίτι. Οι γονείς μας θα ανησυχούν.'), MA('Κι εσύ μην αργήσεις! Τα λέμε αύριο!'), K('Ναι… αύριο. Εγώ απλώς θα… ρίξω μια ματιά. Μόνο λίγο!')]);
   g.cine = null; g.locked = false;
   maria.look = nikos.look = null; maria.target = { x: -10, z: 20 }; nikos.target = { x: 30, z: 30 }; maria.onArrive = () => g.removeNPC(maria); nikos.onArrive = () => g.removeNPC(nikos);
   maria.a.st.wave = nikos.a.st.wave = 1.5; await g.wait(4);
@@ -253,7 +261,7 @@ async function ch4(g, c) {
   // σκισμένο γράμμα
   const letter = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 0.5), new THREE.MeshStandardMaterial({ map: signTex(['…οι τάρανδοι', 'τρόμαξαν…', '— Κ.'], { w: 256, h: 320, bg: '#f7efd9', fg: '#5a3520', font: 'italic bold 34px Georgia,serif', border: '#c9b38a' }), side: THREE.DoubleSide }));
   letter.rotation.x = -Math.PI / 2 + 0.2; const lt = item(g, letter, 29, height(29, -88) + 0.05, -88, 'Διάβασε το χαρτί', 2);
-  lt.fn = async () => { pickup(g, lt); await g.say([N('«…ο Άγιος Βασίλης κρυολόγησε κι εγώ πρέπει να μοιράσω τα δώρα. Αλλά οι τάρανδοι τρόμαξαν κι έφυγαν στο δάσος…»'), N('«…πρέπει να τους βρω πριν τα μεσάνυχτα! — Κ.»'), K('«Κ.»; Ποιος είναι ο «Κ.»;')]); };
+  lt.fn = async () => { pickup(g, lt); await g.say([N('«…ο Άγιος Βασίλης κρυολόγησε κι εγώ πρέπει να μοιράσω τα δώρα. Αλλά οι τάρανδοι τρόμαξαν κι έφυγαν στο δάσος…»'), N('«…φέτος ένα παιδί ζήτησε μόνο χιόνι, για να παίξουν όλοι μαζί. Του το χαρίσαμε. Ήταν η πιο όμορφη ευχή της χρονιάς.»'), N('«…πρέπει να βρω τους τάρανδους πριν τα μεσάνυχτα! — Κ.»'), K('Αυτό… είναι το ΔΙΚΟ μου γράμμα!'), K('Και «Κ.»… Κ όπως… ΚΙΜΩΛΑΚΗΣ;!')]); };
   g.setBeacon(route[route.length - 1]);
   await g.until(() => near(g, route[route.length - 1], 6));
   if (!g.lanternOn) { g.lantern(true); g.ui.toast('Άναψες τη λάμπα σου.'); }
@@ -286,13 +294,13 @@ async function ch5(g, c) {
   g.locked = true; kimo.a.st.talk = 30;
   const lookAtKimo = () => { g.cine = { pos: new THREE.Vector3(kimo.pos.x + 2.6, kimo.pos.y + 2, kimo.pos.z + 3.4), look: new THREE.Vector3(kimo.pos.x, kimo.pos.y + 1.4, kimo.pos.z), speed: 1.6 }; };
   lookAtKimo();
-  await g.say([KI('Ποιος… ποιος είναι εκεί;'), KI('Α! ΕΣΥ είσαι {αυτός|αυτή} που με ακολουθεί από το απόγευμα!'), K('Εσύ… εσύ είσαι ο ΚΙΜΩΛΑΚΗΣ! Η κιμωλία από τον πίνακα της τάξης μας!'), KI('Σςςς! Μη φωνάζεις, θα ξυπνήσεις όλο το δάσος!'), KI('Ναι, εγώ είμαι. Κάθε χρόνο, όταν κλείνουν τα σχολεία, βγαίνω από τον πίνακα και βοηθάω τον Άγιο Βασίλη.'), KI('Φέτος όμως ο Άγιος Βασίλης κρυολόγησε. Αψού! Και μου είπε: «Κιμωλάκη, αναλαμβάνεις εσύ!»'), KI('Φόρεσα τη στολή του, φόρτωσα το έλκηθρο… και ΜΠΑΜ! Ένα κλαδί έπεσε, οι τάρανδοι τρόμαξαν και το έσκασαν!'), KI('Ο σάκος σκίστηκε και σκόρπισαν δώρα σε όλη την πόλη…')]);
+  await g.say([KI('Ποιος… ποιος είναι εκεί;'), KI('Α! ΕΣΥ είσαι {αυτός|αυτή} που με ακολουθεί από το απόγευμα!'), K('Εσύ… εσύ είσαι ο ΚΙΜΩΛΑΚΗΣ! Η κιμωλία από τον πίνακα της τάξης μας!'), KI('Και εσύ είσαι το παιδί με το γράμμα! «Θέλω μόνο να χιονίσει». Ε λοιπόν; Σου άρεσε το χιόνι μου;'), K('ΕΣΥ το έφτιαξες;! Ήταν το καλύτερο χιόνι της ζωής μου!'), KI('Σςςς! Μη φωνάζεις, θα ξυπνήσεις όλο το δάσος!'), KI('Ναι, εγώ είμαι. Κάθε χρόνο, όταν κλείνουν τα σχολεία, βγαίνω από τον πίνακα και βοηθάω τον Άγιο Βασίλη.'), KI('Φέτος όμως ο Άγιος Βασίλης κρυολόγησε. Αψού! Και μου είπε: «Κιμωλάκη, αναλαμβάνεις εσύ!»'), KI('Φόρεσα τη στολή του, φόρτωσα το έλκηθρο… και ΜΠΑΜ! Ένα κλαδί έπεσε, οι τάρανδοι τρόμαξαν και το έσκασαν!'), KI('Ο σάκος σκίστηκε και σκόρπισαν δώρα σε όλη την πόλη…')]);
   if ((g.state.gifts || 0) > 0) { await g.say([K(`Αυτά εννοείς; Βρήκα ${g.state.gifts} δώρα στον δρόμο!`), KI('ΤΑ ΔΩΡΑ! Είσαι {καταπληκτικός|καταπληκτική}! Γι\' αυτό τα ίχνη μου σε έφεραν εδώ.')]); kimo.a.st.cheer = 2; }
-  await g.say([KI('Χωρίς τους τρεις τάρανδους μου — τον Ρούντολφ, την Αστραπή και τον Χιονούλη — το έλκηθρο δεν πετάει.'), KI('Και αν δεν μοιράσουμε τα δώρα απόψε, χιλιάδες παιδιά θα ξυπνήσουν χωρίς δώρο τα Χριστούγεννα!'), K('Θα σε βοηθήσω! Πού πήγαν;'), KI('Κάθε τάρανδος φοράει ένα κουδουνάκι. Σταμάτα, κράτα την ανάσα σου και ΑΚΟΥ. Ακολούθησε τον ήχο!'), KI('Όταν βρεις έναν, χάιδεψέ τον απαλά. Θα σε ακολουθήσει.')]);
+  await g.say([KI('Χωρίς τους τρεις τάρανδους μου — τον Ρούντολφ, την Αστραπή και τον Χιονούλη — το έλκηθρο δεν πετάει.'), KI('Και αν δεν μοιράσουμε τα δώρα ως τα μεσάνυχτα, χιλιάδες παιδιά θα ξυπνήσουν χωρίς δώρο τα Χριστούγεννα.'), KI('Κι εγώ… η μαγεία που με ξυπνάει θα σβήσει. Θα γίνω ξανά μια απλή κιμωλία. Για πάντα.'), K('ΟΧΙ! Δεν θα το αφήσω να γίνει αυτό!'), K('Θα σε βοηθήσω! Πού πήγαν;'), KI('Κάθε τάρανδος φοράει ένα κουδουνάκι. Σταμάτα, κράτα την ανάσα σου και ΑΚΟΥ. Ακολούθησε τον ήχο!'), KI('Όταν βρεις έναν, χάιδεψέ τον απαλά. Θα σε ακολουθήσει.')]);
   g.cine = null; g.locked = false; kimo.a.st.talk = 0;
   // ---- τάρανδοι
   const names = ['Ρούντολφ', 'Αστραπή', 'Χιονούλης'], deer = P.reindeer.map((p, i) => { const n = g.addNPC(makeReindeer({ rudolph: i === 0, collar: [0xc8102e, 0x2b6cb0, 0x0f7b4b][i] }), p.x, p.z, rand(0, 6)); n.speed = 3.2; n.name = names[i]; n.found = false; return n; });
-  let found = 0, searchT = 0; g.ui.objective('Βρες τους 3 τάρανδους (άκου τα κουδουνάκια)', '0/3');
+  let found = 0, searchT = 0; g.ui.objective('Βρες τους 3 τάρανδους (άκου τα κουδουνάκια)', '0/3'); tutorial(g, 'listen', { max: 18, min: 10 });
   const freq = [1568, 1319, 1760];
   g.tick = (dt, t) => {
     fire.intensity = 26 + Math.sin(t * 13) * 4; flame.scale.setScalar(2 + Math.sin(t * 11) * 0.2); searchT += dt;
@@ -310,17 +318,34 @@ async function ch5(g, c) {
   deer.forEach((d, i) => { d.follow = null; d.target = { x: CL.x + 2 + Math.sin(0.5) * (3.4 + i * 1.6), z: CL.z - 2 + Math.cos(0.5) * (3.4 + i * 1.6) }; d.onArrive = () => { d.look = { x: CL.x + 10, z: CL.z + 15 }; }; });
   kimo.a.st.cheer = 2.5; confetti(g, kimo.pos);
   await g.say([KI('ΡΟΥΝΤΟΛΦ! ΑΣΤΡΑΠΗ! ΧΙΟΝΟΥΛΗ! Είστε όλοι εδώ!'), KI('Είσαι {ο καλύτερος|η καλύτερη} βοηθός που είχα ποτέ!'), KI('Μένει ένα πρόβλημα: το έλκηθρο κόλλησε στο χιόνι. Βοήθησέ με να το σπρώξουμε!')]);
-  // ---- σπρώξιμο
-  g.ui.objective('Σπρώξε το έλκηθρο!', '0%'); let push = 0; kimo.target = { x: CL.x + 0.5, z: CL.z - 4.5 };
-  const pi = g.addInter({ pos: { x: CL.x + 1, z: CL.z - 0.2 }, r: 3.2, label: 'ΣΠΡΩΞΕ! (πάτα ξανά και ξανά)' });
-  pi.fn = () => { push = Math.min(100, push + 9); sleigh.position.x += rand(-0.03, 0.03); g.splat.burst(new THREE.Vector3(sleigh.position.x, sleigh.position.y + 0.4, sleigh.position.z + 1.2), 10, 2); g.audio.crunch(0.5); g.ui.progress(`${Math.round(push)}%`); };
-  const dec = (dt) => { push = Math.max(0, push - dt * 7); g.ui.progress(`${Math.round(push)}%`); };
-  g.tick = (dt, t) => { fire.intensity = 26 + Math.sin(t * 13) * 4; dec(dt); };
-  await g.until(() => push >= 100);
-  g.removeInter(pi); g.tick = null; g.phys.remove(sb);
-  for (let i = 0; i < 30; i++) setTimeout(() => { sleigh.position.y += 0.015; sleigh.rotation.x *= 0.9; sleigh.rotation.z *= 0.9; }, i * 30);
+  // ---- σπρώξιμο: στάσου πίσω από το έλκηθρο και ΚΡΑΤΑ πατημένη την ενέργεια (ή πάτα ξανά και ξανά)
+  const yaw = 0.5, back = { x: CL.x + 2 - Math.sin(yaw) * 2.6, z: CL.z - 2 - Math.cos(yaw) * 2.6 }, s0 = sleigh.position.clone();
+  kimo.target = { x: back.x - Math.cos(yaw) * 1.3, z: back.z + Math.sin(yaw) * 1.3 }; kimo.onArrive = () => { kimo.look = { x: CL.x + 2, z: CL.z - 2 }; };
+  g.ui.objective('Σπρώξε το έλκηθρο!', '0%'); g.setBeacon({ x: back.x, z: back.z }); tutorial(g, 'push', { max: 60 });
+  let push = 0, freed = false, holdT = 0, said = 0;
+  const pi = g.addInter({ pos: back, r: 3.4, label: 'ΚΡΑΤΑ για να σπρώξεις!' });
+  pi.fn = () => { push = Math.min(100, push + 6); };   // κάθε πάτημα βοηθάει κι αυτό
+  g.tick = (dt, t) => {
+    fire.intensity = 26 + Math.sin(t * 13) * 4; flame.scale.setScalar(2 + Math.sin(t * 11) * 0.2);
+    const close = Math.hypot(g.p.pos.x - back.x, g.p.pos.z - back.z) < 3.4;
+    const held = close && (!g.ui.cur || g.ui.cur.lock === false) && (g.input.down('KeyE', 'Enter') || (g.inVR && (g.vr.state.trigger[0] || g.vr.state.trigger[1])));
+    if (held) { push = Math.min(100, push + dt * 20); holdT += dt; tutMark(g, 'push', dt / 2); g.kid.st.throw = 0.2; if (Math.random() < dt * 8) { g.splat.burst(new THREE.Vector3(sleigh.position.x + rand(-1, 1), sleigh.position.y + 0.3, sleigh.position.z + rand(-1, 1)), 6, 2); g.audio.crunch(0.25); } if (g.inVR && Math.random() < dt * 6) for (const src of g.vr.session.inputSources) src.gamepad?.hapticActuators?.[0]?.pulse?.(0.4, 40); }
+    else push = Math.max(0, push - dt * 3);
+    // το έλκηθρο κουνιέται και γλιστράει μπροστά όσο ανεβαίνει η μπάρα
+    const k = push / 100; sleigh.position.set(s0.x + Math.sin(yaw) * k * 1.6 + (held ? rand(-0.02, 0.02) : 0), s0.y + k * 0.35, s0.z + Math.cos(yaw) * k * 1.6);
+    deer.forEach((d) => { d.a.st.cheer = held ? 0.3 : 0; });
+    if (held && kimo.a) kimo.a.st.cheer = 0.3;
+    g.ui.progress(`${Math.round(push)}%`);
+    if (push >= 35 && said === 0) { said = 1; g.say([{ ...KI('Αυτό είναι! Κουνήθηκε!'), auto: 1.6, lock: false }]); }
+    if (push >= 75 && said === 1) { said = 2; g.say([{ ...KI('ΛΙΓΟ ΑΚΟΜΑ! Ένα… δύο…'), auto: 1.6, lock: false }]); }
+    if (push >= 100) freed = true;
+  };
+  await g.say([KI('Εγώ σπρώχνω από τη μία πλευρά, εσύ από πίσω. Στο τρία!')]);
+  await g.until(() => freed);
+  closeTutorial(g); g.ui.objective(''); g.removeInter(pi); g.tick = (dt, t) => { fire.intensity = 26 + Math.sin(t * 13) * 4; }; g.phys.remove(sb); g.setBeacon(null);
+  for (let i = 0; i < 30; i++) setTimeout(() => { sleigh.position.y += 0.01; sleigh.rotation.x *= 0.9; sleigh.rotation.z *= 0.9; }, i * 30);
   confetti(g, sleigh.position); g.audio.bell(1319, 0.4); g.audio.bell(1760, 0.3);
-  await g.say([KI('ΝΑΙΙΙ! Ελεύθερο!'), KI('Και τώρα, το πιο σημαντικό: θέλεις να έρθεις μαζί μου;'), KI('Χρειάζομαι βοηθό για να ρίχνει τα δώρα μέσα στις καμινάδες!'), K('ΕΓΩ;! Σε ΙΠΤΑΜΕΝΟ έλκηθρο;! ΦΥΣΙΚΑ!')]);
+  await g.say([KI('…ΤΡΙΑ! ΝΑΙΙΙ! Ελεύθερο!'), KI('Είναι 23:00. Μας μένει μία ώρα για όλη την πόλη.'), KI('Και τώρα, το πιο σημαντικό: θέλεις να έρθεις μαζί μου;'), KI('Χρειάζομαι βοηθό για να ρίχνει τα δώρα μέσα στις καμινάδες!'), K('ΕΓΩ;! Σε ΙΠΤΑΜΕΝΟ έλκηθρο;! ΦΥΣΙΚΑ!')]);
   await g.fadeTo(1, 1);
   g.lantern(false);
 }
@@ -343,10 +368,11 @@ async function ch6(g, c) {
   const chim = g.world.chimneys.slice(0, 10).map((p, i) => { const b = makeBeacon(0xffd36b); b.g.scale.set(0.5, 0.25, 0.5); b.g.position.set(p.x, p.y, p.z); g.keep(b.g); return { ...p, b, done: false }; });
   const rings = []; for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, r = 70 + Math.sin(i * 1.7) * 18; const m = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.22, 10, 36), new THREE.MeshBasicMaterial({ color: 0xffd36b })); m.position.set(Math.cos(a) * r, 26 + Math.sin(i * 2.1) * 8, Math.sin(a) * r - 10); m.rotation.y = -a; g.keep(m); const gl = glowSprite('rgba(255,210,110,1)', 9); gl.position.copy(m.position); gl.material.opacity = 0.35; g.keep(gl); rings.push({ m, gl, done: false }); }
   let delivered = 0, ringsGot = 0; const drops = [];
+  const WHO = ['τη Μαρία', 'τον Νίκο', 'τον μικρό Άρη', 'την κυρία Ελένη', 'τον κύριο Σταύρο', 'τη Δανάη και τον Πέτρο', 'τη γιαγιά του Νίκου (και το γόνατό της)', 'τα δίδυμα του τρίτου σπιτιού', 'τη Ζωή', 'τον Λευτέρη'];
   g.ui.chapter(c.n, c.title); g.audio.musicLoop(MUSIC, LS, LE, 0.85, 1);
   await g.fadeTo(0, 1.5);
   const steerText = g.inVR ? 'Αριστερό μοχλό: τιμόνι & ύψος · Σκανδάλη: ρίξε δώρο' : DEVICE.touch ? 'Joystick: τιμόνι & ύψος · ✋: ρίξε δώρο' : 'A/D ή ποντίκι: στροφή · W/S: ύψος · E ή κλικ: ρίξε δώρο';
-  g.say([KI('ΟΧΟ-ΧΟ-ΧΟ! Κράτα γερά!'), KI('Κράτα εσύ τα γκέμια — οι τάρανδοι σε εμπιστεύονται!'), KI('Πέτα πάνω από τις καμινάδες που λάμπουν και ΡΙΞΕ ένα δώρο μέσα!'), N(steerText)]);
+  g.say([KI('ΟΧΟ-ΧΟ-ΧΟ! Κράτα γερά!'), KI('Κράτα εσύ τα γκέμια — οι τάρανδοι σε εμπιστεύονται!'), KI('Πέτα πάνω από τις καμινάδες που λάμπουν και ΡΙΞΕ ένα δώρο μέσα!'), N(steerText)]).then(() => tutorial(g, 'fly', { max: 50 }));
   g.ui.objective('Ρίξε δώρα στις καμινάδες που λάμπουν', `0/${chim.length}`);
   g.sleighCam = (cam, dt) => { const back = new THREE.Vector3(Math.sin(S.yaw) * -9, 4.2, Math.cos(S.yaw) * -9); const want = S.pos.clone().add(back); cam.position.lerp(want, Math.min(1, dt * 4)); cam.lookAt(S.pos.clone().add(new THREE.Vector3(Math.sin(S.yaw) * 6, 1.5, Math.cos(S.yaw) * 6))); };
   let lastYaw = S.yaw, said3 = false, said7 = false;
@@ -354,6 +380,7 @@ async function ch6(g, c) {
   g.tick = (dt, t) => {
     const inp = g.input, vr = g.inVR; let sx = 0, sy = 0;
     if (vr) { sx = g.vr.state.lx + g.vr.state.rx * 0.6; sy = -g.vr.state.ly; } else { const a = inp.axes(); sx = a.x + clamp(inp.look.x * 18, -1, 1); sy = a.y - clamp(inp.look.y * 18, -1, 1); }
+    if (Math.abs(sx) > 0.2) tutMark(g, 'steer', dt / 1.5); if (Math.abs(sy) > 0.2) tutMark(g, 'climb', dt / 1.5);
     S.yaw -= sx * dt * 1.05; S.pitch = lerp(S.pitch, sy * 0.4, Math.min(1, dt * 3)); S.roll = lerp(S.roll, sx * 0.45, Math.min(1, dt * 3));
     const fwd = new THREE.Vector3(Math.sin(S.yaw), 0, Math.cos(S.yaw));
     S.pos.addScaledVector(fwd, S.speed * dt); S.pos.y = clamp(S.pos.y + S.pitch * 14 * dt, Math.max(14, height(S.pos.x, S.pos.z) + 10), 70);
@@ -367,19 +394,19 @@ async function ch6(g, c) {
     for (const q of trail) if (q.life > 0) { q.life -= dt; q.s.material.opacity = q.life / 1.2; q.s.scale.setScalar(0.3 + q.life * 0.5); if (q.life <= 0) q.s.visible = false; }
     // δώρα που πέφτουν
     const want = inp.hit('KeyE', 'Mouse0', 'Space') || (vr && (g.vr.edge('trigger', 0) || g.vr.edge('trigger', 1) || g.vr.edge('a')));
-    if (want && !g.ui.cur && drops.length < 6) { const m = makeGift(Math.floor(rand(0, 6)), 0.5); m.position.copy(S.pos).add(new THREE.Vector3(0, 0.8, 0)); g.scene.add(m); drops.push({ m, v: fwd.clone().multiplyScalar(S.speed * 0.8).add(new THREE.Vector3(0, 1, 0)) }); g.audio.play('../../audio/sfx/pop.mp3', { vol: 0.4 }); }
+    if (want && !g.ui.cur && drops.length < 6) { const m = makeGift(Math.floor(rand(0, 6)), 0.5); m.position.copy(S.pos).add(new THREE.Vector3(0, 0.8, 0)); g.scene.add(m); drops.push({ m, v: fwd.clone().multiplyScalar(S.speed * 0.8).add(new THREE.Vector3(0, 1, 0)) }); tutMark(g, 'drop'); g.audio.play('../../audio/sfx/pop.mp3', { vol: 0.4 }); }
     for (let i = drops.length - 1; i >= 0; i--) { const d = drops[i]; d.v.y -= 12 * dt; d.v.x *= 1 - dt * 0.4; d.v.z *= 1 - dt * 0.4; d.m.position.addScaledVector(d.v, dt); d.m.rotation.y += dt * 4; d.m.rotation.x += dt * 2; const p = d.m.position;
       let end = p.y < height(p.x, p.z);
-      for (const ch of chim) if (!ch.done && p.y < ch.y + 1.2 && p.y > ch.y - 2 && Math.hypot(p.x - ch.x, p.z - ch.z) < 3.6) { ch.done = true; delivered++; end = true; ch.b.g.visible = false; g.splat.burst(new THREE.Vector3(ch.x, ch.y + 0.5, ch.z), 40, 3); g.audio.chime([1047, 1319, 1568, 2093], 0.07, 0.2); g.ui.toast(`Δώρο παραδόθηκε! (${delivered}/${chim.length})`, 1600); g.ui.progress(`${delivered}/${chim.length}`); }
+      for (const ch of chim) if (!ch.done && p.y < ch.y + 1.2 && p.y > ch.y - 2 && Math.hypot(p.x - ch.x, p.z - ch.z) < 3.6) { ch.done = true; delivered++; end = true; ch.b.g.visible = false; g.splat.burst(new THREE.Vector3(ch.x, ch.y + 0.5, ch.z), 40, 3); g.audio.chime([1047, 1319, 1568, 2093], 0.07, 0.2); g.ui.toast(`🎁 Δώρο για ${WHO[delivered - 1] || 'ένα παιδί της γειτονιάς'}! (${delivered}/${chim.length})`, 1800); g.ui.progress(`${delivered}/${chim.length}`); }
       if (end) { if (p.y < height(p.x, p.z) + 0.3) g.splat.burst(p, 10, 2); g.scene.remove(d.m); drops.splice(i, 1); }
     }
     for (const rg of rings) { rg.m.rotation.z += dt * 0.6; if (!rg.done && rg.m.position.distanceTo(S.pos) < 4.2) { rg.done = true; ringsGot++; rg.m.material.color.set(0x7fd1ae); rg.gl.material.opacity = 0.05; g.audio.chime([1568, 2093], 0.06, 0.16); g.ui.toast(`★ Αστέρι! (${ringsGot}/${rings.length})`, 1200); } }
-    if (delivered >= 3 && !said3) { said3 = true; g.say([KI('Μπράβο! Είσαι {γεννημένος|γεννημένη} βοηθός του Αγίου Βασίλη!')]); }
-    if (delivered >= 7 && !said7) { said7 = true; g.say([KI('Δες τον ουρανό! Το βόρειο σέλας ήρθε να μας δει!')]); }
+    if (delivered >= 3 && !said3) { said3 = true; g.say([{ ...KI('Μπράβο! Είσαι {γεννημένος|γεννημένη} βοηθός του Αγίου Βασίλη!'), auto: 2.5, lock: false }, { ...KI('Ξέρεις γιατί μπορείς και με βλέπεις; Οι περισσότεροι μεγάλοι βλέπουν μόνο μια κιμωλία.'), auto: 3.5, lock: false }, { ...KI('Με βλέπουν μόνο όσοι εύχονται κάτι για ΟΛΟΥΣ, όχι μόνο για τον εαυτό τους.'), auto: 3.5, lock: false }]); }
+    if (delivered >= 7 && !said7) { said7 = true; g.say([{ ...KI('Δες τον ουρανό! Το βόρειο σέλας ήρθε να μας δει!'), auto: 3, lock: false }, { ...KI('Είναι 23:50! Τρεις καμινάδες ακόμα!'), auto: 2.5, lock: false }]); }
     g.audio.listener(S.pos, fwd);
   };
   await g.until(() => delivered >= chim.length); g.dbgSleigh = null;
-  await g.say([KI('ΤΑ ΚΑΤΑΦΕΡΑΜΕ! Όλα τα δώρα είναι στη θέση τους!'), KI(`Και μάζεψες ${ringsGot} αστέρια στη διαδρομή! ${ringsGot >= 10 ? 'Είσαι αστέρι κι εσύ!' : ''}`), KI('Τώρα θα σε πάω κάπου ξεχωριστά… Στο σχολείο σου!')]);
+  await g.say([N('Το ρολόι της πλατείας χτυπάει μεσάνυχτα. ΝΤΑΝΓΚ… ΝΤΑΝΓΚ…'), KI('ΤΑ ΚΑΤΑΦΕΡΑΜΕ! Όλα τα δώρα είναι στη θέση τους — και ακριβώς στην ώρα τους!'), KI('Και εγώ… είμαι ακόμα εδώ! Κοίτα, λάμπω!'), KI(`Και μάζεψες ${ringsGot} αστέρια στη διαδρομή! ${ringsGot >= 10 ? 'Είσαι αστέρι κι εσύ!' : ''}`), KI('Τώρα θα σε πάω κάπου ξεχωριστά… Στο σχολείο σου!')]);
   await g.fadeTo(1, 1.2);
   g.tick = null; g.sleighCam = null; g.sleighSeat = null; g.p.mode = 'walk'; g.world.skyU.aurora.value = 0; g.world.snowMul = 1;
 }
@@ -410,7 +437,7 @@ async function ch7(g, c) {
   g.cine = null; g.locked = false; g.ui.objective('Πάρε τη χρυσή κιμωλία');
   await new Promise((r) => { gi.fn = () => { pickup(g, gi); g.scene.remove(gs); r(); }; });
   g.ui.objective(''); g.locked = true;
-  await g.say([KI('Η ΧΡΥΣΗ ΚΙΜΩΛΙΑ. Ό,τι γράψεις με αυτήν στον πίνακα… γίνεται λίγο πιο μαγικό.'), KI('Γράψε ιστορίες. Γράψε όσα δεν χωράνε σε κανέναν πίνακα.'), K('Θα τη φυλάω για πάντα. Ευχαριστώ, Κιμωλάκη!'), KI('Εγώ σε ευχαριστώ. Χωρίς εσένα, φέτος δεν θα είχαμε Χριστούγεννα.'), KI('Τώρα πρέπει να φύγω. Πρέπει να γυρίσω στον πίνακα πριν ξημερώσει… αλλιώς η κυρία Ελένη θα αναρωτιέται πού πήγε η κιμωλία της!')]);
+  await g.say([KI('Η ΧΡΥΣΗ ΚΙΜΩΛΙΑ. Ό,τι γράψεις με αυτήν στον πίνακα… γίνεται λίγο πιο μαγικό.'), KI('Δεν ζήτησες δώρο φέτος. Γι\' αυτό το αξίζεις περισσότερο από όλους.'), KI('Γράψε ιστορίες. Γράψε όσα δεν χωράνε σε κανέναν πίνακα.'), K('Θα τη φυλάω για πάντα. Ευχαριστώ, Κιμωλάκη!'), KI('Εγώ σε ευχαριστώ. Χωρίς εσένα, φέτος δεν θα είχαμε Χριστούγεννα.'), KI('Τώρα πρέπει να φύγω. Πρέπει να γυρίσω στον πίνακα πριν ξημερώσει… αλλιώς η κυρία Ελένη θα αναρωτιέται πού πήγε η κιμωλία της!')]);
   kimo.a.st.wave = 3;
   // απογείωση
   for (const n of [...g.npcs]) g.removeNPC(n);
@@ -428,7 +455,10 @@ async function ch7(g, c) {
   const maria = g.addNPC(makeKid({ coat: 0xff6aa8, girl: true, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10 }), 0, P.gate.z + 8, Math.PI); const nikos = g.addNPC(makeKid({ coat: 0x0f7b4b, hat: 0xf6c453, scarf: 0xc8102e, hair: 0xd9a15a }), 2, P.gate.z + 9, Math.PI);
   maria.speed = nikos.speed = 4.5; maria.target = { x: T.x - 2, z: T.z + 7 }; nikos.target = { x: T.x + 3, z: T.z + 8 }; maria.onArrive = () => { maria.look = 'player'; }; nikos.onArrive = () => { nikos.look = 'player'; };
   await g.fadeTo(0, 2); await g.wait(4);
-  await g.say([MA('ΚΑΛΑ ΧΡΙΣΤΟΥΓΕΝΝΑ!!! Εδώ ήσουν;!'), NI('Ξυπνήσαμε και ΟΛΗ η πόλη είχε δώρα! Ακόμα και ο Κύριος Χιονούλης φορούσε καινούργιο σκουφί!'), MA('Και το δέντρο του σχολείου… ποιος το άναψε;'), K('Ε… έχω μια ιδέα. Αλλά δεν θα με πιστέψετε.'), NI('Τι είναι αυτό που κρατάς; Μια… ΧΡΥΣΗ κιμωλία;'), K('Θα σας τα πω όλα. Αλλά πρώτα…'), K('ΧΙΟΝΟΠΟΛΕΜΟΣ!!!')]);
+  await g.say([MA('ΚΑΛΑ ΧΡΙΣΤΟΥΓΕΝΝΑ!!! Εδώ ήσουν;!'), NI('Ξυπνήσαμε και ΟΛΗ η πόλη είχε δώρα! Ακόμα και ο Κύριος Χιονούλης φορούσε καινούργιο σκουφί!'), MA('Κι εμένα μου έφερε ένα τηλεσκόπιο! Για να κοιτάζω τις νιφάδες από κοντά!'), NI('Κι εμένα ένα κράνος χιονοπολέμου. Τώρα είμαι ΑΗΤΤΗΤΟΣ.'), MA('Και το δέντρο του σχολείου… ποιος το άναψε;')]);
+  const eleni = g.addNPC(makeKid({ coat: 0x6a2b3b, hat: 0x3a2a4a, scarf: 0xf6c453, hair: 0x3a2416, pants: 0x2a2a3a, girl: true, height: 1.32 }), -2, P.gate.z + 6, Math.PI); eleni.speed = 3; eleni.target = { x: T.x - 4.5, z: T.z + 9 }; eleni.onArrive = () => { eleni.look = 'player'; };
+  await g.wait(2.5);
+  await g.say([EL('Παιδιά! Δεν θα το πιστέψετε. Οι κιμωλίες γύρισαν όλες στη θέση τους!'), EL('Και στον πίνακα κάποιος έγραψε με πολύ ωραία γράμματα: «Καλά Χριστούγεννα — Κ.»'), MA('Κ.;'), NI('Ποιος είναι ο Κ.;'), K('Ε… έχω μια ιδέα. Αλλά δεν θα με πιστέψετε.'), NI('Τι είναι αυτό που κρατάς; Μια… ΧΡΥΣΗ κιμωλία;'), N('Κάτω από το δέντρο περιμένει ένα τελευταίο δώρο. Το καρτελάκι γράφει το όνομά σου.'), N('Μέσα, ένα κόκκινο ξύλινο ελκηθράκι κι ένα σημείωμα: «Για {τον καλύτερο|την καλύτερη} βοηθό που είχα ποτέ. Τα λέμε του χρόνου! — Κ.»'), K('Θα σας τα πω όλα. Αλλά πρώτα…'), K('ΧΙΟΝΟΠΟΛΕΜΟΣ!!!')]);
   maria.a.st.cheer = nikos.a.st.cheer = g.kid.st.cheer = 3; confetti(g, { x: T.x, y: height(T.x, T.z), z: T.z + 6 }, 100);
   await g.wait(2); g.locked = false; g.cine = null;
   await credits(g);
@@ -437,7 +467,7 @@ async function ch7(g, c) {
 async function credits(g) {
   const roll = [
     ['Τα Χριστούγεννα του Κιμωλάκη', ''], ['Ένα παιχνίδι της εφημερίδας', '«Όσα δεν γράφει ο πίνακας»'],
-    ['Πρωταγωνιστούν', 'Εσύ · Ο Κιμωλάκης · Η Μαρία · Ο Νίκος'], ['Και οι τάρανδοι', 'Ρούντολφ · Αστραπή · Χιονούλης'], ['Ειδική συμμετοχή', 'Ο Κύριος Χιονούλης'],
+    ['Πρωταγωνιστούν', 'Εσύ · Ο Κιμωλάκης · Η Μαρία · Ο Νίκος · Η κυρία Ελένη'], ['Και οι τάρανδοι', 'Ρούντολφ · Αστραπή · Χιονούλης'], ['Ειδική συμμετοχή', 'Ο Κύριος Χιονούλης'],
     ['Μουσική', 'Το χριστουγεννιάτικο θέμα του osaden.gr'], ['Ευχαριστούμε που έπαιξες!', 'Καλά Χριστούγεννα και καλή χρονιά! 🎄'],
   ];
   const el = document.createElement('div'); el.className = 'credits'; el.innerHTML = roll.map(([a, b]) => `<p><b>${a}</b>${b ? `<span>${b}</span>` : ''}</p>`).join('') + '<p class="end">ΤΕΛΟΣ</p>'; g.root.appendChild(el);
