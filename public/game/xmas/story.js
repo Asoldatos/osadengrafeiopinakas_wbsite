@@ -93,7 +93,7 @@ async function ch2(g, c) {
   await g.say([K('Τι ωραία που τρίζει το χιόνι κάτω από τα πόδια μου!'), K('Το σχολείο είναι στο τέλος του δρόμου. Πάμε!')]);
   g.ui.objective('Πήγαινε στο σχολείο'); g.setBeacon({ x: 0, z: P.gate.z + 3 });
   // η Μαρία περιμένει στη γωνία
-  const maria = g.addNPC(makeKid({ coat: 0xff6aa8, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10, backpack: true }), -3, 14, Math.PI); maria.look = 'player';
+  const maria = g.addNPC(makeKid({ coat: 0xff6aa8, girl: true, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10, backpack: true }), -3, 14, Math.PI); maria.look = 'player';
   let wave = 0; g.tick = (dt) => { if ((wave -= dt) < 0 && !near(g, maria.pos, 6)) { wave = 2.5; maria.a.st.wave = 1.2; } };
   await g.until(() => near(g, maria.pos, 6) || g.p.pos.z < 9);
   g.tick = null;
@@ -123,7 +123,7 @@ async function ch2(g, c) {
 async function ch3(g, c) {
   g.world.setIndoor(false); g.world.setTime('day', 0.01); g.audio.musicLoop(MUSIC, LS, LE, 0.3);
   let maria = g.npcs.find((n) => n === g.state.friends?.maria), nikos = g.npcs.find((n) => n === g.state.friends?.nikos);
-  if (!maria) { g.teleport(P.park.x - 6, P.park.z + 8, 0.6); maria = g.addNPC(makeKid({ coat: 0xff6aa8, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10, backpack: true }), P.park.x - 4, P.park.z + 6); nikos = g.addNPC(makeKid({ coat: 0x0f7b4b, hat: 0xf6c453, scarf: 0xc8102e, hair: 0xd9a15a, backpack: true }), P.park.x - 8, P.park.z + 5); await g.fadeTo(0, 1); }
+  if (!maria) { g.teleport(P.park.x - 6, P.park.z + 8, 0.6); maria = g.addNPC(makeKid({ coat: 0xff6aa8, girl: true, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10, backpack: true }), P.park.x - 4, P.park.z + 6); nikos = g.addNPC(makeKid({ coat: 0x0f7b4b, hat: 0xf6c453, scarf: 0xc8102e, hair: 0xd9a15a, backpack: true }), P.park.x - 8, P.park.z + 5); await g.fadeTo(0, 1); }
   g.ui.chapter(c.n, c.title);
   maria.follow = nikos.follow = null; maria.target = { x: P.snowman.x + 3, z: P.snowman.z + 2 }; nikos.target = { x: P.snowman.x - 3, z: P.snowman.z + 2.5 }; maria.onArrive = nikos.onArrive = function () { this.look = 'player'; };
   maria.onArrive = () => { maria.look = 'player'; }; nikos.onArrive = () => { nikos.look = 'player'; };
@@ -425,7 +425,7 @@ async function ch7(g, c) {
   await g.fadeTo(1, 1.4); g.tick = null; g.world.setTime('dawn', 0.01); g.world.setTime('morning', 30); g.world.bigTree.lit(1);
   g.teleport(T.x + 1, T.z + 8, 0); g.cine = { pos: new THREE.Vector3(T.x + 6, height(T.x, T.z) + 2.6, T.z + 14), look: new THREE.Vector3(T.x, height(T.x, T.z) + 2, T.z), speed: 0.6 };
   const presents = new THREE.Group(); for (let i = 0; i < 9; i++) { const p = makeGift(i, 0.5 + (i % 3) * 0.12); p.position.set(Math.cos(i * 0.7) * 2.6, 0, Math.sin(i * 0.7) * 2.6); p.rotation.y = i; presents.add(p); } presents.position.set(T.x, height(T.x, T.z), T.z); g.keep(presents);
-  const maria = g.addNPC(makeKid({ coat: 0xff6aa8, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10 }), 0, P.gate.z + 8, Math.PI); const nikos = g.addNPC(makeKid({ coat: 0x0f7b4b, hat: 0xf6c453, scarf: 0xc8102e, hair: 0xd9a15a }), 2, P.gate.z + 9, Math.PI);
+  const maria = g.addNPC(makeKid({ coat: 0xff6aa8, girl: true, hat: 0x9b2cff, scarf: 0xffffff, hair: 0x2a1a10 }), 0, P.gate.z + 8, Math.PI); const nikos = g.addNPC(makeKid({ coat: 0x0f7b4b, hat: 0xf6c453, scarf: 0xc8102e, hair: 0xd9a15a }), 2, P.gate.z + 9, Math.PI);
   maria.speed = nikos.speed = 4.5; maria.target = { x: T.x - 2, z: T.z + 7 }; nikos.target = { x: T.x + 3, z: T.z + 8 }; maria.onArrive = () => { maria.look = 'player'; }; nikos.onArrive = () => { nikos.look = 'player'; };
   await g.fadeTo(0, 2); await g.wait(4);
   await g.say([MA('ΚΑΛΑ ΧΡΙΣΤΟΥΓΕΝΝΑ!!! Εδώ ήσουν;!'), NI('Ξυπνήσαμε και ΟΛΗ η πόλη είχε δώρα! Ακόμα και ο Κύριος Χιονούλης φορούσε καινούργιο σκουφί!'), MA('Και το δέντρο του σχολείου… ποιος το άναψε;'), K('Ε… έχω μια ιδέα. Αλλά δεν θα με πιστέψετε.'), NI('Τι είναι αυτό που κρατάς; Μια… ΧΡΥΣΗ κιμωλία;'), K('Θα σας τα πω όλα. Αλλά πρώτα…'), K('ΧΙΟΝΟΠΟΛΕΜΟΣ!!!')]);

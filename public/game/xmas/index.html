@@ -46,6 +46,7 @@ h2{font-family:var(--disp);margin:0 0 4px;font-size:1.5rem}
 .modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(5,2,10,.7);backdrop-filter:blur(4px)}
 .card{width:min(460px,100%);padding:26px 24px;border-radius:24px;background:linear-gradient(160deg,#2a0f1e,#14081a);border:2px solid rgba(255,255,255,.15);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;animation:rise .45s cubic-bezier(.2,1.3,.4,1)}
 .card .big{font-size:3.4rem;line-height:1}.card h2{font-size:clamp(1.4rem,4vw,2rem);margin:8px 0}.card p{opacity:.88;line-height:1.45}
+.allow{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:rgba(246,196,83,.15);border:2px solid rgba(246,196,83,.5);font-weight:700}
 .vrflash{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--mint);color:var(--ink);font-weight:900;letter-spacing:.12em;animation:pulse 1.2s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(127,209,174,0)}0%{box-shadow:0 0 0 0 rgba(127,209,174,.6)}}
 .card .row{margin-top:16px}
 /* ---------- HUD ---------- */
@@ -133,12 +134,14 @@ body.touchui #dlg{bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));wi
 
 <button id="vrBadge" type="button" hidden>🥽 VR διαθέσιμο</button>
 <div class="tip" id="tipDesktop" hidden><b>Παίζεις σε υπολογιστή</b>Το παιχνίδι παίζεται καλύτερα με ποντίκι και πληκτρολόγιο, σε πλήρη οθόνη (F11). Έχεις Meta Quest; Άνοιξε το <b style="display:inline;font-size:1em">osaden.gr</b> από τον browser του γυαλιού για να το παίξεις σε VR!</div>
+<div class="tip" id="tipQuest" hidden><b>Χειρισμός VR</b>Αριστερός μοχλός: περπάτημα · Δεξιός: στροφή · Σκανδάλη: ενέργεια/ρίψη · B: άλμα · Y: παύση. Για VR πάτα το κουμπί «🥽» πάνω δεξιά.</div>
 <div class="tip" id="tipMobile" hidden><b>Παίζεις σε κινητό</b>Γύρνα το κινητό οριζόντια. Το παιχνίδι ανοίγει σε πλήρη οθόνη με μοχλό και κουμπιά.</div>
 
 <div class="modal" id="vrPrompt" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="vrT">
   <div class="big">🥽</div><span class="vrflash">VR DETECTED</span>
   <h2 id="vrT">Θέλεις να παίξεις σε λειτουργία VR;</h2>
-  <p>Θα μπεις μέσα στο χιονισμένο χωριό! Περπάτα με τον αριστερό μοχλό, γύρνα με τον δεξί και ρίξε χιονόμπαλες με τη σκανδάλη.</p>
+  <p>Θα μπεις μέσα στο χιονισμένο χωριό! Περπάτα με τον αριστερό μοχλό, γύρνα με τον δεξί και ρίξε χιονόμπαλες με τη σκανδάλη. Όλο το μενού συνεχίζει μέσα στο VR.</p>
+  <p class="allow">⚠️ Όταν ο browser ρωτήσει αν επιτρέπεται στη σελίδα να χρησιμοποιήσει το VR, πάτα <b>«Allow» / «Να επιτρέπεται»</b>.</p>
   <div class="row"><button class="mbtn primary" id="vrYes">Ναι, σε VR!</button><button class="mbtn" id="vrNo">Όχι, στην οθόνη</button></div>
 </div></div>
 

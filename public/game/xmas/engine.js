@@ -227,17 +227,17 @@ export class VR {
   hand(which) { return this.hands.find((h) => h.ctl.userData.hand === which) || this.hands[which === 'left' ? 0 : 1]; }
   poll() {
     const s = this.session, st = this.state; if (!s) return;
-    st.lx = st.ly = st.rx = st.ry = 0; st.trigger = [false, false]; st.grip = [false, false]; st.a = st.b = false;
+    st.lx = st.ly = st.rx = st.ry = 0; st.trigger = [false, false]; st.grip = [false, false]; st.a = st.b = st.x = st.y = false;
     for (const src of s.inputSources) {
       const gp = src.gamepad; if (!gp) continue; const L = src.handedness === 'left', ax = gp.axes, bt = gp.buttons;
       const x = ax.length >= 4 ? ax[2] : ax[0] || 0, y = ax.length >= 4 ? ax[3] : ax[1] || 0, dz = (v) => (Math.abs(v) < 0.15 ? 0 : v);
       if (L) { st.lx = dz(x); st.ly = dz(y); } else { st.rx = dz(x); st.ry = dz(y); }
       const i = L ? 0 : 1; st.trigger[i] = !!bt[0]?.pressed; st.grip[i] = !!bt[1]?.pressed;
-      if (!L) { st.a = !!bt[4]?.pressed; st.b = !!bt[5]?.pressed; } else { st.a = st.a || !!bt[4]?.pressed; st.b = st.b || !!bt[5]?.pressed; }
+      if (!L) { st.a = !!bt[4]?.pressed; st.b = !!bt[5]?.pressed; } else { st.x = !!bt[4]?.pressed; st.y = !!bt[5]?.pressed; }
     }
   }
   edge(k, i) { const now = i == null ? this.state[k] : this.state[k][i], was = i == null ? this.prev[k] : this.prev[k][i]; return now && !was; }
-  endFrame() { const st = this.state, p = this.prev; p.trigger = [...st.trigger]; p.grip = [...st.grip]; p.a = st.a; p.b = st.b; }
+  endFrame() { const st = this.state, p = this.prev; p.trigger = [...st.trigger]; p.grip = [...st.grip]; p.a = st.a; p.b = st.b; p.x = st.x; p.y = st.y; }
 }
 
 // ---------------------------------------------------------------- διάλογοι, στόχοι, μηνύματα (DOM + πάνελ μέσα στο VR)
@@ -301,6 +301,7 @@ export class UI {
       box(y, H - y - 8, 'rgba(20,10,14,.88)'); c.fillStyle = '#ffd36b'; c.font = '800 30px system-ui,sans-serif'; if (this.cur.who) c.fillText(this.cur.who, 34, y + 14);
       c.fillStyle = '#fff'; c.font = '600 32px system-ui,sans-serif'; const words = this.cur.text.slice(0, Math.floor(this.shown)).split(' '); let line = '', ly = y + (this.cur.who ? 56 : 20);
       for (const w of words) { if (c.measureText(line + w).width > W - 80) { c.fillText(line, 34, ly); ly += 40; line = ''; } line += w + ' '; } c.fillText(line, 34, ly);
+      c.fillStyle = 'rgba(255,211,107,.85)'; c.font = '800 24px system-ui,sans-serif'; c.textAlign = 'right'; c.fillText('▶ σκανδάλη', W - 34, H - 44); c.textAlign = 'left';
     } else if (this.hintText) { box(y, 56, 'rgba(0,0,0,.6)'); c.fillStyle = '#fff'; c.font = '700 28px system-ui,sans-serif'; c.fillText(this.hintText, 32, y + 12); }
     this.vtex.needsUpdate = true;
   }

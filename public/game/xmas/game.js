@@ -2,6 +2,7 @@
 import { THREE, QUALITY, DEVICE, Physics, AudioSys, Input, VR, UI, clamp, lerp, angLerp, rand, glowTex } from './engine.js';
 import { World, height, P, LAKE_Y } from './world.js';
 import { makeKid, makeBeacon } from './actors.js';
+import { VRMenu } from './vrmenu.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 export class Game {
@@ -14,7 +15,7 @@ export class Game {
     this.phys = new Physics(height); this.audio = new AudioSys(); this.input = new Input(r.domElement); this.vr = new VR(this); this.ui = new UI(this, root);
     this.world = new World(this); this.scene = this.world.scene;
     this.camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, this.q.far); this.rig = new THREE.Group(); this.rig.add(this.camera); this.scene.add(this.rig);
-    this.camera.add(this.ui.vpanel);
+    this.camera.add(this.ui.vpanel); this.vrMenu = new VRMenu(this);
     // παίκτης
     this.kid = makeKid({ coat: 0x2b6cb0, hat: 0xc8102e, scarf: 0xf6c453, backpack: false }); this.scene.add(this.kid.root);
     this.p = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: -0.15, ground: true, mode: 'walk', speed: 0, stepT: 0, coyote: 0 };
@@ -29,6 +30,8 @@ export class Game {
     addEventListener('resize', () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); r.setSize(innerWidth, innerHeight); });
     this.timeScale = Number(new URLSearchParams(location.search).get('speed') || 1); this.clock = new THREE.Clock(); r.setAnimationLoop(() => this.frame());
   }
+  /** Αλλάζει το μοντέλο του παίκτη (αγόρι/κορίτσι). */
+  setPlayerLook(gender) { const vis = this.kid.root.visible, old = this.kid.root; this.kid = makeKid({ coat: 0x2b6cb0, hat: 0xc8102e, scarf: 0xf6c453, girl: gender === 'f', hair: gender === 'f' ? 0x7a4a26 : 0x5a3825 }); this.kid.root.visible = vis; this.kid.root.position.copy(old.position); this.kid.root.rotation.copy(old.rotation); this.scene.remove(old); this.scene.add(this.kid.root); }
   // ---------------------------------------------------------------- βοηθήματα για την ιστορία
   /** Περιμένει μέχρι να ισχύει η συνθήκη (ελέγχεται κάθε καρέ). */
   until(fn) { return new Promise((res) => this.waiters.push({ fn, res })); }
@@ -81,10 +84,11 @@ export class Game {
   onVREnd() { this.camMode = this.camModePrev || 'third'; this.rig.position.set(0, 0, 0); this.rig.rotation.set(0, 0, 0); this.camera.position.set(0, 0, 0); this.ui.vpanel.visible = false; this.onVRExit?.(); }
 
   // ---------------------------------------------------------------- βρόχος
-  frame() {
+  frame() { try { this._frame(); } catch (e) { console.error('[game]', e); if (!this._errShown) { this._errShown = true; this.ui?.toast?.('Ωπ! Κάτι πήγε στραβά, αλλά το παιχνίδι συνεχίζει.'); } this.input.endFrame(); if (this.inVR) this.vr.endFrame(); } }
+  _frame() {
     const dt = Math.min(0.05, this.clock.getDelta()) * (this.timeScale || 1); this.t += dt; const vr = this.inVR;
-    if (vr) this.vr.poll();
-    if (!this.paused) {
+    if (vr) { this.vr.poll(); if (this.vr.edge('y') && !this.menuOpen) this.onVRPause?.(); }
+    if (!this.paused && !this.menuOpen) {
       this.updatePlayer(dt, vr);
       this.updateNPCs(dt);
       this.updateBalls(dt); this.splat.update(dt);
@@ -93,7 +97,7 @@ export class Game {
     }
     this.updateCamera(dt, vr);
     const cam = this.headPos; this.world.update(dt, this.t, cam, this.p.pos); this.beacon.update(this.t);
-    this.ui.update(dt);
+    this.ui.update(dt); if (vr) this.vrMenu.update(); if (this.menuOpen && vr) this.ui.vpanel.visible = false;
     if (vr) { this.fadeSphere.material.opacity = lerp(this.fadeSphere.material.opacity, this.fadeTarget || 0, Math.min(1, dt * 6)); this.placeVRPanel(); }
     const fwd = this.headDir; this.audio.listener(cam, fwd);
     // λάμπα χεριού
@@ -144,10 +148,10 @@ export class Game {
     this.kid.root.position.copy(p.pos); this.kid.st.air = !p.ground; this.kid.update(dt, p.ground ? p.speed : 0, this.t);
     // αλληλεπιδράσεις
     let best = null, bd = 1e9;
-    if (!this.ui.cur) for (const it of this.inter) { if (!it.on) continue; const ip = typeof it.pos === 'function' ? it.pos() : it.pos; const dx = ip.x - p.pos.x, dz = ip.z - p.pos.z, d = Math.hypot(dx, dz); if (d < it.r && d < bd) { bd = d; best = it; } }
+    if (!this.ui.cur) for (const it of this.inter) { if (!it.on || typeof it.fn !== 'function') continue; const ip = typeof it.pos === 'function' ? it.pos() : it.pos; const dx = ip.x - p.pos.x, dz = ip.z - p.pos.z, d = Math.hypot(dx, dz); if (d < it.r && d < bd) { bd = d; best = it; } }
     this.focus = best;
     this.ui.hint(best ? `${vr ? 'Σκανδάλη' : DEVICE.touch ? '✋' : 'E'}: ${best.label}` : this.canThrow && !this.ui.cur ? (vr ? 'Δεξιά σκανδάλη: ρίξε χιονόμπαλα' : DEVICE.touch ? '❄: ρίξε χιονόμπαλα' : 'Κλικ: ρίξε χιονόμπαλα') : '');
-    if (best && !this.ui.cur && this.actionPressed(vr)) { this.audio.play('../../audio/sfx/click.mp3', { vol: 0.4 }); best.fn(best); return; }
+    if (best && !this.ui.cur && this.actionPressed(vr)) { this.audio.play('../../audio/sfx/click.mp3', { vol: 0.4 }); const fn = best.fn; Promise.resolve().then(() => fn(best)).catch((e) => console.error(e)); return; }
     // ρίψη
     if (this.canThrow && !this.ui.cur && !frozen) {
       const now = this.t; if ((this._lastThrow || 0) + 0.32 > now) return;

@@ -7,7 +7,7 @@ const read = (k) => { try { return localStorage.getItem(k); } catch { return nul
 const write = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 
 /** Η μεγάλη κάρτα του 3D παιχνιδιού + αναδυόμενο «VR DETECTED» (Quest) ή υπενθύμιση (υπολογιστής). */
-export default function Game3D() {
+export default function Game3D({ popup = true }) {
   const [vr, setVr] = useState(false), [pop, setPop] = useState(null);
   useEffect(() => {
     let alive = true;
@@ -15,7 +15,7 @@ export default function Game3D() {
       let ok = false; try { ok = !!(navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))); } catch {}
       if (!alive) return; setVr(ok);
       const quest = /OculusBrowser|Quest/i.test(navigator.userAgent), touch = matchMedia('(pointer: coarse)').matches && !quest;
-      if (read('g3d:nopop') === '1' || sessionStorage.getItem('g3d:seen')) return;
+      if (!popup || read('g3d:nopop') === '1' || sessionStorage.getItem('g3d:seen')) return;
       sessionStorage.setItem('g3d:seen', '1');
       setTimeout(() => alive && setPop(ok || quest ? 'vr' : touch ? 'mobile' : 'desktop'), 900);
     })();
@@ -40,7 +40,7 @@ export default function Game3D() {
         <div className="g3d-pop-back" onClick={() => setPop(null)}>
           <div className="g3d-pop" role="dialog" aria-modal="true" aria-labelledby="g3dp-t" onClick={(e) => e.stopPropagation()}>
             {pop === 'vr' ? <><div className="g3d-pop-ico" aria-hidden="true">🥽</div><span className="g3d-vrd">VR DETECTED</span><h2 id="g3dp-t">Θέλεις να παίξεις σε λειτουργία VR;</h2>
-              <p>Το νέο μας παιχνίδι «Τα Χριστούγεννα του Κιμωλάκη» παίζεται <b>μέσα</b> στο VR! Περπάτα στο χιονισμένο χωριό με τους μοχλούς και ρίξε χιονόμπαλες με τις σκανδάλες.</p></>
+              <p>Το νέο μας παιχνίδι «Τα Χριστούγεννα του Κιμωλάκη» παίζεται <b>μέσα</b> στο VR! Περπάτα στο χιονισμένο χωριό με τους μοχλούς και ρίξε χιονόμπαλες με τις σκανδάλες.</p><p className="g3d-allow">⚠️ Όταν ο browser ρωτήσει αν επιτρέπεται να χρησιμοποιηθεί το VR, πάτα <b>«Allow» / «Να επιτρέπεται»</b>.</p></>
               : <><div className="g3d-pop-ico" aria-hidden="true">🎄</div><h2 id="g3dp-t">Νέο παιχνίδι: Τα Χριστούγεννα του Κιμωλάκη!</h2>
               <p>{pop === 'mobile' ? 'Παίζεται και στο κινητό, σε πλήρη οθόνη με μοχλό αφής. Γύρνα το κινητό οριζόντια!' : 'Μια περιπέτεια σε 3D που παίζεται με ποντίκι και πληκτρολόγιο (WASD).'} <b>Έχεις Meta Quest;</b> Άνοιξε το osaden.gr από τον browser του γυαλιού και παίξ\' το σε VR!</p></>}
             <div className="btns"><button type="button" className="btn btn-primary" onClick={open}>{pop === 'vr' ? 'Ναι, σε VR!' : 'Παίξε τώρα ↗'}</button><button type="button" className="btn btn-ghost" onClick={() => setPop(null)}>Αργότερα</button></div>

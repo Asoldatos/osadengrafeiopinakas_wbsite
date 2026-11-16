@@ -3,6 +3,7 @@ import { getSite, getPage } from '@/lib/data';
 import { getAdmin } from '@/lib/auth';
 import SiteNav from '@/components/SiteNav';
 import Footer from '@/components/Footer';
+import GamePromo from '@/components/GamePromo';
 import MaintenanceView from '@/components/MaintenanceView';
 import { safeUrl } from '@/lib/util';
 import { getStudent } from '@/lib/student';
@@ -55,6 +56,7 @@ export default async function SiteLayout({ children }) {
       <a className="skip" href="#main">Μετάβαση στο περιεχόμενο</a>
       {m.enabled && admin && <div className="adminbar">Η λειτουργία συντήρησης είναι ΕΝΕΡΓΗ — οι επισκέπτες βλέπουν τη σελίδα συντήρησης. <Link href="/editor-panel/settings">Ρυθμίσεις</Link></div>}
       {a?.enabled && a.text && <div className="announce">{a.link ? <Link href={safeUrl(a.link)}>{a.text} →</Link> : a.text}</div>}
+      <GamePromo />
       <SiteNav name={site.name} logoUrl={site.logoUrl} items={items} student={st ? { nickname: st.nickname, avatar: st.avatar, level: levelFor(st.xp) } : null} />
       <main id="main">{children}</main>
       <Footer site={site} items={items} />
