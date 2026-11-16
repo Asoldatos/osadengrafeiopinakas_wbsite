@@ -93,3 +93,16 @@ Next.js 14 (React) + Postgres (Neon) + Vercel Blob. Έτοιμο για Vercel.
 - **Όρια**: εικόνες έως 4 MB (όριο Vercel Functions)· PDF έως 150 MB (άμεση μεταφόρτωση στο Blob).
 - **Συντήρηση**: οι επισκέπτες δεν λαμβάνουν ποτέ το περιεχόμενο (απόκριση HTTP 200 με σελίδα συντήρησης).
 - **Φόρμα επικοινωνίας**: δεν περιλαμβάνεται (η σελίδα δείχνει email/τηλέφωνο/κοινωνικά από τις Ρυθμίσεις).
+
+## Φωνές στο 3D παιχνίδι (ElevenLabs)
+
+Οι φωνές είναι έτοιμα mp3 στο `public/game/xmas/voice/`. Φτιάχνονται **μία φορά** στον υπολογιστή σου — το κλειδί δεν μπαίνει ποτέ στο site.
+
+1. Στο `.env.local` πρόσθεσε `ELEVENLABS_API_KEY=...`
+2. `node scripts/tts-voices.mjs voices` → διάλεξε φωνές και βάλε τα `voice_id` στο `scripts/tts-voices.config.json`
+3. `node scripts/tts-voices.mjs plan` → πόσοι χαρακτήρες χρειάζονται
+4. `node scripts/tts-voices.mjs make` → φτιάχνει ό,τι λείπει (αν τελειώσουν τα credits, ξανατρέχεις τον επόμενο μήνα και συνεχίζει)
+5. `git add public/game/xmas/voice` → commit → push
+
+Αν αλλάξεις μια ατάκα στο `story.js`, ξανατρέχεις το `make` και φτιάχνεται μόνο η καινούργια.
+Δωρεάν πλάνο ElevenLabs: μόνο μη εμπορική χρήση, με αναφορά στο ElevenLabs (υπάρχει στους τίτλους τέλους).

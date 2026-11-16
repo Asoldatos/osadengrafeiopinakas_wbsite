@@ -42,7 +42,7 @@ function renderMenu() {
   $('#mContinue').hidden = !save || !save.ch; if (save?.ch) $('#mContinue').innerHTML = `Συνέχεια <small>Κεφάλαιο ${save.ch + 1}: ${CHAPTERS[save.ch].title}</small>`;
   $('#chList').innerHTML = CHAPTERS.map((c, i) => `<button type="button" data-ch="${i}" ${i > max && !all ? 'disabled' : ''}><b>${c.n}</b>${i > max && !all ? '🔒 Κλειδωμένο' : c.title}</button>`).join('');
   $('#chList').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => start(Number(b.dataset.ch))));
-  $('#sQuality').value = qName; $('#sSens').value = g.input.sens; $('#sMusic').value = g.audio.vol.music; $('#sSfx').value = g.audio.vol.sfx; $('#sCam').value = g.camMode; $('#sTut').value = g.settings.tutorials ? '1' : '0';
+  $('#sQuality').value = qName; $('#sSens').value = g.input.sens; $('#sMusic').value = g.audio.vol.music; $('#sSfx').value = g.audio.vol.sfx; $('#sVoice').value = g.audio.vol.voice ?? 1; $('#sCam').value = g.camMode; $('#sTut').value = g.settings.tutorials ? '1' : '0';
   document.querySelectorAll('[data-gender]').forEach((b) => b.classList.toggle('on', b.dataset.gender === g.gender));
 }
 function showMenu(on, panel = 'main') {
@@ -117,6 +117,7 @@ $('#sQuality').addEventListener('change', (e) => { store.set('quality', e.target
 $('#sSens').addEventListener('input', (e) => { g.input.sens = Number(e.target.value); localStorage.setItem('kimo3d:sens', e.target.value); });
 $('#sMusic').addEventListener('input', (e) => g.audio.setVol('music', Number(e.target.value)));
 $('#sSfx').addEventListener('input', (e) => g.audio.setVol('sfx', Number(e.target.value)));
+$('#sVoice').addEventListener('input', (e) => g.audio.setVol('voice', Number(e.target.value)));
 $('#sTut').addEventListener('change', (e) => { g.settings.tutorials = e.target.value === '1'; localStorage.setItem('kimo3d:tut', e.target.value); });
 $('#sCam').addEventListener('change', (e) => { g.camMode = e.target.value; store.set('cam', e.target.value); });
 $('#vrYes').addEventListener('click', () => {

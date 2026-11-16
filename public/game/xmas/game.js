@@ -4,6 +4,7 @@ import { World, height, P, LAKE_Y } from './world.js';
 import { makeKid, makeBeacon } from './actors.js';
 import { VRMenu } from './vrmenu.js';
 import { tutMark } from './tutorial.js';
+import { Voices } from './voice.js';
 
 const UP = new THREE.Vector3(0, 1, 0);
 export class Game {
@@ -16,7 +17,7 @@ export class Game {
     this.phys = new Physics(height); this.audio = new AudioSys(); this.input = new Input(r.domElement); this.vr = new VR(this); this.ui = new UI(this, root);
     this.world = new World(this); this.scene = this.world.scene;
     this.camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, this.q.far); this.rig = new THREE.Group(); this.rig.add(this.camera); this.scene.add(this.rig);
-    this.camera.add(this.ui.vpanel); this.vrMenu = new VRMenu(this);
+    this.camera.add(this.ui.vpanel); this.vrMenu = new VRMenu(this); this.voices = new Voices(this);
     // παίκτης
     this.kid = makeKid({ coat: 0x2b6cb0, hat: 0xc8102e, scarf: 0xf6c453, backpack: false }); this.scene.add(this.kid.root);
     this.p = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: -0.15, ground: true, mode: 'walk', speed: 0, stepT: 0, coyote: 0 };
@@ -99,7 +100,7 @@ export class Game {
     }
     this.updateCamera(dt, vr);
     const cam = this.headPos; this.world.update(dt, this.t, cam, this.p.pos); this.beacon.update(this.t);
-    this.ui.update(dt); if (vr) this.vrMenu.update(); if (this.menuOpen && vr) this.ui.vpanel.visible = false;
+    this.ui.update(dt); this.voices.update(); if (vr) this.vrMenu.update(); if (this.menuOpen && vr) this.ui.vpanel.visible = false;
     if (vr) { this.fadeSphere.material.opacity = lerp(this.fadeSphere.material.opacity, this.fadeTarget || 0, Math.min(1, dt * 6)); this.placeVRPanel(); }
     const fwd = this.headDir; this.audio.listener(cam, fwd);
     // λάμπα χεριού

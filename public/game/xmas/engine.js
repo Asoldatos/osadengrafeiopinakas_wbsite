@@ -99,18 +99,19 @@ export class Physics {
 
 // ---------------------------------------------------------------- ήχος
 export class AudioSys {
-  constructor() { this.ctx = null; this.buf = new Map(); this.vol = { master: 0.9, music: 0.55, sfx: 0.9 }; this.music = null; this.wind = null; try { Object.assign(this.vol, JSON.parse(localStorage.getItem('kimo3d:vol') || '{}')); } catch {} }
+  constructor() { this.ctx = null; this.buf = new Map(); this.vol = { master: 0.9, music: 0.55, sfx: 0.9, voice: 1 }; this.music = null; this.wind = null; try { Object.assign(this.vol, JSON.parse(localStorage.getItem('kimo3d:vol') || '{}')); } catch {} }
   ensure() {
     if (this.ctx) return this.ctx;
     const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
     const c = (this.ctx = new C()); this.out = c.createGain(); this.out.gain.value = this.vol.master; this.out.connect(c.destination);
     this.mBus = c.createGain(); this.mBus.gain.value = this.vol.music; this.mBus.connect(this.out);
     this.sBus = c.createGain(); this.sBus.gain.value = this.vol.sfx; this.sBus.connect(this.out);
+    this.vBus = c.createGain(); this.vBus.gain.value = this.vol.voice ?? 1; this.vBus.connect(this.out);
     const len = c.sampleRate * 2, nb = c.createBuffer(1, len, c.sampleRate), d = nb.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1; this.noise = nb;
     return c;
   }
   async unlock() { const c = this.ensure(); if (c && c.state !== 'running') try { await c.resume(); } catch {} return c?.state === 'running'; }
-  setVol(k, v) { this.vol[k] = v; try { localStorage.setItem('kimo3d:vol', JSON.stringify(this.vol)); } catch {} if (!this.ctx) return; ({ master: this.out, music: this.mBus, sfx: this.sBus })[k].gain.setTargetAtTime(v, this.ctx.currentTime, 0.05); }
+  setVol(k, v) { this.vol[k] = v; try { localStorage.setItem('kimo3d:vol', JSON.stringify(this.vol)); } catch {} if (!this.ctx) return; ({ master: this.out, music: this.mBus, sfx: this.sBus, voice: this.vBus })[k].gain.setTargetAtTime(v, this.ctx.currentTime, 0.05); }
   async load(url) {
     if (this.buf.has(url)) return this.buf.get(url);
     const p = (async () => { const c = this.ensure(); if (!c) return null; try { const r = await fetch(url); return await c.decodeAudioData(await r.arrayBuffer()); } catch { return null; } })();
@@ -256,15 +257,15 @@ export class UI {
     this.vpanel = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.36), new THREE.MeshBasicMaterial({ map: this.vtex, transparent: true, depthTest: false, depthWrite: false }));
     this.vpanel.renderOrder = 999; this.vpanel.visible = false; this.vdirty = true;
   }
-  say(lines, done) { const gx = (t) => t.replace(/\{([^|}]*)\|([^}]*)\}/g, (_, m, f) => (this.g.gender === 'f' ? f : m)); this.queue.push(...lines.map((l) => (typeof l === 'string' ? { who: '', text: gx(l) } : { ...l, text: gx(l.text) }))); if (done) this.queue.push({ fn: done }); if (!this.cur) this.next(); }
+  say(lines, done) { const gx = (t) => t.replace(/\{([^|}]*)\|([^}]*)\}/g, (_, m, f) => (this.g.gender === 'f' ? f : m)); this.queue.push(...lines.map((l) => (typeof l === 'string' ? { who: '', text: gx(l) } : { ...l, text: gx(l.text) }))); if (done) this.queue.push({ fn: done }); this.g.voices?.preload(this.queue.slice(0, 4)); if (!this.cur) this.next(); }
   get busy() { return !!this.cur || this.queue.length > 0; }
   next() {
-    this.cur = null;
+    this.cur = null; this.g.voices?.stop();
     while (this.queue.length && this.queue[0].fn) this.queue.shift().fn();
     const d = this.$('#dlg'); if (!this.queue.length) { d.hidden = true; this.vdirty = true; return; }
     this.cur = this.queue.shift(); this.t = 0; this.shown = 0;
     d.hidden = false; d.querySelector('.who').textContent = this.cur.who || ''; d.querySelector('.who').hidden = !this.cur.who; d.className = this.cur.who ? `w-${this.cur.c || 'k'}` : 'w-x';
-    this.g.audio.crunch(0.05); this.vdirty = true;
+    this.g.audio.crunch(0.05); this.vdirty = true; this.g.voices?.line(this.cur);
   }
   advance() { if (!this.cur) return; const full = this.cur.text.length; if (this.shown < full) { this.shown = full; this.render(); } else this.next(); }
   render() { const d = this.$('#dlg .txt'); d.textContent = this.cur.text.slice(0, Math.floor(this.shown)); this.vdirty = true; }
@@ -281,7 +282,7 @@ export class UI {
     if (this.cur) {
       const full = this.cur.text.length;
       if (this.shown < full) { this.shown = Math.min(full, this.shown + dt * 42); this.render(); }
-      else { this.t += dt; if (this.cur.auto && this.t > this.cur.auto) this.next(); }
+      else { this.t += dt; if (this.cur.auto && this.t > this.cur.auto && !this.g.voices?.busy) this.next(); }
     }
     if (this.toastT > 0 && (this.toastT -= dt) <= 0) { this.$('#toast').hidden = true; this.toastText = ''; this.vdirty = true; }
     if (this.chapT > 0 && (this.chapT -= dt) <= 0) { this.chapText = ''; this.vdirty = true; }
