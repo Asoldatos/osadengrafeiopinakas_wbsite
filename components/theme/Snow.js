@@ -13,13 +13,13 @@ export default function Snow({ count = 110, speed = 1, interactive = true }) {
     const sx = spr.getContext('2d'), g = sx.createRadialGradient(16, 16, 0, 16, 16, 16);
     g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.45, 'rgba(255,255,255,.85)'); g.addColorStop(1, 'rgba(255,255,255,0)'); sx.fillStyle = g; sx.fillRect(0, 0, 32, 32);
     const resize = () => { const d = Math.min(1.5, window.devicePixelRatio || 1); w = innerWidth; h = innerHeight; cv.width = w * d; cv.height = h * d; ctx.setTransform(d, 0, 0, d, 0, 0); };
-    const N = Math.round(count * (mobile ? 0.5 : 1) * (reduce ? 0.3 : 1));
+    const N = Math.round(count * (mobile ? 0.5 : 1) * (reduce ? 0.55 : 1));
     const make = (top) => { const layer = Math.random(), r = 0.8 + layer * layer * 3.4;
       return { x: Math.random() * w, y: top ? -10 - Math.random() * h * 0.2 : Math.random() * h, r, vy: (18 + r * 14) * (0.8 + Math.random() * 0.4), ph: Math.random() * 6.28, fr: 0.6 + Math.random() * 1.2, amp: 8 + r * 6, a: 0.45 + layer * 0.5 }; };
     resize(); flakes = Array.from({ length: N }, () => make(false));
     const onMove = (e) => { const nx = e.clientX, ny = e.clientY; if (px > -1e3) wind += Math.max(-40, Math.min(40, (nx - px) * 0.6)); px = nx; py = ny; };
     const loop = (ts) => {
-      const dt = Math.min(0.05, (ts - (last || ts)) / 1000); last = ts; wind *= 0.96; const t = ts / 1000, sp = speed * (reduce ? 0.35 : 1);
+      const dt = Math.min(0.05, (ts - (last || ts)) / 1000); last = ts; wind *= 0.96; const t = ts / 1000, sp = speed * (reduce ? 0.6 : 1);
       ctx.clearRect(0, 0, w, h);
       for (const f of flakes) {
         f.y += f.vy * sp * dt; f.x += (reduce ? 0 : Math.sin(t * f.fr + f.ph) * f.amp * dt) + wind * dt * (0.4 + f.r * 0.25);

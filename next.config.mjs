@@ -12,6 +12,8 @@ export default {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [{ protocol: 'https', hostname: '**.public.blob.vercel-storage.com' }],
   },
+  // το 3D παιχνίδι είναι στατικά αρχεία στο public/game/xmas
+  async rewrites() { return [{ source: '/game/xmas', destination: '/game/xmas/index.html' }, { source: '/xmas3d', destination: '/game/xmas/index.html' }]; },
   async headers() { return [{ source: '/:path*', headers: security }]; },
   webpack(config) {
     config.resolve.alias.canvas = false;

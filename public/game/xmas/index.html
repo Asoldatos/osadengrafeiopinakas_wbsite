@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#14081a">
+<title>Τα Χριστούγεννα του Κιμωλάκη</title>
+<meta name="description" content="Μια χριστουγεννιάτικη περιπέτεια σε 3D από την εφημερίδα «Όσα δεν γράφει ο πίνακας». Παίζεται σε υπολογιστή, κινητό και VR.">
+<link rel="icon" href="/brand/christmas/favicon-square.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800;900&display=swap">
+<style>
+:root{--ink:#14081a;--red:#c8102e;--deep:#7c0d1f;--gold:#f6c453;--snow:#f6f9ff;--mint:#7fd1ae;--glass:rgba(20,8,26,.72);--disp:'Baloo 2','Nunito',system-ui,sans-serif;--body:'Nunito',system-ui,sans-serif}
+[hidden]{display:none!important}*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#0b0612;color:#fff;font-family:var(--body);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+#app{position:fixed;inset:0}canvas.gl{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none}
+button{font:inherit;cursor:pointer}
+/* ---------- φόρτωση ---------- */
+#load{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#3a0d1c,#0b0612 70%);transition:opacity .7s}#load.out{opacity:0;pointer-events:none}
+#load div{text-align:center}#load img{width:min(70vw,420px);filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}#load b{display:block;margin-top:18px;font-size:1.05rem;opacity:.85}
+#load i{display:block;width:180px;height:6px;margin:14px auto 0;border-radius:4px;background:repeating-linear-gradient(-45deg,var(--red) 0 10px,#fff 10px 20px);background-size:28px 28px;animation:candy .6s linear infinite}
+@keyframes candy{to{background-position:28px 0}}
+/* ---------- μενού ---------- */
+#menu{position:fixed;inset:0;z-index:40;display:grid;align-items:center;padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));background:linear-gradient(90deg,rgba(11,6,18,.88),rgba(11,6,18,.35) 55%,transparent)}
+#menu.over{background:rgba(11,6,18,.8);justify-items:center}
+.panel{width:min(440px,100%);display:grid;gap:10px;animation:rise .5s cubic-bezier(.2,1.2,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+.logo{width:min(380px,90%);margin:0 0 4px -6px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.55))}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(1.7rem,4.2vw,2.6rem);line-height:1.02;margin:0;text-shadow:0 4px 0 var(--deep),0 10px 26px rgba(0,0,0,.5)}
+h1 span{display:block;font-size:.5em;color:var(--gold);letter-spacing:.06em;text-shadow:none;margin-top:4px}
+h2{font-family:var(--disp);margin:0 0 4px;font-size:1.5rem}
+.mbtn{display:block;width:100%;text-align:left;padding:14px 18px;border-radius:16px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;font-weight:900;font-size:1.08rem;backdrop-filter:blur(6px);transition:transform .15s,background .2s,border-color .2s}
+.mbtn small{display:block;font-weight:700;font-size:.78rem;opacity:.75;margin-top:2px}
+.mbtn:hover,.mbtn:focus-visible{transform:translateX(6px);background:rgba(255,255,255,.14);border-color:var(--gold);outline:none}
+.mbtn.primary{background:linear-gradient(180deg,#e5273f,var(--red));border-color:#ff8fa0;box-shadow:0 6px 0 var(--deep),0 12px 30px rgba(200,16,46,.35)}
+.mbtn.primary:hover{background:linear-gradient(180deg,#ff3b55,#d8162f)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row .mbtn{flex:1;min-width:140px;text-align:center}
+.mbtn.on{border-color:var(--gold);background:rgba(246,196,83,.18)}
+#chList{display:grid;gap:8px;max-height:52vh;overflow:auto}#chList button{display:flex;gap:12px;align-items:center;text-align:left;padding:12px 14px;border-radius:14px;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font-weight:800}
+#chList button b{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--red);flex:none}#chList button:disabled{opacity:.45;cursor:default}#chList button:not(:disabled):hover{border-color:var(--gold)}
+.set{display:grid;gap:4px;font-weight:800;font-size:.95rem}.set input[type=range]{width:100%;accent-color:var(--red)}.set select{padding:10px;border-radius:12px;border:2px solid rgba(255,255,255,.2);background:#1d1024;color:#fff;font:inherit}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.95rem}.keys kbd{display:inline-block;min-width:26px;padding:2px 7px;border-radius:7px;background:#fff;color:var(--ink);font-family:var(--body);font-weight:900;text-align:center;box-shadow:0 3px 0 #9aa}
+.tip{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:41;width:min(330px,calc(100vw - 36px));padding:14px 16px;border-radius:18px;background:var(--glass);border:2px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);font-size:.92rem;line-height:1.4;animation:rise .6s .4s both}
+.tip b{color:var(--gold);display:block;margin-bottom:4px;font-family:var(--disp);font-size:1.1rem}
+#vrBadge{position:fixed;top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));z-index:42;padding:9px 14px;border-radius:999px;border:2px solid var(--mint);background:rgba(15,40,30,.8);color:#cff7e6;font-weight:900}#vrBadge.on{background:var(--mint);color:var(--ink)}
+/* ---------- παράθυρα ---------- */
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(5,2,10,.7);backdrop-filter:blur(4px)}
+.card{width:min(460px,100%);padding:26px 24px;border-radius:24px;background:linear-gradient(160deg,#2a0f1e,#14081a);border:2px solid rgba(255,255,255,.15);box-shadow:0 30px 80px rgba(0,0,0,.6);text-align:center;animation:rise .45s cubic-bezier(.2,1.3,.4,1)}
+.card .big{font-size:3.4rem;line-height:1}.card h2{font-size:clamp(1.4rem,4vw,2rem);margin:8px 0}.card p{opacity:.88;line-height:1.45}
+.vrflash{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--mint);color:var(--ink);font-weight:900;letter-spacing:.12em;animation:pulse 1.2s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(127,209,174,0)}0%{box-shadow:0 0 0 0 rgba(127,209,174,.6)}}
+.card .row{margin-top:16px}
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:20;font-family:var(--body)}
+#obj{position:absolute;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));max-width:min(420px,70vw);padding:10px 16px 12px;border-radius:16px;background:var(--glass);border-left:5px solid var(--gold);backdrop-filter:blur(6px)}
+#obj small{display:block;font-size:.68rem;letter-spacing:.16em;color:var(--gold);font-weight:900}#obj b{display:block;font-size:1.05rem}#obj em{display:block;font-style:normal;font-weight:800;color:var(--mint);font-size:.9rem;margin-top:2px}
+#obj.flash{animation:objin .7s cubic-bezier(.2,1.4,.4,1)}@keyframes objin{from{transform:translateX(-30px);opacity:0}}
+#chap{position:absolute;inset:0;display:grid;place-content:center;text-align:center}#chap small{font-weight:900;letter-spacing:.3em;color:var(--gold)}#chap b{font-family:var(--disp);font-size:clamp(2rem,7vw,4.4rem);text-shadow:0 5px 0 var(--deep),0 18px 40px rgba(0,0,0,.6)}
+#chap.in{animation:chap 4.6s ease both}@keyframes chap{0%{opacity:0;transform:scale(.92)}12%,78%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.04)}}
+#toast{position:absolute;left:50%;top:max(16px,env(safe-area-inset-top));transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:#fff;color:var(--ink);font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.3);white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#toast.in{animation:toast .45s cubic-bezier(.2,1.4,.4,1)}@keyframes toast{from{transform:translate(-50%,-20px);opacity:0}}
+#hint{position:absolute;left:50%;bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));transform:translateX(-50%);padding:8px 16px;border-radius:12px;background:rgba(0,0,0,.55);font-weight:900;font-size:1rem;white-space:nowrap}
+#arrow{position:absolute;color:var(--gold);font-size:2rem;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+#cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:rgba(255,255,255,.8);box-shadow:0 0 0 2px rgba(0,0,0,.25);display:none}body.playing.throw #cross{display:block}
+#dlg{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(760px,calc(100vw - 32px));padding:14px 20px 16px;border-radius:20px;background:rgba(20,8,26,.86);border:2px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);animation:rise .3s}
+#dlg .who{display:inline-block;margin:-30px 0 6px;padding:4px 14px;border-radius:999px;font-weight:900;font-family:var(--disp);font-size:1.05rem;background:#2b6cb0}
+#dlg.w-m .who{background:#ff6aa8}#dlg.w-n .who{background:#0f7b4b}#dlg.w-s .who{background:var(--red)}#dlg.w-n .who,#dlg.w-m .who,#dlg.w-s .who,#dlg.w-k .who{box-shadow:0 4px 0 rgba(0,0,0,.3)}
+#dlg.w-x .who{display:none}#dlg.w-x .txt{font-style:italic;color:#ffe9b8}#dlg .txt{font-size:clamp(1rem,2.4vw,1.2rem);font-weight:700;line-height:1.45;min-height:2.9em}
+#dlg .nx{position:absolute;right:16px;bottom:8px;font-size:.72rem;opacity:.55;font-weight:900;animation:blink 1.2s infinite}@keyframes blink{50%{opacity:.15}}
+body.touchui #dlg{bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));width:min(640px,calc(100vw - 360px));min-width:300px;pointer-events:auto}body.touchui #hint{bottom:max(260px,calc(env(safe-area-inset-bottom) + 260px))}
+#dlg{pointer-events:auto;cursor:pointer}
+#fade{position:absolute;inset:0;background:#000;opacity:1;pointer-events:none}
+/* ---------- αφή ---------- */
+.touch{position:fixed;inset:0;z-index:25;pointer-events:none}.touch>*{pointer-events:auto}
+.stick{position:absolute;left:max(24px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.3);touch-action:none}
+.stick i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.lookpad{position:absolute;right:0;top:0;width:55%;height:100%;touch-action:none}
+.tbtns{position:absolute;right:max(20px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(2,64px);gap:12px}
+.tbtns button{width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(20,8,26,.55);color:#fff;font-size:1.6rem;touch-action:none}
+.tbtns #tbAct{grid-column:1/3;justify-self:end;width:76px;height:76px;background:rgba(200,16,46,.8)}
+.rotate{position:fixed;inset:0;z-index:90;display:none;place-content:center;text-align:center;background:#0b0612;font-weight:900;font-size:1.2rem}
+@media (orientation:portrait) and (pointer:coarse){body.playing .rotate{display:grid}}
+#pause{z-index:50}
+/* ---------- τίτλοι τέλους ---------- */
+.credits{position:fixed;inset:0;z-index:30;pointer-events:none;overflow:hidden;background:linear-gradient(transparent 60%,rgba(0,0,0,.5))}
+.credits p{position:relative;text-align:center;margin:0 0 60px;font-weight:800;animation:roll 40s linear forwards;top:100vh}.credits p b{display:block;font-family:var(--disp);font-size:1.7rem;color:var(--gold)}.credits p span{font-size:1.15rem}
+.credits .end{font-family:var(--disp);font-size:3.4rem;color:#fff;text-shadow:0 5px 0 var(--deep)}
+@keyframes roll{to{transform:translateY(-190vh)}}
+@media (prefers-reduced-motion:reduce){.mbtn:hover{transform:none}#chap.in{animation-duration:4.6s}}
+@media (max-height:520px){#menu{align-items:start;overflow:auto}.logo{width:220px}.mbtn{padding:10px 14px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="load"><div><img src="/brand/christmas/logo_text_christmas@2x.png" alt="Όσα δεν γράφει ο πίνακας"><b>Φορτώνει…</b><i></i></div></div>
+
+<div id="menu" hidden>
+  <div class="panel" data-p="main">
+    <img class="logo" src="/brand/christmas/logo_text_christmas@2x.png" alt="">
+    <h1>Τα Χριστούγεννα του Κιμωλάκη<span>ΜΙΑ ΠΕΡΙΠΕΤΕΙΑ ΣΕ 3D</span></h1>
+    <button class="mbtn primary" id="mContinue" hidden>Συνέχεια</button>
+    <button class="mbtn" id="mNew">Νέο παιχνίδι <small>7 κεφάλαια · περίπου 30 λεπτά</small></button>
+    <button class="mbtn" data-go="chapters">Κεφάλαια</button>
+    <button class="mbtn" data-go="settings">Ρυθμίσεις</button>
+    <button class="mbtn" data-go="controls">Χειρισμός</button>
+  </div>
+  <div class="panel" data-p="gender" hidden>
+    <h2>Ποιος είσαι;</h2><p style="margin:0;opacity:.85">Διάλεξε πώς θα σου μιλάνε οι χαρακτήρες.</p>
+    <div class="row"><button class="mbtn" data-gender="m">Αγόρι</button><button class="mbtn" data-gender="f">Κορίτσι</button></div>
+    <button class="mbtn" data-back>← Πίσω</button>
+  </div>
+  <div class="panel" data-p="chapters" hidden><h2>Κεφάλαια</h2><div id="chList"></div><button class="mbtn" data-back>← Πίσω</button></div>
+  <div class="panel" data-p="settings" hidden>
+    <h2>Ρυθμίσεις</h2>
+    <label class="set">Ποιότητα γραφικών<select id="sQuality"><option value="high">Υψηλή (υπολογιστής)</option><option value="medium">Μεσαία</option><option value="low">Χαμηλή (κινητά)</option><option value="vr">VR (Meta Quest)</option></select></label>
+    <label class="set">Κάμερα<select id="sCam"><option value="third">Τρίτο πρόσωπο</option><option value="first">Πρώτο πρόσωπο</option></select></label>
+    <label class="set">Ευαισθησία ποντικιού / αφής<input id="sSens" type="range" min="0.3" max="2.5" step="0.1"></label>
+    <label class="set">Μουσική<input id="sMusic" type="range" min="0" max="1" step="0.05"></label>
+    <label class="set">Ηχητικά εφέ<input id="sSfx" type="range" min="0" max="1" step="0.05"></label>
+    <div class="row"><button class="mbtn" data-gender="m">Αγόρι</button><button class="mbtn" data-gender="f">Κορίτσι</button></div>
+    <button class="mbtn" data-back>← Πίσω</button>
+  </div>
+  <div class="panel" data-p="controls" hidden>
+    <h2>Χειρισμός</h2>
+    <div class="keys"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>Περπάτημα<span><kbd>Ποντίκι</kbd></span>Κοίταγμα<span><kbd>Shift</kbd></span>Τρέξιμο<span><kbd>Space</kbd></span>Άλμα<span><kbd>E</kbd></span>Ενέργεια / επόμενη φράση<span><kbd>Κλικ</kbd></span>Χιονόμπαλα<span><kbd>Esc</kbd></span>Παύση</div>
+    <p style="opacity:.85;margin:6px 0 0"><b>VR:</b> αριστερός μοχλός για περπάτημα, δεξιός για στροφή, σκανδάλη για ενέργεια/ρίψη, B για άλμα, λαβή για τρέξιμο.<br><b>Κινητό:</b> μοχλός αριστερά, σύρε δεξιά για να κοιτάξεις, κουμπιά για ενέργεια, άλμα και χιονόμπαλα.</p>
+    <button class="mbtn" data-back>← Πίσω</button>
+  </div>
+  <div class="panel" data-p="end" hidden>
+    <h1>Καλά Χριστούγεννα!<span>ΤΕΛΕΙΩΣΕΣ ΤΗΝ ΠΕΡΙΠΕΤΕΙΑ</span></h1>
+    <p style="opacity:.9;line-height:1.5">Βοήθησες τον Κιμωλάκη να σώσει τα Χριστούγεννα. Μπορείς να ξαναπαίξεις οποιοδήποτε κεφάλαιο.</p>
+    <button class="mbtn primary" data-go="chapters">Κεφάλαια</button><button class="mbtn" data-go="main">Αρχικό μενού</button>
+  </div>
+</div>
+
+<button id="vrBadge" type="button" hidden>🥽 VR διαθέσιμο</button>
+<div class="tip" id="tipDesktop" hidden><b>Παίζεις σε υπολογιστή</b>Το παιχνίδι παίζεται καλύτερα με ποντίκι και πληκτρολόγιο, σε πλήρη οθόνη (F11). Έχεις Meta Quest; Άνοιξε το <b style="display:inline;font-size:1em">osaden.gr</b> από τον browser του γυαλιού για να το παίξεις σε VR!</div>
+<div class="tip" id="tipMobile" hidden><b>Παίζεις σε κινητό</b>Γύρνα το κινητό οριζόντια. Το παιχνίδι ανοίγει σε πλήρη οθόνη με μοχλό και κουμπιά.</div>
+
+<div class="modal" id="vrPrompt" hidden><div class="card" role="dialog" aria-modal="true" aria-labelledby="vrT">
+  <div class="big">🥽</div><span class="vrflash">VR DETECTED</span>
+  <h2 id="vrT">Θέλεις να παίξεις σε λειτουργία VR;</h2>
+  <p>Θα μπεις μέσα στο χιονισμένο χωριό! Περπάτα με τον αριστερό μοχλό, γύρνα με τον δεξί και ρίξε χιονόμπαλες με τη σκανδάλη.</p>
+  <div class="row"><button class="mbtn primary" id="vrYes">Ναι, σε VR!</button><button class="mbtn" id="vrNo">Όχι, στην οθόνη</button></div>
+</div></div>
+
+<div class="modal" id="pause" hidden><div class="card" role="dialog" aria-modal="true" aria-label="Παύση">
+  <h2>Παύση</h2>
+  <button class="mbtn primary" id="pResume">Συνέχεια</button><button class="mbtn" id="pSettings" style="margin-top:8px">Ρυθμίσεις</button><button class="mbtn" id="pMenu" style="margin-top:8px">Έξοδος στο μενού <small>Η πρόοδος σώζεται στην αρχή κάθε κεφαλαίου</small></button>
+</div></div>
+<div class="modal" id="alert" hidden><div class="card"><p></p><button class="mbtn primary">Εντάξει</button></div></div>
+<div class="rotate">📱↻<br>Γύρνα τη συσκευή οριζόντια</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

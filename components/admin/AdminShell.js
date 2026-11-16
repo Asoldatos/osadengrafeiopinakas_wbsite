@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Mascot from '../Mascot';
 import Toasts from './Toasts';
 import { api } from '@/lib/clientUpload';
-import { can } from '@/lib/perms.mjs';
+import { can, ROLE_LABEL } from '@/lib/perms.mjs';
 
 // [διαδρομή, ετικέτα, εικονίδιο, δικαίωμα]. Το μενού κρύβει ό,τι δεν επιτρέπεται· ο έλεγχος γίνεται ΠΑΝΤΑ και στον διακομιστή.
 const NAV = [
@@ -16,7 +16,6 @@ const NAV = [
   ['/editor-panel/themes', 'Εποχιακά θέματα 🎄', '❄️', 'themes'], ['/editor-panel/builder', 'Σχεδιαστής ιστοτόπου', '🎨', 'appearance'], ['/editor-panel/settings', 'Ρυθμίσεις ιστοτόπου', '⚙️', 'settings'],
   ['/editor-panel/admins', 'Διαχειριστές', '🛡️', 'admins'], ['/editor-panel/security', 'Ο λογαριασμός μου', '🔐'],
 ];
-export const ROLE_LABEL = { superadmin: 'Superadmin', admin: 'Διαχειριστής', editor: 'Συντάκτης' };
 export default function AdminShell({ user, children, tip }) {
   const path = usePathname(), router = useRouter(); const [open, setOpen] = useState(false);
   const on = (h) => (h === '/editor-panel' ? path === h : path.startsWith(h));

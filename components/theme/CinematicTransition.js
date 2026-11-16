@@ -18,14 +18,15 @@ export default function CinematicTransition({ theme, mode = 'in', reduced = fals
 
   useEffect(() => {
     const A = audio(), root = document.getElementById('theme-root'), cv = cvRef.current, ctx = cv.getContext('2d');
-    const phases = reduced ? { begin: 300, takeover: 700, transform: 1500, reveal: 700 } : mode === 'out' ? { begin: 450, takeover: 1300, transform: 300, reveal: 900 } : tr.phases;
+    const calm = (p) => Object.fromEntries(Object.entries(p).map(([k, v]) => [k, Math.round(v * 0.7)]));
+    const phases = reduced ? calm(mode === 'out' ? { begin: 450, takeover: 1300, transform: 300, reveal: 900 } : tr.phases) : mode === 'out' ? { begin: 450, takeover: 1300, transform: 300, reveal: 900 } : tr.phases;
     const tl = buildTimeline(phases, { skipTransform: mode === 'out' });
     let W = 0, H = 0, D = 1, raf = 0, finished = false, covered = false, swapped = false, musicOn = false, burstDone = false, swapAt = 0;
     const resize = () => { D = Math.min(1.5, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = W * D; cv.height = H * D; };
     resize(); window.addEventListener('resize', resize);
     const mobile = W < 700, unit = Math.max(0.7, Math.min(1.4, Math.min(W, H) / 800));
     const colors = mode === 'out' ? baseColors : (tr.liquidColors?.length ? tr.liquidColors : ['#C8102E', '#FFFFFF']);
-    const set = SETS[tr.particleSet] || SETS.christmas, budget = reduced ? 0 : particleBudget(tr.particles?.count ?? 46, { mobile });
+    const set = SETS[tr.particleSet] || SETS.christmas, budget = Math.round(particleBudget(tr.particles?.count ?? 46, { mobile }) * (reduced ? 0.25 : 1));
     const parts = [];
     const vol = cfg.audio?.masterVolume ?? 1, music = { ...cfg.audio.music, volume: (cfg.audio.music.volume ?? 0.6) * vol };
     // ---- ήχος: όλα προγραμματίζονται εκ των προτέρων στο ρολόι του AudioContext ----
@@ -61,7 +62,7 @@ export default function CinematicTransition({ theme, mode = 'in', reduced = fals
       for (let i = 0; i < n; i++) {
         const L = layerLevel(tl, ms, i, n); if (L <= 0.0005) continue;
         ctx.fillStyle = colors[i];
-        if (L >= 0.9995 || reduced) { ctx.globalAlpha = reduced ? L : 1; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; continue; }
+        if (L >= 0.9995) { ctx.fillRect(0, 0, W, H); continue; }
         const y0 = H * (1 - L), A1 = (16 + H * 0.03) * Math.sin(Math.PI * L), k1 = TAU / (W * 0.62), k2 = TAU / (W * 0.27);
         ctx.beginPath(); ctx.moveTo(0, H); let first = true;
         for (let x = 0; x <= W + 16; x += 16) { const y = y0 + A1 * (0.62 * Math.sin(x * k1 + t * 2.1 + i * 1.7) + 0.38 * Math.sin(x * k2 - t * 3.3 + i * 2.9)); if (first) { ctx.lineTo(0, y); first = false; } ctx.lineTo(x, y); }
@@ -117,7 +118,7 @@ export default function CinematicTransition({ theme, mode = 'in', reduced = fals
       }
       ctx.globalAlpha = 1; ctx.setTransform(D, 0, 0, D, 0, 0);
       // λάμψεις σε τροχιά γύρω από τον Κιμωλάκη κατά τη μεταμόρφωση
-      if (mode === 'in' && x > 0.12 && x < 0.62 && !reduced && tr.particles?.sparkles !== false) {
+      if (mode === 'in' && x > 0.12 && x < 0.62 && tr.particles?.sparkles !== false && (!reduced || ((ms / 16) | 0) % 3 === 0)) {
         const cx = W / 2, cy = H * 0.56, sp = sprite('sparkle', 64), rr = Math.min(W, H) * (0.34 - 0.2 * clamp01((x - 0.12) / 0.5));
         for (let k = 0; k < 14; k++) { const a = t * (3 + k * 0.12) + (k * TAU) / 14, z = 18 + 10 * Math.sin(t * 9 + k); ctx.globalAlpha = 0.85; ctx.drawImage(sp, cx + Math.cos(a) * rr - z / 2, cy + Math.sin(a) * rr * 0.55 - z / 2, z, z); }
         ctx.globalAlpha = 1;

@@ -1,8 +1,7 @@
 import Security from '@/components/admin/Security';
 import ChangePassword from '@/components/admin/ChangePassword';
 import { requireAdminPage } from '@/lib/auth';
-import { ROLE_LABEL } from '@/components/admin/AdminShell';
-import { PERMS, can, isSuper } from '@/lib/perms.mjs';
+import { PERMS, ROLE_LABEL, can, isSuper } from '@/lib/perms.mjs';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Ο λογαριασμός μου' };
 export default async function Page() {

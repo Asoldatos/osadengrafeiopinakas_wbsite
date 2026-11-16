@@ -4,6 +4,7 @@ import { getStudent } from '@/lib/student';
 import { plain } from '@/lib/util';
 import Pic from '@/components/Pic';
 import XpBar from '@/components/play/XpBar';
+import Game3D from '@/components/play/Game3D';
 import { MascotSay } from '@/components/Mascot';
 import { GAMES, levelFor } from '@/lib/progress.mjs';
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ export default async function Play() {
       <h1 className="h1">Παιχνίδια και περιπέτειες</h1>
       {st ? <div className="card playbar"><p>Γεια σου, <b>{st.nickname}</b>!</p><XpBar xp={st.xp} /><Link className="btn btn-ghost sm" href="/account">Ο λογαριασμός μου</Link></div>
         : <div className="card invite"><MascotSay mood="wave" k="locked" size={110}><div className="btns"><Link className="btn btn-primary" href="/account/register">Φτιάξε λογαριασμό</Link><Link className="btn btn-ghost" href="/account/login">Έχω ήδη λογαριασμό</Link></div></MascotSay></div>}
+      <Game3D />
       <h2 className="h2">🎮 Παιχνίδια</h2>
       <div className="cards4">{Object.entries(GAMES).map(([k, g]) => { const open = g.public || !!st; return (
         <Link key={k} href={`/play/games/${k}`} className={`gcard${open ? '' : ' locked'}`}><span className="gicon" aria-hidden="true">{g.icon}</span><h3>{g.label}</h3><p>{g.desc}</p>

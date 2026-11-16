@@ -126,7 +126,9 @@ h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0 0 .4em;font-w
 .maint-img{max-width:320px;border-radius:var(--r)}
 .ed[contenteditable]{outline:2px dashed transparent;outline-offset:3px;cursor:text;border-radius:4px}.ed[contenteditable]:hover{outline-color:var(--c5)}.ed[contenteditable]:focus{outline:2px solid var(--c5);background:rgba(31,160,255,.08)}.ed:empty::before{content:attr(data-ph);opacity:.5}
 .sec-edit{cursor:pointer}.sec-edit.is-sel{outline:3px solid var(--c5);outline-offset:-3px}.sec-edit.is-hidden{opacity:.4}.sec-tag{position:absolute;top:6px;left:6px;z-index:20;background:var(--c5);color:#fff;font:800 .7rem var(--font-ui);padding:2px 8px;border-radius:6px;opacity:0;transition:.15s;pointer-events:none}.sec-edit:hover .sec-tag,.sec-edit.is-sel .sec-tag{opacity:1}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+/* Μείωση κίνησης: ΟΧΙ «όλα σβηστά». Κρατάμε τα ήπια (σβησίματα, hover, λάμψεις, αναπνοή), κόβουμε μόνο ό,τι είναι έντονο:
+   κουνήματα οθόνης, γρήγορες περιστροφές, αναπηδήσεις και ό,τι κινείται συνεχώς πολύ γρήγορα. */
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 /* ===== Διαχείριση ===== */
 .adm{display:grid;grid-template-columns:260px 1fr;min-height:100vh;font-family:var(--font-ui)}.adm h1{font-size:1.9rem}.adm h2{font-size:1.2rem}.adm h3{font-size:1.05rem;margin-top:1.4em}
 .adm-side{background:var(--ink);color:#fff;display:flex;flex-direction:column;padding:18px 14px;position:sticky;top:0;height:100vh;overflow:auto}.adm-brand{display:flex;gap:10px;align-items:center;padding:4px 8px 18px}.adm-brand small{display:block;opacity:.65;font-size:.72rem}.adm-brand .mascot{height:auto}
@@ -320,12 +322,13 @@ h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0 0 .4em;font-w
 .theme-root[data-theme=christmas] :is(.gcard,.pola,.card,.nl-card,.ccard,.note,.result,.board-card,.auth-card)::before{content:"";position:absolute;left:10px;right:10px;top:-9px;height:14px;pointer-events:none;z-index:2;
   background:radial-gradient(circle at 10px 14px,#fff 9px,transparent 10px) 0 0/20px 14px repeat-x,linear-gradient(#fff,#fff) 0 9px/100% 5px no-repeat;filter:drop-shadow(0 1px 0 rgba(42,15,20,.25));border-radius:8px}
 .theme-root[data-theme=christmas] :is(.gcard,.pola,.card,.nl-card,.ccard,.result,.board-card,.auth-card){position:relative}
-.theme-root[data-theme=christmas] .btn-primary::before{content:"";position:absolute;left:8px;right:8px;top:-6px;height:9px;pointer-events:none;background:radial-gradient(circle at 6px 9px,#fff 6px,transparent 7px) 0 0/12px 9px repeat-x;filter:drop-shadow(0 1px 0 rgba(42,15,20,.3))}
+
 .theme-root[data-theme=christmas] .acard,.theme-root[data-theme=christmas] .feat-card{border-top:6px solid var(--c2)}
 .theme-root[data-theme=christmas] .pola:nth-child(odd)::after{content:"🎀";position:absolute;top:-14px;right:10px;font-size:1.4rem;transform:rotate(15deg)}
 .theme-root[data-theme=christmas] .ticket{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 8px,transparent 8px 16px)}
 .theme-root[data-theme=christmas] .announce{background:var(--c4)}
-@media(prefers-reduced-motion:reduce){.xlights i,.xorn-b,.mascot.is-santa .m-pom,.theme-tg.pulse{animation:none!important}}
+/* (μείωση κίνησης) λαμπάκια, μπάλες και πομ-πομ συνεχίζουν, πιο αργά */
+@media(prefers-reduced-motion:reduce){.xlights i{animation-duration:3.5s!important}.xorn-b{animation-duration:6s!important}}
 
 /* διορθώσεις διάταξης: στολίδια πάνω από την πλευρά του μασκότ, πιο σφιχτό μενού */
 .xorn{left:46%;padding:0 2% 0 0}.hero .speech{z-index:5}
@@ -365,6 +368,41 @@ h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0 0 .4em;font-w
 .xcount{display:inline-flex;gap:8px;align-items:center;margin:18px 0 0;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.95);color:#8E1023;font-weight:800;border:2px solid #2A0F14;box-shadow:3px 3px 0 #2A0F14;animation:xcount-in .6s cubic-bezier(.2,1.4,.4,1) both}
 .xcount span{display:inline-block;animation:ring1 2.4s ease-in-out infinite}
 @keyframes xcount-in{from{opacity:0;transform:translateY(10px) scale(.9)}}
-@media (prefers-reduced-motion:reduce){.xcount,.xcount span{animation:none}}
+@media (prefers-reduced-motion:reduce){.xcount span{animation:none}}
 .theme-root[data-theme=christmas] .hero-mascot{margin-top:44px}.theme-root[data-theme=christmas] .hero-mascot .speech{top:auto;bottom:calc(100% - 34px);max-width:250px;width:max-content;line-height:1.3}
 .theme-root[data-theme=christmas] .hero-mascot{margin-top:84px}.theme-root[data-theme=christmas] .hero-mascot .speech{bottom:calc(100% + 18px)}@media (max-width:860px){.theme-root[data-theme=christmas] .hero-mascot{margin-top:70px}.theme-root[data-theme=christmas] .hero-mascot .speech{bottom:calc(100% + 4px)}}
+
+/* ===== Χριστουγεννιάτικα κουμπιά: χωρίς χιόνι, με κίνηση ===== */
+.theme-root[data-theme=christmas] .btn{overflow:hidden;isolation:isolate;transition:transform .2s cubic-bezier(.2,1.5,.4,1),box-shadow .2s,filter .2s}
+/* λάμψη που περνάει πάνω από το κουμπί */
+.theme-root[data-theme=christmas] .btn::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.5) 48%,rgba(255,255,255,.15) 55%,transparent 70%);transform:translateX(-130%)}
+.theme-root[data-theme=christmas] .btn:hover::after{transform:translateX(130%);transition:transform .7s ease}
+/* ριγέ «ζαχαρωτό» που κυλάει στο hover */
+.theme-root[data-theme=christmas] .btn-primary:hover{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 10px,transparent 10px 20px);background-size:28.28px 28.28px;animation:xbtn-candy .8s linear infinite,xbtn-jingle .5s ease}
+/* «κουδούνισμα» στο hover, «ζούληγμα» στο πάτημα */
+.theme-root[data-theme=christmas] .btn:not(.btn-primary):hover{animation:xbtn-jingle .5s ease}
+.theme-root[data-theme=christmas] .btn:active{transform:translateY(4px) scale(.96,.92);transition-duration:.08s}
+/* τα κύρια κουμπιά «αναπνέουν» με μια απαλή χρυσή λάμψη */
+.theme-root[data-theme=christmas] .hero .btn-primary,.theme-root[data-theme=christmas] .btn-xmas{animation:xbtn-glow 3.2s ease-in-out infinite}
+.theme-root[data-theme=christmas] .hero .btn-primary:hover,.theme-root[data-theme=christmas] .btn-xmas:hover{animation:xbtn-candy .8s linear infinite,xbtn-jingle .5s ease}
+@keyframes xbtn-candy{to{background-position:28.28px 0}}
+@keyframes xbtn-jingle{0%{rotate:0deg}20%{rotate:-2.5deg}40%{rotate:2deg}60%{rotate:-1.2deg}80%{rotate:.6deg}100%{rotate:0deg}}
+@keyframes xbtn-glow{0%,100%{filter:drop-shadow(0 0 0 rgba(246,196,83,0))}50%{filter:drop-shadow(0 0 10px rgba(246,196,83,.75))}}
+/* (μείωση κίνησης) κουμπιά: κρατάμε λάμψη, ρίγες και αναπνοή· βγαίνει μόνο το κούνημα */
+@media (prefers-reduced-motion:reduce){.theme-root[data-theme=christmas] .btn:not(.btn-primary):hover{animation:none}.theme-root[data-theme=christmas] .btn-primary:hover,.theme-root[data-theme=christmas] .hero .btn-primary:hover,.theme-root[data-theme=christmas] .btn-xmas:hover{animation:xbtn-candy 1.6s linear infinite}.theme-root[data-theme=christmas] .btn:active{transform:translateY(3px)}}
+
+/* ===== 3D παιχνίδι στα Παιχνίδια ===== */
+.g3d{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin:26px 0 34px;padding:28px 30px;border-radius:26px;border:var(--bw,3px) solid var(--ink);box-shadow:8px 8px 0 var(--ink);color:#fff;background:radial-gradient(120% 140% at 85% 20%,#1f4a8a 0,#14204a 45%,#0b1026 100%)}
+.g3d-snow{position:absolute;inset:0;pointer-events:none;opacity:.8;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(2px 2px at 120px 80px,#fff,transparent),radial-gradient(1.5px 1.5px at 200px 20px,#fff,transparent),radial-gradient(2.5px 2.5px at 60px 140px,#fff,transparent),radial-gradient(1.5px 1.5px at 260px 120px,#fff,transparent);background-size:300px 180px;animation:g3dsnow 9s linear infinite}
+@keyframes g3dsnow{to{background-position:40px 180px}}
+.g3d::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:38px;background:radial-gradient(60px 26px at 40px 38px,#f6f9ff 98%,transparent) 0 0/120px 38px repeat-x;opacity:.95}
+.g3d-b{position:relative;z-index:1;max-width:640px}.g3d h2{margin:6px 0 8px;color:#fff;font-size:clamp(1.6rem,3.6vw,2.4rem);line-height:1.05;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.g3d p{margin:0 0 12px;opacity:.92;line-height:1.5}.g3d-new{display:inline-block;padding:4px 12px;border-radius:999px;background:#f6c453;color:#2a0f14;font-weight:900;letter-spacing:.12em;font-size:.78rem}
+.g3d-tags{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0 0 16px}.g3d-tags li{padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.12);font-weight:800;font-size:.85rem}
+.g3d .btn-ghost{--bg:rgba(255,255,255,.12);color:#fff}.g3d-note{font-size:.82rem;opacity:.7;margin:10px 0 0}
+.g3d-m{position:relative;z-index:1;animation:mfloat 3.2s ease-in-out infinite}
+.g3d-pop-back{position:fixed;inset:0;z-index:960;display:grid;place-items:center;padding:16px;background:rgba(5,10,30,.65);backdrop-filter:blur(4px);animation:fadein .3s}
+.g3d-pop{width:min(470px,100%);padding:26px 24px 18px;border-radius:24px;border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);background:#fff;text-align:center;animation:popin .45s cubic-bezier(.2,1.3,.4,1)}
+.g3d-pop h2{margin:8px 0;font-size:clamp(1.3rem,4vw,1.8rem)}.g3d-pop p{line-height:1.5}.g3d-pop .btns{justify-content:center;margin:14px 0 6px}
+.g3d-pop-ico{font-size:3.2rem;line-height:1}.g3d-vrd{display:inline-block;padding:4px 14px;border-radius:999px;background:#7fd1ae;color:#0b2a1e;font-weight:900;letter-spacing:.14em}
+@media (max-width:700px){.g3d{grid-template-columns:1fr;padding:22px 18px 40px}.g3d-m{display:none}}
