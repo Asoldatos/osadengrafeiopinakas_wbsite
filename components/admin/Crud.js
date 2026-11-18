@@ -65,7 +65,7 @@ export default function Crud({ resource, noun, fields, columns, defaults = {}, s
         <div className="drawer-back" onClick={() => !busy && setEdit(null)}>
           <form className="drawer" onSubmit={save} onClick={(e) => e.stopPropagation()} aria-label={edit.id ? `Επεξεργασία: ${noun}` : `Νέο: ${noun}`}>
             <div className="drawer-h"><h2>{edit.id ? 'Επεξεργασία' : 'Νέο'}: {noun}</h2><button type="button" className="icon-btn" onClick={() => setEdit(null)} aria-label="Κλείσιμο">✕</button></div>
-            <div className="drawer-b">{fields.map((f) => f.t === 'static' ? null : <Field key={f.k} f={f} value={edit[f.k]} onChange={(v) => set(f.k, v)} options={opts[f.k]} />)}</div>
+            <div className="drawer-b">{fields.map((f) => f.t === 'static' ? null : <Field key={f.k} f={f} value={edit[f.k]} onChange={(v) => set(f.k, v)} options={opts[f.k]} form={edit} />)}</div>
             <div className="drawer-f">
               {edit.id && <button type="button" className="btn btn-danger sm" onClick={() => del(edit)}>Διαγραφή</button>}
               <span className="grow" /><button type="button" className="btn btn-ghost sm" onClick={() => setEdit(null)}>Κλείσιμο</button>

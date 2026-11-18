@@ -1,27 +1,51 @@
 // Εκκίνηση: φόρτωση, μενού, ανίχνευση VR, ρυθμίσεις, παύση, πλήρης οθόνη στα κινητά.
 import { THREE, DEVICE, VR, defaultQuality } from './engine.js';
+import { Account, localProgress } from './account.js';
 import { Game } from './game.js';
 import { CHAPTERS, play } from './story.js';
 import { height, P } from './world.js';
 import { VR_CONTROLS } from './vrmenu.js';
+import { VRSite } from './vrsite.js';
 
 const $ = (s) => document.querySelector(s), app = $('#app');
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem('kimo3d:' + k)) ?? d; } catch { return d; } }, set: (k, v) => { try { localStorage.setItem('kimo3d:' + k, JSON.stringify(v)); } catch {} } };
 const qs = new URLSearchParams(location.search);
+const SITE_MODE = qs.get('vrsite') != null;   // ήρθες από τον ιστότοπο με «Ναι, σε VR»
 const qName = qs.get('q') || store.get('quality', defaultQuality());
 let g, wantVR = false, playing = false;
 
+const acct = (window.__acct = new Account());
+/** Μετά τη σύνδεση (…?claim=1): αποθηκεύει αμέσως ό,τι υπάρχει σε αυτή τη συσκευή. */
+async function claimAfterLogin() {
+  try { history.replaceState(null, '', location.pathname); } catch {}
+  const l = localProgress();
+  if (!l.completed && l.maxCh < 1) return;   // τίποτα να αποθηκευτεί από αυτή τη συσκευή
+  if (!acct.student) { acct.maybeClaim({ force: true }); return; }
+  if (acct.saved) { alertBox('✅ Η πρόοδός σου είναι ήδη αποθηκευμένη στον λογαριασμό σου!'); return; }
+  const r = await acct.push({ maxCh: l.maxCh, completed: l.completed, source: 'claim' });
+  alertBox(r ? (r.reward?.gained ? `✅ Αποθηκεύτηκε στον λογαριασμό σου! Κέρδισες ${r.reward.gained} XP${r.reward.badges?.includes('xmas-hero') ? ' και το παράσημο 🎄 «Ήρωας των Χριστουγέννων»' : ''}!` : '✅ Η πρόοδός σου αποθηκεύτηκε στον λογαριασμό σου!') : 'Δεν έγινε η αποθήκευση. Δοκίμασε ξανά σε λίγο.');
+  renderMenu();
+}
 async function boot() {
   $('#load b').textContent = 'Χτίζεται ο χιονισμένος κόσμος…';
   await new Promise((r) => setTimeout(r, 30));
   g = window.__game = new Game(app, qName);
   g.gender = store.get('gender', 'm'); g.setPlayerLook(g.gender);
+  g.vrSite = new VRSite(g, { onGame: vrGoGame });
   // φόρτωση ήχων στο παρασκήνιο (δεν χρειάζεται «άδεια» για αποκωδικοποίηση)
   for (const u of ['../../audio/christmas-music.mp3', '../../audio/sfx/pop.mp3', '../../audio/sfx/click.mp3', '../../audio/christmas-sfx.mp3', '../../audio/sfx/swell.mp3']) g.audio.load(u);
   menuCamera(); g.fadeTo(0, 1.4);
   $('#load').classList.add('out'); setTimeout(() => $('#load').remove(), 700);
   renderMenu(); showMenu(true);
-  g.onVRPause = vrPause; g.onVRExit = () => { g.vrMenu.close(); if (!playing) { showMenu(true); menuCamera(); } else g.kid.root.visible = true; g.rig.scale.setScalar(1); };
+  acct.refresh().then(() => { renderMenu(); if (qs.get('claim') != null) claimAfterLogin(); else if (qs.get('autostart') == null) setTimeout(() => acct.maybeClaim(), 900); });
+  g.onVRPause = vrPause; g.onVRExit = () => {
+    // από τον ιστότοπο σε VR: βγαίνοντας γυρνάς στη σελίδα που διάβαζες (ή σε όποια ζήτησες «έξω από το VR»), στην ίδια καρτέλα
+    const to = g.vrSite.leaveTo || (SITE_MODE && !playing ? g.vrSite.path : null);
+    g.vrSite.hide(); g.vrMenu.close();
+    if (to) { $('#load')?.remove(); document.body.classList.add('leaving'); location.href = safePath(to); return; }
+    if (!playing) { showMenu(true); menuCamera(); } else g.kid.root.visible = true; g.rig.scale.setScalar(1);
+  };
+  if (SITE_MODE) { showMenu(false); if (await VR.supported()) $('#vrEnter').hidden = false; else location.replace(safePath(qs.get('from'))); return; }
   if (await VR.supported()) { $('#vrBadge').hidden = false; if (DEVICE.quest) $('#tipQuest').hidden = false; if (!store.get('vrAsked', false) || DEVICE.quest) showVRPrompt(); }
   else if (!DEVICE.touch) $('#tipDesktop').hidden = false;
   if (DEVICE.touch) $('#tipMobile').hidden = false;
@@ -63,9 +87,10 @@ async function start(ch) {
   else if (!DEVICE.touch && !g.inVR) g.input.lock();
   playing = true; g.locked = false; g.cine = null; g.tick = null; g.paused = false; g.kid.root.visible = !g.inVR; document.body.classList.add('playing');
   await g.fadeTo(1, 0.5);
-  await play(g, ch, (i) => { store.set('save', { ch: i }); store.set('max', Math.max(store.get('max', 0), i)); });
+  await play(g, ch, (i) => { store.set('save', { ch: i }); store.set('max', Math.max(store.get('max', 0), i)); acct.push({ maxCh: store.get('max', 0) }); });
   // τέλος
-  playing = false; document.body.classList.remove('playing'); store.set('max', CHAPTERS.length - 1); if (document.pointerLockElement) document.exitPointerLock();
+  playing = false; document.body.classList.remove('playing'); store.set('max', CHAPTERS.length - 1); store.set('done', true);
+  acct.push({ maxCh: CHAPTERS.length - 1, completed: true }).then((r) => { if (r?.reward?.gained) g.ui.toast(`🎄 Αποθηκεύτηκε στον λογαριασμό σου! +${r.reward.gained} XP`, 4000); else if (!acct.student) setTimeout(() => acct.maybeClaim({ force: true }), 1800); }); if (document.pointerLockElement) document.exitPointerLock();
   g.reset(); menuCamera(); await g.fadeTo(0, 1.5); renderMenu(); showMenu(true, 'end');
   if (g.inVR) { vrViewpoint(); vrPage('end'); }
 }
@@ -75,6 +100,11 @@ function togglePause(on) {
 }
 // ---------------------------------------------------------------- μενού μέσα στο VR
 let vrControlsShown = false;
+/** Μόνο διαδρομές του ίδιου ιστοτόπου (ποτέ άλλο domain). */
+function safePath(p) { p = String(p || '/'); return p.startsWith('/') && !p.startsWith('//') && !p.startsWith('/\\') ? p : '/'; }
+/** Ο ιστότοπος σε VR → το 3D παιχνίδι: απαλό σβήσιμο, ίδια συνεδρία VR, καμία νέα καρτέλα. */
+async function vrGoGame() { await g.fadeTo(1, 0.45); g.vrSite.hide(); vrViewpoint(); vrPage('main'); g.audio.play('../../audio/sfx/swell.mp3', { vol: 0.5 }); await g.fadeTo(0, 0.8); }
+async function vrGoSite(path) { await g.fadeTo(1, 0.4); g.vrMenu.close(); vrViewpoint(); await g.vrSite.show(path); g.fadeTo(0, 0.7); }
 function vrViewpoint() { const x = 24, z = 58; g.teleport(x, z); g.rig.rotation.y = Math.atan2(x - 0, z + 24); g.locked = true; }
 export function vrPage(name) {
   const save = store.get('save', null), max = qs.get('all') != null ? 99 : store.get('max', 0), M = g.vrMenu;
@@ -83,6 +113,7 @@ export function vrPage(name) {
       ...(save?.ch ? [{ label: 'Συνέχεια', sub: `Κεφάλαιο ${save.ch + 1}: ${CHAPTERS[save.ch].title}`, primary: true, fn: () => vrStart(save.ch) }] : []),
       { label: 'Νέο παιχνίδι', sub: '7 κεφάλαια · περίπου 30 λεπτά', primary: !save?.ch, fn: () => vrPage('gender') },
       { label: 'Κεφάλαια', fn: () => vrPage('chapters') }, { label: 'Χειρισμός VR', fn: () => vrPage('controls') },
+      { label: '🌐 Ο ιστότοπος σε VR', sub: 'Άρθρα, τεύχη, παιχνίδια και οδηγοί', fn: () => vrGoSite() },
       { label: 'Έξοδος από το VR', fn: () => g.vr.session?.end() }], foot: 'Σημάδεψε με το χειριστήριο και πάτα τη σκανδάλη' },
     gender: { title: 'Ποιος είσαι;', sub: 'Διάλεξε πώς θα σου μιλάνε οι χαρακτήρες', buttons: [
       { label: 'Αγόρι', primary: true, fn: () => { g.gender = 'm'; store.set('gender', 'm'); g.setPlayerLook('m'); store.set('save', { ch: 0 }); g.state = { gifts: 0 }; vrStart(0); } },
@@ -96,7 +127,7 @@ export function vrPage(name) {
       { label: 'Χειρισμός VR', fn: () => vrPage('controls') },
       { label: 'Έξοδος στο αρχικό μενού', sub: 'Η πρόοδος σώζεται στην αρχή κάθε κεφαλαίου', fn: () => location.reload() }] },
     end: { badge: 'ΤΕΛΟΣ', title: 'Καλά Χριστούγεννα!', sub: 'Βοήθησες τον Κιμωλάκη να σώσει τα Χριστούγεννα', buttons: [
-      { label: 'Κεφάλαια', primary: true, fn: () => vrPage('chapters') }, { label: 'Αρχικό μενού', fn: () => vrPage('main') }, { label: 'Έξοδος από το VR', fn: () => g.vr.session?.end() }] },
+      { label: 'Κεφάλαια', primary: true, fn: () => vrPage('chapters') }, { label: 'Αρχικό μενού', fn: () => vrPage('main') }, { label: '🌐 Ο ιστότοπος σε VR', fn: () => vrGoSite() }, { label: 'Έξοδος από το VR', fn: () => g.vr.session?.end() }] },
   };
   M.show(pages[name]);
 }
@@ -135,3 +166,12 @@ document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('clic
 const cam = store.get('cam', null);
 window.__vrPage = (n) => vrPage(n);
 boot().then(() => { if (cam) g.camMode = cam; }).catch((e) => { $('#load b').textContent = 'Κάτι πήγε στραβά: ' + e.message; console.error(e); });
+
+// είσοδος από τον ιστότοπο («Ναι, σε VR»): ο browser θέλει ένα πάτημα πριν ανοίξει το VR
+document.querySelector('#vrEnterGo')?.addEventListener('click', () => {
+  $('#vrEnter').hidden = true; wantVR = true;
+  g.enterVR().then(() => { showMenu(false); vrViewpoint(); g.vrSite.show(safePath(qs.get('from'))); })
+    .catch(() => { $('#vrEnter').hidden = false; alertBox('Δεν ξεκίνησε το VR. Αν ο browser ρώτησε για άδεια, πάτα «Allow» / «Να επιτρέπεται» και δοκίμασε ξανά.'); });
+});
+document.querySelector('#vrEnterNo')?.addEventListener('click', () => { location.href = safePath(qs.get('from')); });
+document.querySelector('#backSite')?.addEventListener('click', (e) => { e.preventDefault(); document.body.classList.add('leaving'); setTimeout(() => { location.href = '/'; }, 320); });

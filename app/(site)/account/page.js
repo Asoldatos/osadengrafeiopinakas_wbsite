@@ -13,12 +13,14 @@ export const metadata = { title: 'Ο λογαριασμός μου', robots: { i
 export default async function Account() {
   const st = await getStudent();
   if (!st) redirect('/account/login?next=/account');
-  const [badges, best, stories, dl] = (await Promise.all([
+  const [badges, best, stories, dl, x3] = (await Promise.all([
     q('select code from student_badges where student_id=$1', [st.id]),
     q('select game, max(score)::int s, count(*)::int n from game_scores where student_id=$1 group by game', [st.id]),
     q('select a.title, a.slug, p.finished_at from adventure_progress p join adventures a on a.id=p.adventure_id where p.student_id=$1 and p.finished order by p.finished_at desc', [st.id]),
     q('select e.title, e.slug, d.ts from downloads d join editions e on e.id=d.edition_id where d.student_id=$1 order by d.ts desc limit 5', [st.id]),
+    q('select max_ch, completed, completed_at from xmas3d_progress where student_id=$1', [st.id]).catch(() => []),
   ])).map(plain);
+  const xm = x3[0];
   const have = new Set(badges.map((b) => b.code)), bestBy = Object.fromEntries(best.map((b) => [b.game, b]));
   return (
     <div className="wrap page-pad">
@@ -27,6 +29,10 @@ export default async function Account() {
         <ul className="badges">{Object.entries(BADGES).map(([c, b]) => <li key={c} className={`badge${have.has(c) ? ' on' : ''}`}><i aria-hidden="true">{have.has(c) ? b.icon : '🔒'}</i><b>{b.label}</b><small>{b.desc}</small></li>)}</ul></section>
       <section className="acc-sec"><h2 className="h2">Τα παιχνίδια μου</h2>
         <div className="mini-grid">{Object.entries(GAMES).map(([k, g]) => <Link key={k} href={`/play/games/${k}`} className="mini"><span aria-hidden="true">{g.icon}</span><b>{g.label}</b><small>{bestBy[k] ? `Καλύτερο σκορ: ${bestBy[k].s} · ${bestBy[k].n} παιχνίδια` : 'Δεν έχεις παίξει ακόμα'}</small></Link>)}</div></section>
+      <section className="acc-sec"><h2 className="h2">🎄 Τα Χριστούγεννα του Κιμωλάκη (3D)</h2>
+        <div className="x3-card"><div className="x3-bar" role="progressbar" aria-valuemin={0} aria-valuemax={7} aria-valuenow={xm ? (xm.completed ? 7 : xm.max_ch + 1) : 0}><span style={{ width: `${xm ? (xm.completed ? 100 : Math.round(((xm.max_ch + 1) / 7) * 100)) : 0}%` }} /></div>
+          <p>{!xm ? 'Δεν έχεις αποθηκευμένη πρόοδο ακόμα.' : xm.completed ? <>✅ <b>Ολοκληρώθηκε</b> στις {fmtDate(xm.completed_at)} — Ήρωας των Χριστουγέννων!</> : <>Έφτασες στο <b>κεφάλαιο {xm.max_ch + 1}</b> από 7.</>}</p>
+          <a className="btn btn-primary" href="/game/xmas/index.html?claim=1">{xm?.completed ? 'Παίξε ξανά' : xm ? 'Συνέχισε το παιχνίδι' : 'Παίξε / αποθήκευσε την πρόοδο αυτής της συσκευής'} →</a></div></section>
       <section className="acc-sec"><h2 className="h2">Περιπέτειες που ολοκλήρωσα</h2>
         {!stories.length ? <p className="muted">Καμία ακόμα. <Link href="/play">Ξεκίνα μια περιπέτεια!</Link></p> : <ul className="plain">{stories.map((s) => <li key={s.slug}>📖 <Link href={`/play/adventures/${s.slug}`}>{s.title}</Link> <small className="muted">· {fmtDate(s.finished_at)}</small></li>)}</ul>}</section>
       {dl.length > 0 && <section className="acc-sec"><h2 className="h2">Πρόσφατες λήψεις</h2><ul className="plain">{dl.map((d, i) => <li key={i}>🖨️ <Link href={`/editions/${d.slug}`}>{d.title}</Link> <small className="muted">· {fmtDate(d.ts)}</small></li>)}</ul></section>}

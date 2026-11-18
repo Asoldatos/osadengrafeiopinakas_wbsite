@@ -420,3 +420,47 @@ h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0 0 .4em;font-w
 @keyframes g3dpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 @media (max-width:560px){.g3d-bar-sub{display:none}}
 @media (prefers-reduced-motion:reduce){.g3d-bar-new,.nav-new{animation:none}}
+/* ---- 3D παιχνίδι: πρόοδος στον λογαριασμό & παράθυρο αποθήκευσης ---- */
+.x3-card{display:grid;gap:10px;padding:16px;border:3px solid var(--ink);border-radius:18px;background:var(--paper, #fff);box-shadow:4px 4px 0 var(--ink)}
+.x3-bar{height:14px;border-radius:999px;background:rgba(0,0,0,.08);overflow:hidden;border:2px solid var(--ink)}.x3-bar span{display:block;height:100%;background:linear-gradient(90deg,#1f6b3a,#c8102e);transition:width .6s}
+.x3-card p{margin:0}.x3-card .btn{justify-self:start}
+.g3d-save form{display:grid;gap:8px;text-align:left}.g3d-save input{padding:11px 12px;border-radius:12px;border:2px solid var(--ink);font:inherit}
+.g3d-save .msg{font-weight:800;min-height:1.2em;margin:0}
+/* ---- Οδηγοί βοήθειας ---- */
+.tut-page,.tut-hub{max-width:820px;padding-block:28px 56px}
+.tut-crumb{font-size:.9rem;color:var(--muted);margin-bottom:14px}.tut-crumb a{font-weight:700}
+.tut-head,.tut-hub-head{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.tut-icon,.tut-hub-head>span{flex:none;display:grid;place-items:center;width:72px;height:72px;font-size:2.4rem;border:var(--bw) solid var(--ink);border-radius:20px;background:var(--c3, #F6C453);box-shadow:4px 4px 0 var(--ink)}
+.tut-head h1,.tut-hub-head h1{margin:0;font-family:var(--font-head);font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.1;text-wrap:balance}
+.tut-sub,.tut-hub-head p{margin:6px 0 0;color:var(--muted);font-size:1.05rem}
+.tut-intro{font-size:1.08rem;line-height:1.6;padding:14px 18px;border-left:6px solid var(--c1);background:var(--paper2, rgba(0,0,0,.03));border-radius:0 14px 14px 0;margin-bottom:22px}
+.tut-blocks{display:grid;gap:16px}
+.tut-step{display:flex;gap:16px;align-items:flex-start;padding:16px 18px;border:var(--bw) solid var(--ink);border-radius:18px;background:#fff;box-shadow:4px 4px 0 var(--ink)}
+.tut-num{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--c1);color:#fff;font:900 1.3rem/1 var(--font-head);border:var(--bw) solid var(--ink)}
+.tut-body{min-width:0;flex:1}.tut-step h2,.tut-info h2{margin:4px 0 8px;font-size:1.2rem;line-height:1.25}
+.tut-info{padding:4px 2px}.tut-info h2{font-size:1.3rem}
+.tut-blocks p,.tut-intro p{margin:0 0 8px}.tut-blocks p:last-child,.tut-intro p:last-child{margin-bottom:0}
+.tut-blocks ul,.tut-blocks ol{margin:6px 0 0;padding-left:1.3em;line-height:1.55}.tut-blocks li{margin:3px 0}
+.tut-blocks a,.tut-intro a,.tut-outro a{font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.tut-call{padding:14px 18px;border-radius:16px;border:2px solid;line-height:1.55}.tut-call>b,.tut-call>strong{display:block;margin-bottom:6px;font-size:1.05rem}
+.tut-call.tip{background:#e9f8ef;border-color:#2f9e5b;color:#123d24}.tut-call.warn{background:#fff3e2;border-color:#e08a00;color:#4a2d00}
+.tut-outro{margin-top:22px;font-size:1.05rem}
+.tut-draft{padding:10px 14px;border-radius:12px;background:#fff3e2;border:2px dashed #e08a00;font-weight:700}
+.tut-more{margin-top:40px}.tut-more h2{font-size:1.2rem}
+.tut-cards{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.tut-card{display:flex;gap:14px;align-items:center;padding:14px 16px;border:var(--bw) solid var(--ink);border-radius:16px;background:#fff;color:inherit;text-decoration:none;box-shadow:3px 3px 0 var(--ink);transition:transform .15s,box-shadow .15s}
+.tut-card:hover,.tut-card:focus-visible{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.tut-card-i{flex:none;font-size:1.8rem}.tut-card>span:nth-child(2){flex:1;min-width:0}.tut-card b{display:block}.tut-card small{display:block;color:var(--muted);margin-top:2px}.tut-card-go{font-weight:900;font-size:1.2rem}
+.tut-compact .tut-icon{width:48px;height:48px;font-size:1.6rem;border-radius:14px}.tut-compact .tut-head h1{font-size:1.4rem}
+@media (max-width:560px){.tut-head{align-items:flex-start}.tut-step{padding:14px;gap:12px}.tut-num{width:36px;height:36px;font-size:1.05rem}.tut-icon,.tut-hub-head>span{width:56px;height:56px;font-size:1.8rem}}
+@media (prefers-reduced-motion:reduce){.tut-card{transition:none}}
+/* επεξεργαστής οδηγών */
+.tuted{display:grid;gap:10px}.tuted-help{border-collapse:collapse;font-size:.9rem}.tuted-help td{padding:4px 10px;border-bottom:1px solid rgba(0,0,0,.08)}
+.tuted-b{display:grid;gap:8px;padding:12px;border:2px solid var(--ink);border-radius:14px;background:#fff}
+.tuted-b.k-step{border-left:8px solid var(--c1)}.tuted-b.k-info{border-left:8px solid #8a8a8a}.tuted-b.k-tip{border-left:8px solid #2f9e5b;background:#f4fbf6}.tuted-b.k-warn{border-left:8px solid #e08a00;background:#fffaf2}
+.tuted-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tuted-h select{width:auto}
+.tuted-prev{margin-top:6px}.tuted-frame{margin-top:8px;padding:16px;border:2px dashed var(--muted);border-radius:16px;background:var(--paper, #fbf6ea);max-height:70vh;overflow:auto}
+/* μετάβαση προς το 3D παιχνίδι (ίδια καρτέλα) */
+html.g3d-leaving body::after{content:"";position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 60%,#fff 0,#eaf4ff 45%,#bcd6f2 100%);animation:g3dLeave .38s ease forwards;pointer-events:all}
+@keyframes g3dLeave{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){html.g3d-leaving body::after{animation-duration:.01s}}

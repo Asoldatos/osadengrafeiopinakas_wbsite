@@ -11,7 +11,7 @@ export default async function Home() {
   const [first, ...rest] = sections;
   return (<>
     <Sections sections={first ? [first] : []} data={data} site={site} />
-    <div className="wrap"><Game3D popup={false} /></div>
+    <div className="wrap"><Game3D /></div>
     {rest.length > 0 && <Sections sections={rest} data={data} site={site} />}
   </>);
 }

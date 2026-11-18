@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { getTutorial } from '@/lib/tutorialsData';
+import { tutorialHtml, tutorialVars } from '@/lib/tutorials.mjs';
 import { getSite, getPage } from '@/lib/data';
 import { getAdmin } from '@/lib/auth';
 import SiteNav from '@/components/SiteNav';
@@ -32,7 +34,9 @@ export default async function SiteLayout({ children }) {
         return html ? { title: head?.title || fallbackTitle, subtitle: head?.subtitle || '', html } : null;
       } catch { return null; }
     };
-    const [privacy, help] = await Promise.all([load('privacy', 'Απόρρητο και όροι χρήσης'), load('email-help', 'Δεν βλέπεις τα email μας;')]);
+    // ο οδηγός email έρχεται από τους «Οδηγούς βοήθειας» (με εφεδρεία την παλιά σελίδα του Σχεδιαστή)
+    const loadHelp = async () => { const t = await getTutorial('email-help'); return t ? { title: t.title, subtitle: t.subtitle || '', html: tutorialHtml(t, tutorialVars()) } : load('email-help', 'Δεν βλέπεις τα email μας;'); };
+    const [privacy, help] = await Promise.all([load('privacy', 'Απόρρητο και όροι χρήσης'), loadHelp()]);
     const panels = {}; if (help) panels.help = help; if (privacy) panels.privacy = privacy;
     return <MaintenanceView site={{ name: site.name, logoUrl: site.logoUrl, maintenance: m, newsletter: site.newsletter || {}, thanks: site.mascot?.messages?.newsletterThanks }} panels={panels} />;
   }

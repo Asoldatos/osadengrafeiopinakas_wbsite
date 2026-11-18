@@ -49,6 +49,13 @@ h2{font-family:var(--disp);margin:0 0 4px;font-size:1.5rem}
 .allow{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:rgba(246,196,83,.15);border:2px solid rgba(246,196,83,.5);font-weight:700}
 .vrflash{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--mint);color:var(--ink);font-weight:900;letter-spacing:.12em;animation:pulse 1.2s ease-in-out infinite}@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(127,209,174,0)}0%{box-shadow:0 0 0 0 rgba(127,209,174,.6)}}
 .card .row{margin-top:16px}
+.linkbtn{background:none;border:0;color:inherit;opacity:.75;text-decoration:underline;cursor:pointer;font:inherit;padding:6px}
+.backsite{display:block;margin-top:8px;text-align:center;color:#f6c453;font-weight:800;text-decoration:none;padding:8px}.backsite:hover{text-decoration:underline}
+body.leaving::after{content:"";position:fixed;inset:0;z-index:9999;background:#fbf6ea;animation:leaveFade .35s ease forwards}@keyframes leaveFade{from{opacity:0}to{opacity:1}}
+#acct{margin:6px 0 0;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.08);font-size:.88rem;line-height:1.4}#acct a{color:#f6c453;font-weight:800}
+#claim .card{display:grid;gap:10px;max-height:calc(100dvh - 32px);overflow-y:auto}#claim input{width:100%;margin-top:6px;padding:12px;border-radius:12px;border:2px solid rgba(255,255,255,.25);background:rgba(0,0,0,.3);color:#fff;font:inherit}
+#claim .small{font-size:.85rem;opacity:.8}#claim a{color:#f6c453;font-weight:800}#claim .msg{min-height:1.2em;font-weight:800;margin:0}
+#claim .linkbtn{background:none;border:0;color:inherit;opacity:.7;text-decoration:underline;cursor:pointer;font:inherit}
 /* ---------- HUD ---------- */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:20;font-family:var(--body)}
 #obj{position:absolute;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));max-width:min(420px,70vw);padding:10px 16px 12px;border-radius:16px;background:var(--glass);border-left:5px solid var(--gold);backdrop-filter:blur(6px)}
@@ -111,6 +118,8 @@ body.touchui #dlg{bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));wi
     <button class="mbtn" data-go="chapters">Κεφάλαια</button>
     <button class="mbtn" data-go="settings">Ρυθμίσεις</button>
     <button class="mbtn" data-go="controls">Χειρισμός</button>
+    <p id="acct" hidden></p>
+    <a class="backsite" href="/" id="backSite">← Πίσω στον ιστότοπο</a>
   </div>
   <div class="panel" data-p="gender" hidden>
     <h2>Ποιος είσαι;</h2><p style="margin:0;opacity:.85">Διάλεξε πώς θα σου μιλάνε οι χαρακτήρες.</p>
@@ -159,6 +168,21 @@ body.touchui #dlg{bottom:max(150px,calc(env(safe-area-inset-bottom) + 150px));wi
 <div class="modal" id="pause" hidden><div class="card" role="dialog" aria-modal="true" aria-label="Παύση">
   <h2>Παύση</h2>
   <button class="mbtn primary" id="pResume">Συνέχεια</button><button class="mbtn" id="pSettings" style="margin-top:8px">Ρυθμίσεις</button><button class="mbtn" id="pMenu" style="margin-top:8px">Έξοδος στο μενού <small>Η πρόοδος σώζεται στην αρχή κάθε κεφαλαίου</small></button>
+</div></div>
+<div class="modal" id="vrEnter" hidden><div class="card">
+  <div class="big">🥽</div><h2>Ο ιστότοπος σε VR</h2>
+  <p>Διάβασε άρθρα, ξεφύλλισε τα τεύχη, παίξε τις περιπέτειες και «Τα Χριστούγεννα του Κιμωλάκη» — όλα μέσα στο χιονισμένο χωριό, σε 3D.</p>
+  <p class="allow">⚠️ Όταν ο browser ρωτήσει αν επιτρέπεται να χρησιμοποιηθεί το VR, πάτα <b>«Allow» / «Να επιτρέπεται»</b>.</p>
+  <button class="mbtn primary" id="vrEnterGo">🥽 Μπες στο VR</button>
+  <button class="linkbtn" id="vrEnterNo">Όχι, πίσω στον ιστότοπο</button>
+</div></div>
+<div class="modal" id="claim" hidden><div class="card">
+  <div class="big">🎄</div><h2></h2><p class="prize"></p>
+  <div class="in" hidden><p>Είσαι συνδεδεμένος ως <b class="who"></b>.</p><button class="mbtn primary save">💾 Αποθήκευση στον λογαριασμό μου</button></div>
+  <div class="out" hidden><form><label class="set" style="text-align:left">Γράψε το email του λογαριασμού σου για να καταχωρηθεί εκεί:<input type="email" required autocomplete="email" placeholder="το-email-σου@…"></label>
+    <button class="mbtn primary">Σύνδεση &amp; αποθήκευση</button></form>
+    <p class="small">Δεν έχεις λογαριασμό; <a href="/account/register" target="_blank" rel="noopener">Φτιάξε έναν δωρεάν</a> και μετά ξαναγύρνα εδώ — η πρόοδός σου σε περιμένει.</p></div>
+  <p class="msg" role="status"></p><button class="linkbtn later">Αργότερα</button>
 </div></div>
 <div class="modal" id="alert" hidden><div class="card"><p></p><button class="mbtn primary">Εντάξει</button></div></div>
 <div class="rotate">📱↻<br>Γύρνα τη συσκευή οριζόντια</div>

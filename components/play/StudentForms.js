@@ -43,10 +43,11 @@ export function RegisterForm({ siteKey, domains }) {
   );
 }
 
-export function LoginForm({ next }) {
-  const r = useRouter(); const [step, setStep] = useState('creds'), [email, setEmail] = useState(''), [pw, setPw] = useState(''), [code, setCode] = useState(''), [rec, setRec] = useState(false);
+export function LoginForm({ next, email: email0 = '' }) {
+  const r = useRouter(); const [step, setStep] = useState('creds'), [email, setEmail] = useState(email0), [pw, setPw] = useState(''), [code, setCode] = useState(''), [rec, setRec] = useState(false);
   const [err, setErr] = useState(''), [unv, setUnv] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState('');
-  const done = () => { r.replace(safeNext(next)); r.refresh(); };
+  // οι σελίδες του 3D παιχνιδιού είναι στατικές (όχι Next) → κανονική πλοήγηση
+  const done = () => { const n = safeNext(next); if (n.startsWith('/game/')) { window.location.assign(n); return; } r.replace(n); r.refresh(); };
   const go = (res) => { setCode(''); if (res.step === 'done') done(); else setStep(res.step); };
   const run = async (fn) => { setBusy(true); setErr(''); setUnv(false); setNote(''); try { go(await fn()); } catch (x) { setErr(x.message); setUnv(/επιβεβαιώσεις το email/.test(x.message)); if (/έληξε\. Συνδέσου ξανά/.test(x.message)) setStep('creds'); } setBusy(false); };
   const creds = (e) => { e.preventDefault(); run(() => api('/api/account/login', { method: 'POST', body: { email, password: pw } })); };
@@ -68,10 +69,10 @@ export function LoginForm({ next }) {
         <button className="btn btn-primary block" disabled={busy}>{busy ? 'Έλεγχος…' : 'Σύνδεση'}</button></form>
     </Card>);
   return (
-    <Card title="Σύνδεση μαθητή" mood="happy" text="Γεια σου! Δείξε μου ποιος είσαι να συνεχίσουμε το παιχνίδι.">
+    <Card title="Σύνδεση μαθητή" mood="happy" text={String(next).startsWith('/game/') ? 'Συνδέσου και η πρόοδός σου στο 3D παιχνίδι θα αποθηκευτεί στον λογαριασμό σου! 🎄' : 'Γεια σου! Δείξε μου ποιος είσαι να συνεχίσουμε το παιχνίδι.'}>
       <form onSubmit={creds} className="stack-form">
-        <div className="fld"><label htmlFor="le">Email</label><input id="le" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" autoFocus /></div>
-        <div className="fld"><label htmlFor="lp">Κωδικός</label><input id="lp" type="password" value={pw} onChange={(e) => setPw(e.target.value)} required autoComplete="current-password" /></div>
+        <div className="fld"><label htmlFor="le">Email</label><input id="le" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="username" autoFocus={!email0} /></div>
+        <div className="fld"><label htmlFor="lp">Κωδικός</label><input id="lp" type="password" value={pw} onChange={(e) => setPw(e.target.value)} required autoComplete="current-password" autoFocus={!!email0} /></div>
         <Msgs />{unv && <button type="button" className="linkbtn" onClick={resendVerify}>Στείλε ξανά το email επιβεβαίωσης</button>}
         <button className="btn btn-primary block" disabled={busy}>{busy ? 'Σύνδεση…' : 'Σύνδεση'}</button>
       </form>

@@ -10,10 +10,13 @@ export const angLerp = (a, b, t) => { let d = ((b - a + Math.PI) % (Math.PI * 2)
 
 // ---------------------------------------------------------------- συσκευή / ποιότητα
 const UA = navigator.userAgent;
+// Γυαλιά VR (Quest, Pico κ.λπ.). Ένα κινητό ΔΕΝ είναι γυαλιά VR, ακόμα κι αν ο browser του λέει ότι «υποστηρίζει» WebXR (Cardboard).
+const HEADSET = /OculusBrowser|Quest|Pacific|PicoBrowser|Pico Neo|Pico 4|Wolvic|Firefox Reality|VRBrowser|Vive Browser/i.test(UA);
+const PHONE = !HEADSET && (/Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1));
 export const DEVICE = {
-  quest: /OculusBrowser|Quest|Pacific/i.test(UA),
-  touch: matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window,
-  mobile: /Android|iPhone|iPad|iPod/i.test(UA) && !/OculusBrowser|Quest/i.test(UA),
+  quest: HEADSET, headset: HEADSET, phone: PHONE,
+  touch: !HEADSET && (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window),
+  mobile: PHONE,
   reduce: matchMedia('(prefers-reduced-motion: reduce)').matches,
 };
 export const QUALITY = {
@@ -200,7 +203,8 @@ export class VR {
     this.g = game; this.session = null; this.state = { lx: 0, ly: 0, rx: 0, ry: 0, trigger: [false, false], a: false, b: false, grip: [false, false] }; this.prev = { trigger: [false, false], a: false, b: false, grip: [false, false], snap: false };
     this.hands = [];
   }
-  static async supported() { try { return !!(navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))); } catch { return false; } }
+  /** Υπάρχουν ΠΡΑΓΜΑΤΙΚΑ γυαλιά VR; Γυαλιά (Quest/Pico…) ή υπολογιστής με VR (π.χ. SteamVR). Κινητά/tablet: ποτέ. */
+  static async supported() { if (DEVICE.phone) return false; try { return !!(navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))); } catch { return false; } }
   async start() {
     const r = this.g.renderer;
     const s = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking', 'layers'] });

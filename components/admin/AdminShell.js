@@ -11,7 +11,7 @@ import { can, ROLE_LABEL } from '@/lib/perms.mjs';
 const NAV = [
   ['/editor-panel', 'Πίνακας ελέγχου', '🏠'], ['/editor-panel/articles', 'Άρθρα', '📝', 'content'], ['/editor-panel/editions', 'Εφημερίδα (τεύχη)', '📰', 'editions'],
   ['/editor-panel/writers', 'Συντακτική ομάδα', '👩‍🎓', 'writers'], ['/editor-panel/categories', 'Κατηγορίες', '🏷️', 'content'], ['/editor-panel/media', 'Πολυμέσα', '🖼️', 'uploads'],
-  ['/editor-panel/adventures', 'Περιπέτειες Κιμωλάκη', '🗺️', 'content'], ['/editor-panel/quiz', 'Ερωτήσεις κουίζ', '🧠', 'content'], ['/editor-panel/words', 'Λέξεις Κρεμάλας', '🔤', 'content'],
+  ['/editor-panel/adventures', 'Περιπέτειες Κιμωλάκη', '🗺️', 'content'], ['/editor-panel/quiz', 'Ερωτήσεις κουίζ', '🧠', 'content'], ['/editor-panel/words', 'Λέξεις Κρεμάλας', '🔤', 'content'], ['/editor-panel/tutorials', 'Οδηγοί βοήθειας', '📘', 'content'],
   ['/editor-panel/students', 'Λογαριασμοί μαθητών', '🧑‍🎓', 'students'], ['/editor-panel/newsletter', 'Ενημερωτικό δελτίο', '💌', 'newsletter'], ['/editor-panel/subscribers', 'Συνδρομητές', '📬', 'newsletter'],
   ['/editor-panel/themes', 'Εποχιακά θέματα 🎄', '❄️', 'themes'], ['/editor-panel/builder', 'Σχεδιαστής ιστοτόπου', '🎨', 'appearance'], ['/editor-panel/settings', 'Ρυθμίσεις ιστοτόπου', '⚙️', 'settings'],
   ['/editor-panel/admins', 'Διαχειριστές', '🛡️', 'admins'], ['/editor-panel/security', 'Ο λογαριασμός μου', '🔐'],

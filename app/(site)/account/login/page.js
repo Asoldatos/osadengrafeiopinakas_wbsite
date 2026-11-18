@@ -6,5 +6,6 @@ export const metadata = { title: 'Σύνδεση μαθητή', robots: { index:
 export default async function Page({ searchParams }) {
   const next = typeof searchParams.next === 'string' && searchParams.next.startsWith('/') && !searchParams.next.startsWith('//') ? searchParams.next : '/account';
   if (await getStudent()) redirect(next);
-  return <LoginForm next={next} />;
+  const email = typeof searchParams.email === 'string' && searchParams.email.length < 200 && /^[^\s@]+@[^\s@]+$/.test(searchParams.email) ? searchParams.email : '';
+  return <LoginForm next={next} email={email} />;
 }

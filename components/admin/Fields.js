@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import TutorialEditor from './TutorialEditor';
 import { api, toast, uploadImage, uploadPdf, uploadVideo, isVideoFile } from '@/lib/clientUpload';
 import { isVideoUrl, parseVideo, buildVideoUrl, stripHash } from '@/lib/media';
 
@@ -137,7 +138,7 @@ const toLocal = (iso) => { if (!iso) return ''; const d = new Date(iso); if (isN
 export const STATUS_OPTS = [{ v: 'draft', l: 'Πρόχειρο' }, { v: 'published', l: 'Δημοσιευμένο' }, { v: 'archived', l: 'Αρχειοθετημένο' }];
 
 /** Γενικό πεδίο φόρμας. Οι τιμές αποθηκεύονται σε μορφή κατάλληλη για το API. */
-export function Field({ f, value, onChange, options = [] }) {
+export function Field({ f, value, onChange, options = [], form }) {
   const id = 'f-' + f.k;
   const v = value ?? '';
   const L = <label htmlFor={id}>{f.label}{f.hint && <small>{f.hint}</small>}</label>;
@@ -158,6 +159,7 @@ export function Field({ f, value, onChange, options = [] }) {
     case 'color': return <div className="fld">{L}<div className="row"><input id={id} type="color" value={/^#[0-9a-f]{6}$/i.test(v) ? v : '#ffffff'} onChange={(e) => onChange(e.target.value)} /><input value={v} onChange={(e) => onChange(e.target.value)} aria-label={`${f.label} (κωδικός)`} /></div></div>;
     case 'images': return <ImagesField f={f} value={value} onChange={onChange} />;
     case 'scenes': return <SceneEditor f={f} value={value} onChange={onChange} />;
+    case 'tutorial': return <TutorialEditor f={f} value={value} onChange={onChange} form={form} />;
     default: return <div className="fld">{L}<input id={id} type="text" value={v} onChange={(e) => onChange(e.target.value)} placeholder={f.ph || ''} /></div>;
   }
 }
