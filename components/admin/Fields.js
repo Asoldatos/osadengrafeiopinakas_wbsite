@@ -113,7 +113,7 @@ export function PdfField({ value, onChange }) {
     </div>
   );
 }
-export function HtmlEditor({ value, onChange }) {
+export function HtmlEditor({ value, onChange, label = 'Κείμενο άρθρου', extra, placeholder, compact = false }) {
   const ref = useRef(null); const [pick, setPick] = useState(false);
   useEffect(() => { const el = ref.current; if (el && el.innerHTML !== (value || '') && document.activeElement !== el) el.innerHTML = value || ''; }, [value]);
   const cmd = (c, a) => { ref.current.focus(); document.execCommand(c, false, a); onChange(ref.current.innerHTML); };
@@ -127,8 +127,9 @@ export function HtmlEditor({ value, onChange }) {
         <button type="button" className="tb" title="Σύνδεσμος" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('Διεύθυνση συνδέσμου (https://…)'); if (u) cmd('createLink', u); }}>🔗</button>
         <button type="button" className="tb" title="Εικόνα" onMouseDown={(e) => e.preventDefault()} onClick={() => { ref.current.focus(); setPick(true); }}>🖼️</button>
         <B c="insertHorizontalRule" t="Διαχωριστική γραμμή">―</B><B c="removeFormat" t="Καθαρισμός μορφοποίησης">✕</B>
+        {extra && extra({ insert: (html) => cmd('insertHTML', html), focus: () => ref.current.focus() })}
       </div>
-      <div ref={ref} className="rte-body prose" contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label="Κείμενο άρθρου"
+      <div ref={ref} className={`rte-body prose${compact ? ' rte-compact' : ''}`} data-ph={placeholder || undefined} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label={label}
         onInput={() => onChange(ref.current.innerHTML)} onPaste={(e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')); }} />
       {pick && <MediaPicker allowVideo={false} onClose={() => setPick(false)} onPick={(u) => { setPick(false); cmd('insertImage', u); }} />}
     </div>
@@ -159,6 +160,9 @@ export function Field({ f, value, onChange, options = [], form }) {
     case 'color': return <div className="fld">{L}<div className="row"><input id={id} type="color" value={/^#[0-9a-f]{6}$/i.test(v) ? v : '#ffffff'} onChange={(e) => onChange(e.target.value)} /><input value={v} onChange={(e) => onChange(e.target.value)} aria-label={`${f.label} (κωδικός)`} /></div></div>;
     case 'images': return <ImagesField f={f} value={value} onChange={onChange} />;
     case 'scenes': return <SceneEditor f={f} value={value} onChange={onChange} />;
+    case 'emoji': return (<div className="fld">{L}<div className="emo-pick" role="radiogroup" aria-label={f.label}>
+      {(f.opts || []).map((e) => <button key={e} type="button" role="radio" aria-checked={v === e} className={`emo${v === e ? ' on' : ''}`} onClick={() => onChange(e)}>{e}</button>)}
+      <input id={id} className="emo-own" value={v} maxLength={8} onChange={(e) => onChange(e.target.value)} aria-label="Ή γράψε δικό σου emoji" placeholder="άλλο" /></div></div>);
     case 'tutorial': return <TutorialEditor f={f} value={value} onChange={onChange} form={form} />;
     default: return <div className="fld">{L}<input id={id} type="text" value={v} onChange={(e) => onChange(e.target.value)} placeholder={f.ph || ''} /></div>;
   }

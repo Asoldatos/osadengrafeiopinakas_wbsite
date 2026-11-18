@@ -455,12 +455,58 @@ h1,h2,h3,h4{font-family:var(--font-head);line-height:1.15;margin:0 0 .4em;font-w
 @media (max-width:560px){.tut-head{align-items:flex-start}.tut-step{padding:14px;gap:12px}.tut-num{width:36px;height:36px;font-size:1.05rem}.tut-icon,.tut-hub-head>span{width:56px;height:56px;font-size:1.8rem}}
 @media (prefers-reduced-motion:reduce){.tut-card{transition:none}}
 /* επεξεργαστής οδηγών */
-.tuted{display:grid;gap:10px}.tuted-help{border-collapse:collapse;font-size:.9rem}.tuted-help td{padding:4px 10px;border-bottom:1px solid rgba(0,0,0,.08)}
-.tuted-b{display:grid;gap:8px;padding:12px;border:2px solid var(--ink);border-radius:14px;background:#fff}
-.tuted-b.k-step{border-left:8px solid var(--c1)}.tuted-b.k-info{border-left:8px solid #8a8a8a}.tuted-b.k-tip{border-left:8px solid #2f9e5b;background:#f4fbf6}.tuted-b.k-warn{border-left:8px solid #e08a00;background:#fffaf2}
-.tuted-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tuted-h select{width:auto}
-.tuted-prev{margin-top:6px}.tuted-frame{margin-top:8px;padding:16px;border:2px dashed var(--muted);border-radius:16px;background:var(--paper, #fbf6ea);max-height:70vh;overflow:auto}
+.tuted{display:grid;gap:12px}
+.tuted-top{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between}
+.tuted-tpls{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;padding:12px;border:2px dashed var(--ink);border-radius:16px;background:var(--paper2)}
+.tuted-tpl{display:grid;gap:2px;text-align:left;padding:12px 14px;border:2px solid var(--ink);border-radius:14px;background:#fff;cursor:pointer;font:inherit;box-shadow:3px 3px 0 var(--ink);transition:transform .12s}
+.tuted-tpl:hover,.tuted-tpl:focus-visible{transform:translate(-2px,-2px)}.tuted-tpl>span{font-size:1.6rem}.tuted-tpl small{color:var(--muted)}
+.tuted-grid{display:grid;gap:18px;align-items:start}
+@media (min-width:1180px){.tuted-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tuted-prev{position:sticky;top:12px}}
+.tuted-list{min-width:0}
+.tuted-b{border:2px solid var(--ink);border-radius:14px;background:#fff;transition:box-shadow .15s,transform .15s}
+.tuted-b.act{box-shadow:0 0 0 3px #f6c453}.tuted-b.drop{transform:scale(1.01);box-shadow:0 0 0 3px var(--c1)}
+.tuted-b.k-step{border-left:8px solid var(--c1)}.tuted-b.k-info{border-left:8px solid #8a8a8a}.tuted-b.k-tip{border-left:8px solid #2f9e5b}.tuted-b.k-warn{border-left:8px solid #e08a00}.tuted-b.k-image{border-left:8px solid #7a4ab0}.tuted-b.k-button{border-left:8px solid var(--c2,#c8102e)}
+.tuted-h{display:flex;gap:6px;align-items:center;padding:8px 10px}
+.tuted-drag{cursor:grab;font-size:1.2rem;color:var(--muted);padding:0 4px;user-select:none}.tuted-drag:active{cursor:grabbing}
+.tuted-tog{flex:1;min-width:0;display:flex;gap:10px;align-items:center;background:none;border:0;padding:4px;font:inherit;text-align:left;cursor:pointer;color:inherit}
+.tuted-badge{flex:none;font-weight:900;font-size:.82rem;padding:3px 9px;border-radius:999px;background:var(--paper2);border:1.5px solid rgba(0,0,0,.15)}
+.tuted-sum{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-weight:700}
+.icon-btn.danger:hover{background:#ffe1de}
+.tuted-body{display:grid;gap:10px;padding:0 12px 12px}
+.tuted-kindbar{display:flex;flex-wrap:wrap;gap:6px}
+.tuted-chip{padding:5px 11px;border-radius:999px;border:1.5px solid rgba(0,0,0,.2);background:#fff;font:inherit;font-size:.85rem;font-weight:700;cursor:pointer}
+.tuted-chip:hover{background:var(--paper2)}.tuted-chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tuted-hint{margin:0;font-size:.85rem;color:var(--muted)}.tuted-warn{margin:0;font-size:.88rem;font-weight:700;color:#8a4b00}
+.tuted-title{font-weight:800;font-size:1.05rem}
+.tuted-btnf,.tuted-imgf{display:grid;gap:10px}.tuted-btnf label,.tuted-imgf label,.tuted-shot label{display:grid;gap:4px;font-weight:700;font-size:.9rem}
+.tuted-shot{border:1.5px dashed rgba(0,0,0,.2);border-radius:12px;padding:8px 10px}.tuted-shot summary{cursor:pointer;font-weight:700}.tuted-shot[open]{display:grid;gap:10px}
+.tuted-ins{display:flex;justify-content:center;margin:4px 0;min-height:30px;align-items:center}
+.tuted-plus{width:30px;height:30px;border-radius:50%;border:2px dashed var(--muted);background:#fff;color:var(--muted);font-weight:900;cursor:pointer;opacity:.55;transition:opacity .15s,transform .15s}
+.tuted-ins:hover .tuted-plus,.tuted-plus:focus-visible{opacity:1;transform:scale(1.1);border-style:solid;color:var(--ink)}
+.tuted-kinds{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:8px;border:2px solid var(--ink);border-radius:14px;background:var(--paper2)}
+.tuted-kind{display:flex;gap:6px;align-items:center;padding:7px 12px;border-radius:12px;border:2px solid var(--ink);background:#fff;font:inherit;font-weight:800;cursor:pointer}.tuted-kind:hover{background:#fff4c2}
+.tuted-prev-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-bottom:6px}.tuted-prev-h small{color:var(--muted)}
+.tuted-frame{padding:16px;border:2px dashed var(--muted);border-radius:16px;background:var(--paper,#fbf6ea);max-height:calc(100vh - 80px);overflow:auto}
+.tuted-frame .tut-sel{outline:3px solid #f6c453;outline-offset:4px;border-radius:14px}
+.tuted-frame [style*="pointer"]:hover{outline:2px dashed #f6c453;outline-offset:4px;border-radius:14px}
+.rte-compact{min-height:110px;max-height:420px;overflow:auto}
+.rte-body[data-ph]:empty::before{content:attr(data-ph);color:var(--muted);pointer-events:none}
+.emo-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.emo{width:42px;height:42px;font-size:1.35rem;border-radius:12px;border:2px solid rgba(0,0,0,.15);background:#fff;cursor:pointer}.emo:hover{background:var(--paper2)}.emo.on{border-color:var(--ink);background:#fff4c2;box-shadow:2px 2px 0 var(--ink)}
+.emo-own{width:80px}
 /* μετάβαση προς το 3D παιχνίδι (ίδια καρτέλα) */
 html.g3d-leaving body::after{content:"";position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 50% 60%,#fff 0,#eaf4ff 45%,#bcd6f2 100%);animation:g3dLeave .38s ease forwards;pointer-events:all}
 @keyframes g3dLeave{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){html.g3d-leaving body::after{animation-duration:.01s}}
+
+/* οδηγοί: εικόνες, κουμπιά, μορφοποιημένο κείμενο */
+.tut-fig{margin:12px 0 0}.tut-fig img{display:block;max-width:100%;height:auto;border-radius:14px;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.tut-fig figcaption{margin-top:6px;font-size:.9rem;color:var(--muted);font-style:italic}
+.tut-img{margin:0}.tut-img:not(.wide) img{max-width:min(100%,560px)}.tut-img.wide img{width:100%}
+.tut-btnrow{margin:4px 0}.tut-btnrow .btn{font-size:1.05rem}
+.tut-empty{padding:30px;text-align:center;border:2px dashed var(--muted);border-radius:14px;color:var(--muted);font-weight:700}
+.tut-rich h2{font-size:1.15rem;margin:12px 0 6px}.tut-rich h3{font-size:1.05rem;margin:10px 0 4px}
+.tut-rich blockquote{margin:8px 0;padding:6px 14px;border-left:5px solid var(--c1);background:rgba(0,0,0,.03);border-radius:0 10px 10px 0}
+.tut-rich img{max-width:100%;height:auto;border-radius:12px;margin:8px 0}.tut-rich hr{border:0;border-top:2px dashed rgba(0,0,0,.15);margin:12px 0}
+.tut-rich a,.tut-call a{font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.tut-btn{display:inline-block;padding:10px 18px;border-radius:999px;background:#c8102e;color:#fff;font-weight:800;text-decoration:none}.tut-btn.ghost{background:#fff;color:inherit;border:2px solid currentColor}
