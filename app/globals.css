@@ -519,3 +519,5 @@ html.g3d-leaving body::after{content:"";position:fixed;inset:0;z-index:99999;bac
 .smap-sec{padding:16px 18px;border:var(--bw) solid var(--ink);border-radius:18px;background:#fff;box-shadow:4px 4px 0 var(--ink);min-width:0;scroll-margin-top:90px}
 .smap-sec h2{margin:0 0 10px;font-size:1.15rem}.smap-sec h2 small{color:var(--muted);font-weight:600}
 .smap-sec ul{margin:0;padding-left:1.1em;display:grid;gap:5px;max-height:460px;overflow:auto}.smap-sec a{font-weight:600;overflow-wrap:anywhere}
+/* Το 3D παιχνίδι «Τα Χριστούγεννα του Κιμωλάκη» εμφανίζεται ΜΟΝΟ στη χριστουγεννιάτικη λειτουργία */
+.theme-root:not([data-theme=christmas]) .g3d,.theme-root:not([data-theme=christmas]) .nav-new,.theme-root:not([data-theme=christmas]) .tut-cards li:has(a[href="/help/kimolakis-3d"]){display:none!important}
