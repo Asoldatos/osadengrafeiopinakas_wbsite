@@ -5,6 +5,7 @@ import { getAdmin } from '@/lib/auth';
 import Pic from '@/components/Pic';
 import ReadingProgress from '@/components/ReadingProgress';
 import ShareButtons from '@/components/ShareButtons';
+import ArticleSocial from '@/components/community/ArticleSocial';
 import { imageOnly } from '@/lib/media';
 import { fmtDate, toEmbed, safeUrl, SITE_URL } from '@/lib/util';
 
@@ -53,6 +54,7 @@ export default async function ArticlePage({ params, searchParams }) {
           {a.links?.length > 0 && <aside className="linkbox"><h2>Σύνδεσμοι</h2><ul>{a.links.map((l, i) => <li key={i}><a href={safeUrl(l.url)} target="_blank" rel="noopener noreferrer">{l.label || l.url} ↗</a></li>)}</ul></aside>}
           {a.tags?.length > 0 && <p className="tags">{a.tags.map((t) => <Link key={t} className="chip" href={`/articles?tag=${encodeURIComponent(t)}`}>#{t}</Link>)}</p>}
           <ShareButtons url={url} title={a.title} />
+          {a.status === 'published' && <ArticleSocial id={a.id} slug={a.slug} />}
           {a.author_name && a.author_bio && <aside className="authorbox"><strong>{a.author_name}</strong><p>{a.author_bio}</p></aside>}
           <nav className="prevnext" aria-label="Άλλα άρθρα">
             {adj.prev ? <Link href={`/articles/${adj.prev.slug}`}><small>← Προηγούμενο</small><span>{adj.prev.title}</span></Link> : <span />}

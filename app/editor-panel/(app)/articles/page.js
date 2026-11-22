@@ -15,7 +15,7 @@ const fields = [
   { k: 'seo_title', label: 'Τίτλος SEO (προαιρετικός)', t: 'text' }, { k: 'seo_desc', label: 'Περιγραφή SEO (προαιρετική)', t: 'area', rows: 2 },
 ];
 const columns = [{ k: 'title', label: 'Τίτλος', render: (r) => <><b>{r.title}</b>{r.featured && ' ⭐'}</> }, { k: 'status', label: 'Κατάσταση', render: (r) => <span className={`pill ${r.status}`}>{r.status === 'published' ? (r.publish_at && new Date(r.publish_at) > new Date() ? `Προγραμματισμένο ${fmtDate(r.publish_at)}` : 'Δημοσιευμένο') : r.status === 'draft' ? 'Πρόχειρο' : 'Αρχειοθετημένο'}</span> },
-  { k: 'category_name', label: 'Κατηγορία' }, { k: 'author_name', label: 'Συντάκτης' }, { k: 'created_at', label: 'Δημιουργία', date: true }];
+  { k: 'view_count', label: 'Απήχηση', render: (r) => <small>👁️ {r.view_count || 0} · ❤️ {r.like_count || 0} · 💬 {r.comment_count || 0}</small> }, { k: 'category_name', label: 'Κατηγορία' }, { k: 'author_name', label: 'Συντάκτης' }, { k: 'created_at', label: 'Δημιουργία', date: true }];
 export default function Page() {
   return (<><h1>Άρθρα</h1><Crud resource="articles" noun="άρθρο" fields={fields} columns={columns} statusFilter defaults={{ status: 'draft', tags: [], gallery: [], videos: [], links: [], content: '', featured: false }} previewPath={(r) => `/articles/${r.slug}?preview=1`} emptyKey="articles" /></>);
 }

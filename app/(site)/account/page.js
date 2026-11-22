@@ -25,6 +25,10 @@ export default async function Account() {
   return (
     <div className="wrap page-pad">
       <header className="acc-head"><Mascot mood={st.avatar} size={120} /><div><h1 className="h1">Γεια σου, {st.nickname}!</h1><XpBar xp={st.xp} /></div></header>
+      <section className="acc-sec acc-comm"><Link href="/account/friends" className="mini"><span aria-hidden="true">🤝</span><b>Φίλοι</b><small>Πρόσθεσε φίλους με το όνομα χρήστη τους</small></Link>
+        <Link href="/messages" className="mini"><span aria-hidden="true">💬</span><b>Μηνύματα</b><small>Γράψε στους φίλους σου</small></Link>
+        <Link href="/videos" className="mini"><span aria-hidden="true">🎬</span><b>Βίντεο</b><small>Τα άρθρα μας σε βίντεο</small></Link>
+        <Link href="/contact?kind=article" className="mini"><span aria-hidden="true">✍️</span><b>Γράψε κι εσύ</b><small>Στείλε μας ιδέα ή το δικό σου άρθρο</small></Link></section>
       <section className="acc-sec"><h2 className="h2">Παράσημα <small>({have.size}/{Object.keys(BADGES).length})</small></h2>
         <ul className="badges">{Object.entries(BADGES).map(([c, b]) => <li key={c} className={`badge${have.has(c) ? ' on' : ''}`}><i aria-hidden="true">{have.has(c) ? b.icon : '🔒'}</i><b>{b.label}</b><small>{b.desc}</small></li>)}</ul></section>
       <section className="acc-sec"><h2 className="h2">Τα παιχνίδια μου</h2>
