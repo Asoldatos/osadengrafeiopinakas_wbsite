@@ -6,6 +6,7 @@ import { getAdmin } from '@/lib/auth';
 import SiteNav from '@/components/SiteNav';
 import Footer from '@/components/Footer';
 import GamePromo from '@/components/GamePromo';
+import ChatFab from '@/components/community/ChatFab';
 import MaintenanceView from '@/components/MaintenanceView';
 import { safeUrl } from '@/lib/util';
 import { getStudent } from '@/lib/student';
@@ -40,7 +41,10 @@ export default async function SiteLayout({ children }) {
     const panels = {}; if (help) panels.help = help; if (privacy) panels.privacy = privacy;
     return <MaintenanceView site={{ name: site.name, logoUrl: site.logoUrl, maintenance: m, newsletter: site.newsletter || {}, thanks: site.mascot?.messages?.newsletterThanks }} panels={panels} />;
   }
-  const items = (site.nav || []).filter((n) => n.visible !== false);
+  // Οι νέες σελίδες (Βίντεο, Επικοινωνία) μπαίνουν αυτόματα στο μενού, εκτός αν ο διαχειριστής τις έχει ήδη (ή τις έκρυψε) στον Σχεδιαστή
+  const nav = site.nav || [], has = (h) => nav.some((n) => (n.href || '').replace(/\/$/, '') === h);
+  const auto = [!has('/videos') && { label: 'Βίντεο', href: '/videos', visible: true, isNew: true }, !has('/contact') && { label: 'Επικοινωνία', href: '/contact', visible: true }, !has('/chat') && !nav.some((n) => /chat\./.test(n.href || '')) && { label: 'Chat', href: process.env.NEXT_PUBLIC_CHAT_URL || '/chat', visible: true, isNew: true }].filter(Boolean);
+  const items = [...nav, ...auto].filter((n) => n.visible !== false).map((n) => ((n.href || '').replace(/\/$/, '') === '/videos' ? { ...n, isNew: true } : n));
   const a = site.announcement;
   // Εποχιακό θέμα: διαθέσιμο θέμα, προτίμηση επισκέπτη (cookie), εισαγωγή από το newsletter (υπογεγραμμένο cookie) και προεπισκόπηση διαχειριστή.
   const jar = cookies(), themes = await getThemes(), avail = await getAvailableTheme();
@@ -63,6 +67,7 @@ export default async function SiteLayout({ children }) {
       <GamePromo />
       <SiteNav name={site.name} logoUrl={site.logoUrl} items={items} student={st ? { nickname: st.nickname, avatar: st.avatar, level: levelFor(st.xp) } : null} />
       <main id="main">{children}</main>
+      {st && <ChatFab />}
       <Footer site={site} items={items} />
     </ThemeRuntime>
   );

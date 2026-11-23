@@ -16,6 +16,10 @@ export async function GET(req) {
   const run = async (k, sql, p = []) => { try { out[k] = (await q(sql + ' returning 1', p)).length; } catch (e) { out[k] = 'error'; console.error('cleanup', k, e.message); } };
   await run('messages', "delete from dm_messages where created_at < now() - ($1 || ' days')::interval", [String(c.retentionDays)]);
   await run('overflow', 'delete from dm_messages where id in (select id from dm_messages order by id desc offset $1)', [MAX_MESSAGES]);
+  await run('chat', "delete from chat_messages where created_at < now() - ($1 || ' days')::interval", [String(c.chatRetentionDays)]);
+  await run('chatOverflow', 'delete from chat_messages where id in (select id from chat_messages order by id desc offset $1)', [200000]);
+  await run('signals', "delete from chat_signals where created_at < now() - interval '1 hour'");
+  await run('calls', "delete from chat_calls where started_at < now() - interval '90 days'");
   await run('views', "delete from article_views_daily where day < current_date - 400");
   await run('tickets', "delete from tickets where status='closed' and updated_at < now() - interval '365 days'");
   await run('comments', "delete from comments where status='deleted' and created_at < now() - interval '30 days'");

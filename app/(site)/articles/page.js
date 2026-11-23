@@ -1,3 +1,4 @@
+import { Stats } from '@/components/Sections';
 import Link from 'next/link';
 import { getArticles, getCategories } from '@/lib/data';
 import Pic from '@/components/Pic';
@@ -33,7 +34,7 @@ export default async function Articles({ searchParams }) {
             <Link key={a.id} href={`/articles/${a.slug}`} className="acard">
               <Pic src={a.cover_url} alt="" ratio="16/10" />
               <div className="acard-b">{a.category_name && <span className="tag" style={{ '--c': a.category_color }}>{a.category_name}</span>}
-                <h2>{a.title}</h2>{a.subtitle && <p>{a.subtitle}</p>}<p className="meta">{a.author_name ? `${a.author_name} · ` : ''}{fmtDate(a.date)}</p></div>
+                <h2>{a.title}</h2>{a.subtitle && <p>{a.subtitle}</p>}<p className="meta">{a.author_name ? `${a.author_name} · ` : ''}{fmtDate(a.date)}<Stats a={a} /></p></div>
             </Link>))}
         </div>)}
       {pages > 1 && <nav className="pager" aria-label="Σελιδοποίηση">

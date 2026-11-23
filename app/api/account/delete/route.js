@@ -4,7 +4,7 @@ import { verifyPassword } from '@/lib/crypto.mjs';
 import { tooMany, recordFail } from '@/lib/auth';
 import { json, body } from '@/lib/guard';
 import { sroute } from '@/lib/sguard';
-import { clearStudentCookie } from '@/lib/student';
+import { clearStudentCookie, clearLegacyCookie } from '@/lib/student';
 
 /** Οριστική διαγραφή λογαριασμού και όλων των δεδομένων του (πρόοδος, παράσημα, σκορ, ιστορικό λήψεων). */
 export const POST = sroute(async (req, _c, st) => {
@@ -16,6 +16,6 @@ export const POST = sroute(async (req, _c, st) => {
   await q('delete from subscribers where email=$1', [st.email]);
   await q('delete from students where id=$1', [st.id]);
   const res = NextResponse.json({ ok: true });
-  res.cookies.set(clearStudentCookie());
+  res.cookies.set(clearStudentCookie()); clearLegacyCookie(res);
   return res;
 });

@@ -26,9 +26,10 @@ function Overview() {
         <p>{MB(st.dbsize)} από ~512 MB (δωρεάν πακέτο Neon) · {pct}%</p>
         <p className="muted">Κάθε βράδυ γίνεται αυτόματος καθαρισμός: τα μηνύματα σβήνονται μετά από {s.retentionDays} ημέρες (και ποτέ δεν κρατιούνται πάνω από 150.000), οι ημερήσιες προβολές μετά από ~13 μήνες και τα κλειστά αιτήματα μετά από 1 χρόνο. Τα βίντεο είναι στο YouTube (0 MB εδώ).</p></section>
       <section className="card"><h2>Λειτουργίες</h2><p className="muted">Μπορείς να κλείσεις οποιαδήποτε λειτουργία αμέσως, π.χ. αν υπάρξει πρόβλημα.</p>
-        <T k="views" l="Μετρητής προβολών" /><T k="likes" l="Likes στα άρθρα" /><T k="comments" l="Σχόλια στα άρθρα" /><T k="friends" l="Φίλοι" /><T k="messages" l="Μηνύματα μεταξύ φίλων" />
+        <T k="views" l="Μετρητής προβολών" /><T k="likes" l="Likes στα άρθρα" /><T k="comments" l="Σχόλια στα άρθρα" /><T k="friends" l="Φίλοι" /><T k="messages" l="Μηνύματα μεταξύ φίλων (κρυπτογραφημένα)" /><T k="chat" l="Chat (chat.osaden.gr: servers & κανάλια)" /><T k="calls" l="Κλήσεις μεταξύ φίλων" /><T k="video" l="Βιντεοκλήσεις" />
         <div className="cma-nums">
           <div className="fld"><label htmlFor="cm-r">Διαγραφή μηνυμάτων μετά από (ημέρες, 3–30)</label><input id="cm-r" type="number" min={3} max={30} value={s.retentionDays} onChange={(e) => setS({ ...s, retentionDays: e.target.value })} /></div>
+          <div className="fld"><label htmlFor="cm-cr">Διαγραφή μηνυμάτων καναλιών μετά από (ημέρες, 7–365)</label><input id="cm-cr" type="number" min={7} max={365} value={s.chatRetentionDays} onChange={(e) => setS({ ...s, chatRetentionDays: e.target.value })} /></div>
           <div className="fld"><label htmlFor="cm-h">Αυτόματη απόκρυψη σχολίου μετά από (αναφορές)</label><input id="cm-h" type="number" min={1} max={10} value={s.autoHideReports} onChange={(e) => setS({ ...s, autoHideReports: e.target.value })} /></div>
           <div className="fld"><label htmlFor="cm-m">Μέγιστα μηνύματα ανά μαθητή την ημέρα</label><input id="cm-m" type="number" min={20} max={500} value={s.maxMessagesPerDay} onChange={(e) => setS({ ...s, maxMessagesPerDay: e.target.value })} /></div>
         </div>

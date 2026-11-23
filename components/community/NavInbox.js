@@ -1,18 +1,25 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-/** Εικονίδιο μηνυμάτων στη μπάρα με αριθμό αδιάβαστων (ελέγχει κάθε 60″ μόνο όσο η καρτέλα είναι ορατή). */
+/** Κουμπί «Μηνύματα» στη μπάρα, με αριθμό αδιάβαστων + αιτημάτων φιλίας.
+ *  Ελέγχει κάθε 30″ (μόνο όσο η καρτέλα είναι ορατή) και ειδοποιεί το αιωρούμενο κουμπί (ChatFab) με το γεγονός «inbox». */
 export default function NavInbox() {
-  const [n, setN] = useState({ messages: 0, requests: 0 }); const path = usePathname();
+  const [n, setN] = useState({ messages: 0, requests: 0 }); const path = usePathname(); const prev = useRef(null);
   useEffect(() => {
     let alive = true;
-    const tick = () => document.visibilityState === 'visible' && fetch('/api/community/unread', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => alive && j && setN(j)).catch(() => {});
-    tick(); const t = setInterval(tick, 60000); document.addEventListener('visibilitychange', tick);
+    const tick = () => document.visibilityState === 'visible' && fetch('/api/community/unread', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!alive || !j) return; setN(j);
+      const p = prev.current; prev.current = j;
+      window.dispatchEvent(new CustomEvent('inbox', { detail: { ...j, newMsg: !!p && j.messages > p.messages, newReq: !!p && j.requests > p.requests } }));
+    }).catch(() => {});
+    tick(); const t = setInterval(tick, 30000); document.addEventListener('visibilitychange', tick);
     return () => { alive = false; clearInterval(t); document.removeEventListener('visibilitychange', tick); };
   }, [path]);
   const total = n.messages + n.requests;
-  const href = n.messages || !n.requests ? '/messages' : '/account/friends';
-  return <Link href={href} className="nav-inbox" aria-label={`Μηνύματα${n.messages ? `: ${n.messages} αδιάβαστα` : ''}${n.requests ? `, ${n.requests} αιτήματα φιλίας` : ''}`}>💬{total > 0 && <span className="cbadge">{total > 99 ? '99+' : total}</span>}</Link>;
+  const href = n.messages || !n.requests ? (process.env.NEXT_PUBLIC_CHAT_URL || '/chat') + '#dm' : '/account/friends';
+  const on = path.startsWith('/messages') || path.startsWith('/account/friends');
+  return <Link href={href} className={`nav-inbox${total ? ' has' : ''}${on ? ' on' : ''}`} aria-label={`Μηνύματα${n.messages ? `: ${n.messages} αδιάβαστα` : ''}${n.requests ? `, ${n.requests} αιτήματα φιλίας` : ''}`}>
+    <span aria-hidden="true">💬</span><span className="nav-inbox-t">Chat</span>{total > 0 && <span className="cbadge">{total > 99 ? '99+' : total}</span>}</Link>;
 }

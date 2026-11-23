@@ -9,6 +9,8 @@ import { useSeasonal, Ornaments, Countdown, useThemedLogo } from './theme/ThemeR
 import { audio } from './audio/engine';
 import { isVideoUrl } from '@/lib/media';
 import { fmtDate, safeUrl, toEmbed, cx } from '@/lib/util';
+/** Μικροί μετρητές απήχησης στις κάρτες άρθρων (προβολές, likes, σχόλια). */
+export const Stats = ({ a }) => (a.view_count || a.like_count || a.comment_count ? <span className="astats">{a.view_count > 0 && <span title="Προβολές">👁️ {a.view_count}</span>}{a.like_count > 0 && <span title="Likes">❤️ {a.like_count}</span>}{a.comment_count > 0 && <span title="Σχόλια">💬 {a.comment_count}</span>}</span> : null);
 
 export const EditCtx = createContext({ editing: false, onText: () => {}, site: {} });
 
@@ -43,7 +45,7 @@ const Doodles = () => (
 );
 const paras = (t) => String(t || '').split(/\n{2,}/).filter(Boolean);
 function ArticleMeta({ a }) {
-  return <p className="meta">{a.author_name && <>{a.author_name} · </>}{fmtDate(a.date)}</p>;
+  return <p className="meta">{a.author_name && <>{a.author_name} · </>}{fmtDate(a.date)}<Stats a={a} /></p>;
 }
 const Tag = ({ a }) => (a.category_name ? <span className="tag" style={{ '--c': a.category_color || '#00C8E0' }}>{a.category_name}</span> : null);
 

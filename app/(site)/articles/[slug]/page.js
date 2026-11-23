@@ -43,7 +43,7 @@ export default async function ArticlePage({ params, searchParams }) {
           <h1 className="art-title">{a.title}</h1>{a.subtitle && <p className="lede">{a.subtitle}</p>}
           <div className="byline">
             {a.author_photo ? <Pic src={a.author_photo} alt="" ratio="1/1" className="avatar" sizes="48px" /> : <span className="avatar avatar-i" aria-hidden="true">{(a.author_name || '?').charAt(0)}</span>}
-            <div><strong>{a.author_name || 'Η σύνταξη'}</strong>{a.author_role && <span className="role"> · {a.author_role}</span>}<br /><span className="meta"><time dateTime={a.date}>{fmtDate(a.date)}</time> · {mins} λεπτά ανάγνωσης</span></div>
+            <div><strong>{a.author_name || 'Η σύνταξη'}</strong>{a.author_role && <span className="role"> · {a.author_role}</span>}<br /><span className="meta"><time dateTime={a.date}>{fmtDate(a.date)}</time> · {mins} λεπτά ανάγνωσης</span>{a.status === 'published' && <a href="#comments" className="art-stats">👁️ {a.view_count || 0}<span>❤️ {a.like_count || 0}</span><span>💬 {a.comment_count || 0} {a.comment_count === 1 ? 'σχόλιο' : 'σχόλια'}</span></a>}</div>
           </div>
         </header>
         {a.cover_url && <div className="wrap art-cover"><Pic src={a.cover_url} alt="" ratio="16/8" priority sizes="1100px" className="framed" /></div>}

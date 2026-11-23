@@ -21,14 +21,18 @@ export default async function Account() {
     q('select max_ch, completed, completed_at from xmas3d_progress where student_id=$1', [st.id]).catch(() => []),
   ])).map(plain);
   const xm = x3[0];
+  const cm = (await q(`select (select count(*)::int from dm_messages where (a=$1 or b=$1) and sender<>$1 and read_at is null) m,
+    (select count(*)::int from friendships where (a=$1 or b=$1) and status='pending' and requester<>$1) r,
+    (select count(*)::int from friendships where (a=$1 or b=$1) and status='accepted') f`, [st.id]).catch(() => [{ m: 0, r: 0, f: 0 }]))[0];
   const have = new Set(badges.map((b) => b.code)), bestBy = Object.fromEntries(best.map((b) => [b.game, b]));
   return (
     <div className="wrap page-pad">
       <header className="acc-head"><Mascot mood={st.avatar} size={120} /><div><h1 className="h1">Γεια σου, {st.nickname}!</h1><XpBar xp={st.xp} /></div></header>
-      <section className="acc-sec acc-comm"><Link href="/account/friends" className="mini"><span aria-hidden="true">🤝</span><b>Φίλοι</b><small>Πρόσθεσε φίλους με το όνομα χρήστη τους</small></Link>
-        <Link href="/messages" className="mini"><span aria-hidden="true">💬</span><b>Μηνύματα</b><small>Γράψε στους φίλους σου</small></Link>
-        <Link href="/videos" className="mini"><span aria-hidden="true">🎬</span><b>Βίντεο</b><small>Τα άρθρα μας σε βίντεο</small></Link>
-        <Link href="/contact?kind=article" className="mini"><span aria-hidden="true">✍️</span><b>Γράψε κι εσύ</b><small>Στείλε μας ιδέα ή το δικό σου άρθρο</small></Link></section>
+      <section className="acc-sec"><h2 className="h2">Η παρέα μου</h2><div className="acc-comm">
+        <a href={process.env.NEXT_PUBLIC_CHAT_URL || '/chat'} className="mini mini-big c-chat"><span aria-hidden="true">💬</span><b>Chat & μηνύματα{cm.m > 0 && <span className="cbadge">{cm.m}</span>}</b><small>{cm.m > 0 ? `${cm.m} αδιάβαστα μηνύματα` : 'Servers, μηνύματα 🔒 και κλήσεις'}</small></a>
+        <Link href="/account/friends" className="mini mini-big c-fr"><span aria-hidden="true">🤝</span><b>Φίλοι{cm.r > 0 && <span className="cbadge">{cm.r}</span>}</b><small>{cm.r > 0 ? `${cm.r} νέα αιτήματα φιλίας` : `${cm.f} ${cm.f === 1 ? 'φίλος' : 'φίλοι'} · πρόσθεσε κι άλλους`}</small></Link>
+        <Link href="/videos" className="mini mini-big c-vid"><span aria-hidden="true">🎬</span><b>Βίντεο</b><small>Τα άρθρα μας σε βίντεο</small></Link>
+        <Link href="/contact?kind=article" className="mini mini-big c-write"><span aria-hidden="true">✍️</span><b>Γράψε κι εσύ</b><small>Στείλε μας ιδέα ή το δικό σου άρθρο</small></Link></div></section>
       <section className="acc-sec"><h2 className="h2">Παράσημα <small>({have.size}/{Object.keys(BADGES).length})</small></h2>
         <ul className="badges">{Object.entries(BADGES).map(([c, b]) => <li key={c} className={`badge${have.has(c) ? ' on' : ''}`}><i aria-hidden="true">{have.has(c) ? b.icon : '🔒'}</i><b>{b.label}</b><small>{b.desc}</small></li>)}</ul></section>
       <section className="acc-sec"><h2 className="h2">Τα παιχνίδια μου</h2>
