@@ -14,6 +14,8 @@ const iceServers = async () => {
   if (!iceCache || Date.now() - iceAt > 30 * 60000) { iceCache = (await api('/api/chat/ice').catch(() => ({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }))).iceServers; iceAt = Date.now(); }
   return iceCache;
 };
+/** Φόρτωση των διακομιστών ICE από πριν, ώστε η κλήση να μην περιμένει. */
+export const prewarmIce = () => iceServers().catch(() => {});
 const post = (body, keepalive) => (keepalive
   ? fetch('/api/chat/call', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {})
   : api('/api/chat/call', { method: 'POST', body }));
@@ -73,6 +75,8 @@ const CallLayer = forwardRef(function CallLayer({ me, features }, ref) {
   const flushPending = async () => { const l = pendingIce.current.splice(0); for (const c of l) { try { await pc.current.addIceCandidate(c); } catch {} } };
 
   useImperativeHandle(ref, () => ({
+    /** Υπάρχει κλήση σε εξέλιξη (για γρήγορο έλεγχο σημάτων) */
+    active: () => !!cur.current,
     /** Εξερχόμενη κλήση */
     async start(peer, video) {
       if (cur.current) return; setErr('');

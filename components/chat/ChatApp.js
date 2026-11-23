@@ -7,7 +7,7 @@ import { connectRealtime, blip } from '@/lib/chatClient';
 import { e2eSupported, myDevice, encryptFor, decryptMsg } from '@/lib/e2e';
 import { moderate } from '@/lib/community.mjs';
 import { MessageList, Composer } from './Messages';
-import CallLayer from './CallLayer';
+import CallLayer, { prewarmIce } from './CallLayer';
 import { Explore, RulesModal } from './Explore';
 
 const parseHash = () => { const h = (typeof location !== 'undefined' ? location.hash : '').replace(/^#\/?/, ''); const [k, id] = h.split('/'); return k === 'ch' ? { t: 'ch', id: +id } : k === 'dm' ? { t: 'dm', id: +id || 0 } : k === 'explore' ? { t: 'explore' } : { t: 'home' }; };
@@ -29,6 +29,7 @@ export default function ChatApp({ siteUrl }) {
   const loadBoot = useCallback(() => api('/api/chat/bootstrap').then((b) => { setBoot(b); return b; }).catch((e) => setErr(e.message)), []);
   useEffect(() => { loadBoot(); const on = () => setView(parseHash()); on(); window.addEventListener('hashchange', on); return () => window.removeEventListener('hashchange', on); }, [loadBoot]);
   useEffect(() => { const k = (e) => { if (e.key === 'Escape') { setRules(null); setSettings(false); } }; window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, []);
+  useEffect(() => { if (boot?.features?.calls) prewarmIce(); }, [boot?.features?.calls]);
   useEffect(() => { if (!boot?.me) return; if (!e2eSupported()) { setE2eErr('Αυτός ο browser δεν υποστηρίζει κρυπτογράφηση. Δοκίμασε Chrome, Edge, Firefox ή Safari.'); return; } myDevice(boot.me.id).catch(() => setE2eErr('Δεν ήταν δυνατή η δημιουργία κλειδιών κρυπτογράφησης σε αυτή τη συσκευή.')); }, [boot?.me?.id]); // eslint-disable-line
   useEffect(() => { const t = setInterval(() => { if (document.visibilityState === 'visible') { api('/api/chat/ping', { method: 'POST', body: {} }).catch(() => {}); loadBoot(); } }, 45000); return () => clearInterval(t); }, [loadBoot]);
 
@@ -97,7 +98,10 @@ export default function ChatApp({ siteUrl }) {
       if (v.t === 'ch' && v.id) loadChannel(v.id, lastId(msgsRef.current[v.id])).catch(() => {});
       if (v.t === 'dm' && v.id) loadDm(v.id, lastId(dmMsgsRef.current[v.id])).catch(() => {});
     };
-    const t = setInterval(tick, rt ? 20000 : 2500); return () => { alive = false; clearInterval(t); };
+    const t = setInterval(tick, rt ? 20000 : 1500);
+    // όσο γίνεται κλήση, τα σήματα ελέγχονται κάθε 0,6″ (εφεδρικά, αν το Ably αργήσει ή λείπει)
+    const fast = setInterval(async () => { if (!alive || !callRef.current?.active?.()) return; try { const r = await api(`/api/chat/signals?after=${sigAfter.current}`); r.signals.forEach(onSignal); } catch {} }, 600);
+    return () => { alive = false; clearInterval(t); clearInterval(fast); };
   }, [!!boot, rt, onSignal, loadChannel, loadDm]); // eslint-disable-line
 
   /* ---------------- αποστολή ---------------- */
