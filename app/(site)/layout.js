@@ -43,7 +43,7 @@ export default async function SiteLayout({ children }) {
   }
   // Οι νέες σελίδες (Βίντεο, Επικοινωνία) μπαίνουν αυτόματα στο μενού, εκτός αν ο διαχειριστής τις έχει ήδη (ή τις έκρυψε) στον Σχεδιαστή
   const nav = site.nav || [], has = (h) => nav.some((n) => (n.href || '').replace(/\/$/, '') === h);
-  const auto = [!has('/videos') && { label: 'Βίντεο', href: '/videos', visible: true, isNew: true }, !has('/contact') && { label: 'Επικοινωνία', href: '/contact', visible: true }, !has('/chat') && !nav.some((n) => /chat\./.test(n.href || '')) && { label: 'Chat', href: process.env.NEXT_PUBLIC_CHAT_URL || '/chat', visible: true, isNew: true }].filter(Boolean);
+  const auto = [!has('/videos') && { label: 'Βίντεο', href: '/videos', visible: true, isNew: true }, !has('/contact') && { label: 'Επικοινωνία', href: '/contact', visible: true }].filter(Boolean);
   const items = [...nav, ...auto].filter((n) => n.visible !== false).map((n) => ((n.href || '').replace(/\/$/, '') === '/videos' ? { ...n, isNew: true } : n));
   const a = site.announcement;
   // Εποχιακό θέμα: διαθέσιμο θέμα, προτίμηση επισκέπτη (cookie), εισαγωγή από το newsletter (υπογεγραμμένο cookie) και προεπισκόπηση διαχειριστή.

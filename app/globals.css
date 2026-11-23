@@ -648,3 +648,6 @@ html.g3d-leaving body::after{content:"";position:fixed;inset:0;z-index:99999;bac
 .astats{display:inline-flex;gap:8px;margin-left:8px;font-weight:700;opacity:.85}
 .mini-big{padding:18px;border-width:3px;box-shadow:5px 5px 0 var(--ink);transition:transform .15s}.mini-big:hover{transform:translateY(-3px)}
 .mini-big>span:first-child{font-size:2rem}.mini-big b{font-size:1.15rem;display:flex;align-items:center}
+/* το λογότυπο δεν «συμπιέζεται» ποτέ όταν το μενού έχει πολλά στοιχεία */
+.nav-in>.brand{flex:none}.brand img{min-width:90px}
+@media (max-width:1440px) and (min-width:1121px){.nav-inbox-t{display:none}.nav-inbox{padding:7px 10px}#mainnav a{padding:8px 9px;font-size:.88rem}}
