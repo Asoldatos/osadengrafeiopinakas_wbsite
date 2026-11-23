@@ -649,5 +649,15 @@ html.g3d-leaving body::after{content:"";position:fixed;inset:0;z-index:99999;bac
 .mini-big{padding:18px;border-width:3px;box-shadow:5px 5px 0 var(--ink);transition:transform .15s}.mini-big:hover{transform:translateY(-3px)}
 .mini-big>span:first-child{font-size:2rem}.mini-big b{font-size:1.15rem;display:flex;align-items:center}
 /* το λογότυπο δεν «συμπιέζεται» ποτέ όταν το μενού έχει πολλά στοιχεία */
-.nav-in>.brand{flex:none}.brand img{min-width:90px}
+.nav-in>.brand{flex:0 0 auto;margin-right:auto}.brand img,.brand video{height:44px;width:auto;max-width:170px;object-fit:contain;object-position:left center}
 @media (max-width:1440px) and (min-width:1121px){.nav-inbox-t{display:none}.nav-inbox{padding:7px 10px}#mainnav a{padding:8px 9px;font-size:.88rem}}
+/* εικονίδια γραμμής (αντί για emoji) στις λειτουργίες κοινότητας */
+.ic{flex:none;display:inline-block;vertical-align:-.18em}
+.soc-like.on .ic path{fill:#E0435E;stroke:#E0435E}
+.soc-stat .ic{color:var(--muted)}
+.comcard-i{display:inline-flex;width:52px;height:52px;align-items:center;justify-content:center;border-radius:14px;border:2.5px solid var(--ink);background:#fff;color:var(--ink)}
+.mini-big>span[aria-hidden]{display:inline-flex;color:var(--ink)}
+.fab .ic{color:var(--ink)}
+.fab-menu a .ic{order:2}
+.vplay .ic{margin-left:3px}.vplay .ic path{fill:currentColor}
+.ic-li{display:flex;align-items:center;gap:10px}.ic-li .ic{color:var(--muted)}

@@ -51,12 +51,12 @@ export default function Messages() {
       <section className="dm-chat" aria-label="Συνομιλία">
         {!withId || !other ? <div className="dm-empty"><Mascot mood="phone" size={140} /><p>{withId && !other ? 'Μπορείς να στείλεις μηνύματα μόνο σε φίλους.' : 'Διάλεξε έναν φίλο για να του γράψεις.'}</p></div> : <>
           <header className="dm-h"><Link href="/messages" className="dm-back" aria-label="Πίσω στις συνομιλίες">←</Link><Mascot mood={other.avatar} size={38} /><b>{other.nickname}</b><span className="grow" />
-            <button type="button" className="linkbtn" onClick={() => setRep({ reason: 'bully', detail: '', block: true })}>🚩 Αναφορά</button></header>
-          <ol className="dm-msgs">{!msgs.length && <li className="dm-hello">Πείτε ένα γεια! 👋 Τα μηνύματα σβήνονται αυτόματα μετά από λίγες εβδομάδες.</li>}
-            {msgs.map((m) => <li key={m.id} className={m.mine ? 'me' : 'them'}><p>{m.body}</p><small>{time(m.at)}{m.mine && m.id <= seen ? ' · ✓✓' : ''}</small></li>)}<li ref={endRef} aria-hidden="true" /></ol>
+            <button type="button" className="linkbtn" onClick={() => setRep({ reason: 'bully', detail: '', block: true })}>Αναφορά</button></header>
+          <ol className="dm-msgs">{!msgs.length && <li className="dm-hello">Πείτε ένα γεια. Τα μηνύματα σβήνονται αυτόματα μετά από λίγες εβδομάδες.</li>}
+            {msgs.map((m) => <li key={m.id} className={m.mine ? 'me' : 'them'}><p>{m.body}</p><small>{time(m.at)}{m.mine && m.id <= seen ? ' · διαβάστηκε' : ''}</small></li>)}<li ref={endRef} aria-hidden="true" /></ol>
           {err && <p className="err dm-err" role="alert">{err}</p>}
           <form className="dm-form" onSubmit={send}><label htmlFor="dm-t" className="sr-only">Μήνυμα</label><input id="dm-t" value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder="Γράψε ένα μήνυμα…" autoComplete="off" /><button className="btn btn-primary sm" disabled={!text.trim()}>Αποστολή</button></form>
-          <p className="dm-safe">🛡️ Ποτέ μη δίνεις διεύθυνση, τηλέφωνο, κωδικούς ή φωτογραφίες, και μη δέχεσαι να βρεθείς με κάποιον που γνώρισες εδώ.</p>
+          <p className="dm-safe">Ποτέ μη δίνεις διεύθυνση, τηλέφωνο, κωδικούς ή φωτογραφίες, και μη δέχεσαι να βρεθείς με κάποιον που γνώρισες εδώ.</p>
         </>}
       </section>
       {rep && <div className="g3d-pop-back" onClick={() => setRep(null)}><form className="g3d-pop dm-rep" role="dialog" aria-modal="true" aria-labelledby="rep-t" onSubmit={report} onClick={(e) => e.stopPropagation()}>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Mascot from '../Mascot';
+import Icon from '../Icons';
 
 /** Αιωρούμενο κουμπί συνομιλιών (κάτω δεξιά) για συνδεδεμένους μαθητές: αριθμός αδιάβαστων και «φούσκα» όταν έρχεται νέο μήνυμα ή αίτημα φιλίας. */
 export default function ChatFab() {
@@ -18,15 +19,15 @@ export default function ChatFab() {
   const total = n.messages + n.requests;
   return (
     <div className="fab-wrap">
-      {pop && <Link href={pop === 'msg' ? CHAT + '#dm' : '/account/friends'} className="fab-pop" role="status"><Mascot mood="phone" size={46} /><span><b>{pop === 'msg' ? 'Νέο μήνυμα! 📩' : 'Νέο αίτημα φιλίας! 🤝'}</b><small>Πάτα για να το δεις</small></span></Link>}
+      {pop && <Link href={pop === 'msg' ? CHAT + '#dm' : '/account/friends'} className="fab-pop" role="status"><Mascot mood="phone" size={46} /><span><b>{pop === 'msg' ? 'Νέο μήνυμα' : 'Νέο αίτημα φιλίας'}</b><small>Πάτα για να το δεις</small></span></Link>}
       {open && <nav className="fab-menu" aria-label="Κοινότητα">
-        <a href={CHAT}><span aria-hidden="true">🎮</span>Chat & servers</a>
-        <a href={CHAT + '#dm'}><span aria-hidden="true">💬</span>Μηνύματα 🔒{n.messages > 0 && <span className="cbadge">{n.messages}</span>}</a>
-        <Link href="/account/friends"><span aria-hidden="true">🤝</span>Φίλοι{n.requests > 0 && <span className="cbadge">{n.requests}</span>}</Link>
-        <Link href="/videos"><span aria-hidden="true">🎬</span>Βίντεο</Link>
-        <Link href="/contact?kind=article"><span aria-hidden="true">✍️</span>Γράψε κι εσύ</Link></nav>}
+        <a href={CHAT}><Icon name="hash" />Chat</a>
+        <a href={CHAT + '#dm'}><Icon name="chat" />Μηνύματα{n.messages > 0 && <span className="cbadge">{n.messages}</span>}</a>
+        <Link href="/account/friends"><Icon name="users" />Φίλοι{n.requests > 0 && <span className="cbadge">{n.requests}</span>}</Link>
+        <Link href="/videos"><Icon name="film" />Βίντεο</Link>
+        <Link href="/contact?kind=article"><Icon name="pen" />Γράψε κι εσύ</Link></nav>}
       <button type="button" className={`fab${total ? ' has' : ''}${pop ? ' ring' : ''}`} onClick={() => setOpen(!open)} aria-expanded={open} aria-label={`Κοινότητα${total ? `: ${total} νέα` : ''}`}>
-        <span aria-hidden="true">{open ? '✕' : '💬'}</span>{total > 0 && !open && <span className="cbadge">{total > 99 ? '99+' : total}</span>}</button>
+        <Icon name={open ? 'x' : 'chat'} size={24} />{total > 0 && !open && <span className="cbadge">{total > 99 ? '99+' : total}</span>}</button>
     </div>
   );
 }

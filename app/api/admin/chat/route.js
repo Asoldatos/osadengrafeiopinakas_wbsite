@@ -19,8 +19,8 @@ export const POST = route(async (req, _c, user) => {
   if (b.action !== 'seed') return json({ error: 'Άγνωστη ενέργεια.' }, 400);
   const ex = (await q("select id from chat_servers where slug='osa-den-grafei-o-pinakas'"))[0];
   if (ex) return json({ error: 'Ο προεπιλεγμένος server υπάρχει ήδη.' }, 409);
-  const s = (await q(`insert into chat_servers(slug, name, description, icon, color, rules, status, sort) values('osa-den-grafei-o-pinakas', 'Όσα δεν γράφει ο πίνακας', 'Ο επίσημος server της σχολικής μας εφημερίδας: νέα, άρθρα, παιχνίδια και κουβέντα!', '📰', '#2C5E4A', $1, 'draft', 0) returning id`, [RULES]))[0];
-  const chans = [['📢-ανακοινώσεις', 'Τα νέα της σύνταξης', true, 0], ['💬-γενικά', 'Η κουβέντα της παρέας', false, 0], ['📰-άρθρα', 'Συζητάμε τα άρθρα της εφημερίδας', false, 0], ['💡-ιδέες', 'Ιδέες για νέα άρθρα και θέματα', false, 10], ['🎮-παιχνίδια', 'Ρεκόρ, κόλπα και παιχνίδια του Κιμωλάκη', false, 0], ['🆘-βοήθεια', 'Ερωτήσεις για τον ιστότοπο', false, 0]];
+  const s = (await q(`insert into chat_servers(slug, name, description, icon, color, rules, status, sort) values('osa-den-grafei-o-pinakas', 'Όσα δεν γράφει ο πίνακας', 'Ο επίσημος χώρος της σχολικής μας εφημερίδας: νέα, άρθρα, παιχνίδια και κουβέντα.', '', '#2C5E4A', $1, 'draft', 0) returning id`, [RULES]))[0];
+  const chans = [['ανακοινώσεις', 'Τα νέα της σύνταξης', true, 0], ['γενικά', 'Η κουβέντα της παρέας', false, 0], ['άρθρα', 'Συζητάμε τα άρθρα της εφημερίδας', false, 0], ['ιδέες', 'Ιδέες για νέα άρθρα και θέματα', false, 10], ['παιχνίδια', 'Ρεκόρ, κόλπα και παιχνίδια του Κιμωλάκη', false, 0], ['βοήθεια', 'Ερωτήσεις για τον ιστότοπο', false, 0]];
   let i = 0; for (const [n, t, ro, sm] of chans) await q('insert into chat_channels(server_id, name, topic, readonly, slowmode, sort) values($1,$2,$3,$4,$5,$6)', [s.id, n, t, ro, sm, i++]);
   await logActivity(user, 'Δημιουργία server chat', 'Όσα δεν γράφει ο πίνακας');
   return json({ ok: true, id: s.id }, 201);

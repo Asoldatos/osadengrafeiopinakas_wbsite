@@ -6,5 +6,5 @@ export const metadata = { title: 'Οι φίλοι μου', robots: { index: fals
 export default async function Page() {
   const st = await getStudent();
   if (!st) redirect('/account/login?next=/account/friends');
-  return <div className="wrap narrow page-pad"><h1 className="h1">Φίλοι 🤝</h1><Friends me={st.nickname} /></div>;
+  return <div className="wrap narrow page-pad"><h1 className="h1">Φίλοι</h1><Friends me={st.nickname} /></div>;
 }

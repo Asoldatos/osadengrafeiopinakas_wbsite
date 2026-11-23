@@ -19,7 +19,7 @@ export default function TicketView({ token }) {
   return (
     <div className="tk">
       <header className="tk-h"><span className="chip">{TICKET_KINDS[t.kind]}</span><span className={`tk-st st-${t.status}`}>{TICKET_STATUS[t.status]}</span><h1 className="h2">#{t.id} · {t.subject}</h1></header>
-      <ol className="tk-thread">{d.thread.map((m) => <li key={m.id} className={m.author === 'staff' ? 'staff' : 'user'}><div className="tk-meta"><b>{m.author === 'staff' ? `✏️ ${m.user_name || 'Η σύνταξη'}` : 'Εσύ'}</b> · {fmtDate(m.created_at)}</div><p>{m.body}</p></li>)}</ol>
+      <ol className="tk-thread">{d.thread.map((m) => <li key={m.id} className={m.author === 'staff' ? 'staff' : 'user'}><div className="tk-meta"><b>{m.author === 'staff' ? (m.user_name || 'Η σύνταξη') : 'Εσύ'}</b> · {fmtDate(m.created_at)}</div><p>{m.body}</p></li>)}</ol>
       {t.status === 'closed' ? <p className="muted">Το αίτημα έχει κλείσει. Για κάτι νέο, στείλε μας ξανά από τη φόρμα επικοινωνίας.</p> : (
         <form onSubmit={send} className="tk-reply"><div className="fld"><label htmlFor="tk-m">Γράψε ξανά στη σύνταξη</label><textarea id="tk-m" rows={4} value={msg} onChange={(e) => setMsg(e.target.value)} maxLength={4000} /></div>
           {err && <p className="err" role="alert">{err}</p>}<button className="btn btn-primary sm" disabled={busy || msg.trim().length < 2}>{busy ? 'Αποστολή…' : 'Αποστολή'}</button></form>)}

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Mascot from '../Mascot';
 import { api } from '@/lib/clientUpload';
 import { fmtDate } from '@/lib/util';
+import Icon from '../Icons';
 
 const nf = (n) => new Intl.NumberFormat('el-GR', { notation: n >= 10000 ? 'compact' : 'standard' }).format(n || 0);
 /** Προβολές, likes και σχόλια στο τέλος ενός άρθρου. */
@@ -32,9 +33,9 @@ export default function ArticleSocial({ id, slug }) {
   return (
     <section className="soc" id="comments" aria-label="Αντιδράσεις αναγνωστών">
       <div className="soc-bar">
-        {d.enabled.views && <span className="soc-stat" title="Προβολές">👁️ <b>{nf(d.views)}</b> {d.views === 1 ? 'προβολή' : 'προβολές'}</span>}
-        {d.enabled.likes && <button type="button" className={`soc-like${d.liked ? ' on' : ''}${pop ? ' pop' : ''}`} onClick={like} aria-pressed={d.liked}>{d.liked ? '❤️' : '🤍'} <b>{nf(d.likes)}</b> <span>{d.liked ? 'Σου αρέσει' : 'Μου αρέσει'}</span></button>}
-        {d.enabled.comments && <a href="#c-form" className="soc-stat">💬 <b>{nf(d.comments.length)}</b> σχόλια</a>}
+        {d.enabled.views && <span className="soc-stat" title="Προβολές"><Icon name="eye" size={17} /> <b>{nf(d.views)}</b> {d.views === 1 ? 'προβολή' : 'προβολές'}</span>}
+        {d.enabled.likes && <button type="button" className={`soc-like${d.liked ? ' on' : ''}${pop ? ' pop' : ''}`} onClick={like} aria-pressed={d.liked}><Icon name="heart" size={18} /> <b>{nf(d.likes)}</b> <span>{d.liked ? 'Σου αρέσει' : 'Μου αρέσει'}</span></button>}
+        {d.enabled.comments && <a href="#c-form" className="soc-stat"><Icon name="comment" size={17} /> <b>{nf(d.comments.length)}</b> σχόλια</a>}
       </div>
       {d.enabled.comments && <>
         <h2 className="h3">Σχόλια</h2>
@@ -44,10 +45,10 @@ export default function ArticleSocial({ id, slug }) {
               <div className="c-row"><small className="muted">Να είσαι ευγενικός. Μη γράφεις προσωπικά στοιχεία. {text.length}/1000</small><button className="btn btn-primary sm" disabled={busy || text.trim().length < 2}>{busy ? '…' : 'Δημοσίευση'}</button></div></div></form>
         ) : <p id="c-form" className="c-login"><Link className="btn btn-primary sm" href={login}>Συνδέσου</Link> για να γράψεις σχόλιο ή να κάνεις like.</p>}
         {err && <p className="err" role="alert">{err}</p>}
-        {!d.comments.length ? <p className="muted">Κανένα σχόλιο ακόμα. Γράψε πρώτος! ✏️</p> : (
+        {!d.comments.length ? <p className="muted">Κανένα σχόλιο ακόμα. Γράψε πρώτος.</p> : (
           <ul className="c-list">{d.comments.map((c) => (
             <li key={c.id}><Mascot mood={c.avatar} size={40} /><div><div className="c-meta"><b>{c.nickname}</b> · <time dateTime={c.created_at}>{fmtDate(c.created_at)}</time></div><p>{c.body}</p>
-              <div className="c-acts">{c.mine ? <button type="button" className="linkbtn" onClick={() => remove(c)}>Διαγραφή</button> : d.me && (c.reported ? <span className="muted">Αναφέρθηκε ✔</span> : <button type="button" className="linkbtn" onClick={() => report(c)}>🚩 Αναφορά</button>)}</div></div></li>))}</ul>)}
+              <div className="c-acts">{c.mine ? <button type="button" className="linkbtn" onClick={() => remove(c)}>Διαγραφή</button> : d.me && (c.reported ? <span className="muted">Αναφέρθηκε</span> : <button type="button" className="linkbtn" onClick={() => report(c)}>🚩 Αναφορά</button>)}</div></div></li>))}</ul>)}
       </>}
     </section>
   );

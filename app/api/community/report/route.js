@@ -23,7 +23,7 @@ export const POST = sroute(async (req, _c, st) => {
   }
   const reason = REASONS[b.reason] ? b.reason : 'other';
   const detail = cleanText(b.detail, 1000).trim();
-  await q('insert into dm_reports(reporter, reported, reason, snapshot) values($1,$2,$3,$4::jsonb)', [st.id, other, `${REASONS[reason]}${detail ? ' — ' + detail : ''}${fromDevice ? ' [🔒 κρυπτογραφημένη συνομιλία: τα μηνύματα τα έστειλε η συσκευή του μαθητή που έκανε την αναφορά]' : ''}`, JSON.stringify(snap)]);
+  await q('insert into dm_reports(reporter, reported, reason, snapshot) values($1,$2,$3,$4::jsonb)', [st.id, other, `${REASONS[reason]}${detail ? ' — ' + detail : ''}${fromDevice ? ' [κρυπτογραφημένη συνομιλία: τα μηνύματα τα έστειλε η συσκευή του μαθητή που έκανε την αναφορά]' : ''}`, JSON.stringify(snap)]);
   if (b.block) { await q('delete from friendships where a=$1 and b=$2', [a, bb]); await q('insert into blocks(blocker, blocked) values($1,$2) on conflict do nothing', [st.id, other]); }
   // ειδοποίηση της σύνταξης (χωρίς τα μηνύματα στο email: τα βλέπει μόνο στον πίνακα)
   await alertStaff(`Αναφορά συνομιλίας: ${REASONS[reason]}`, 'Ένας μαθητής ανέφερε μια συνομιλία. Δες τη στον πίνακα διαχείρισης → Κοινότητα → Αναφορές.', '/editor-panel/community?tab=reports');

@@ -13,6 +13,6 @@ const columns = [
   { k: 'youtube_id', label: '', render: (r) => r.youtube_id ? <img src={`https://i.ytimg.com/vi/${r.youtube_id}/default.jpg`} alt="" width="80" height="60" style={{ borderRadius: 8, objectFit: 'cover' }} /> : '—' },
   { k: 'title', label: 'Τίτλος', render: (r) => <b>{r.title}</b> }, { k: 'status', label: 'Κατάσταση' }, { k: 'article_title', label: 'Άρθρο' }, { k: 'created_at', label: 'Δημιουργία', date: true }];
 export default function Page() {
-  return (<><h1>Βιντεοθήκη 🎬</h1><p className="muted">Τα βίντεο φιλοξενούνται στο YouTube και εμφανίζονται στη σελίδα <a href="/videos" target="_blank" rel="noopener noreferrer">/videos</a>, ώστε να μη γεμίζει ο αποθηκευτικός χώρος.</p>
+  return (<><h1>Βιντεοθήκη</h1><p className="muted">Τα βίντεο φιλοξενούνται στο YouTube και εμφανίζονται στη σελίδα <a href="/videos" target="_blank" rel="noopener noreferrer">/videos</a>, ώστε να μη γεμίζει ο αποθηκευτικός χώρος.</p>
     <Crud resource="videos" noun="βίντεο" fields={fields} columns={columns} statusFilter reorder defaults={{ status: 'draft' }} previewPath={(r) => `/videos/${r.slug}`} /></>);
 }
