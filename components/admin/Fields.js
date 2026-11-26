@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import TutorialEditor from './TutorialEditor';
+import ImageEditor, { editableImage } from './ImageEditor';
+import RichEditor from './RichEditor';
 import { api, toast, uploadImage, uploadPdf, uploadVideo, isVideoFile } from '@/lib/clientUpload';
 import { isVideoUrl, parseVideo, buildVideoUrl, stripHash } from '@/lib/media';
 
 export function MediaPicker({ onPick, onClose, allowVideo = true }) {
-  const [rows, setRows] = useState(null), [q, setQ] = useState(''), [prog, setProg] = useState(null);
+  const [rows, setRows] = useState(null), [q, setQ] = useState(''), [prog, setProg] = useState(null), [ed, setEd] = useState(null);
   const ok = (m) => m.mime.startsWith('image/') || (allowVideo && m.mime.startsWith('video/'));
   const load = () => api('/api/admin/media' + (q ? `?q=${encodeURIComponent(q)}` : '')).then((r) => setRows(r.filter(ok))).catch((e) => toast(e.message, 'oops'));
   useEffect(() => { const t = setTimeout(load, 200); return () => clearTimeout(t); }, [q]);
@@ -21,8 +23,10 @@ export function MediaPicker({ onPick, onClose, allowVideo = true }) {
         <label className="btn btn-primary sm">{allowVideo ? 'Νέο αρχείο' : 'Νέα εικόνα'}<input type="file" hidden accept={allowVideo ? 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime,video/ogg' : 'image/png,image/jpeg,image/webp,image/gif,image/svg+xml'} onChange={(e) => { up(e.target.files[0]); e.target.value = ''; }} /></label></div>
       {prog !== null && <div className="bar"><span style={{ width: `${prog * 100}%` }} /></div>}
       {!rows ? <p>Φόρτωση…</p> : !rows.length ? <p className="muted">Δεν υπάρχουν αρχεία ακόμα. Ανέβασε το πρώτο!</p> : <div className="mgrid">{rows.map((m) => (
-        <button key={m.id} type="button" className="mitem" onClick={() => onPick(m.url)} title={m.name}>
-          {m.mime.startsWith('video/') ? <><video src={`${m.url}#t=0.1`} muted preload="metadata" playsInline /><b className="vbadge">🎬 Βίντεο</b></> : <img src={m.url} alt={m.alt || m.name} loading="lazy" />}<span>{m.name}</span></button>))}</div>}
+        <div key={m.id} className="mitem-w"><button type="button" className="mitem" onClick={() => onPick(m.url)} title={m.name}>
+          {m.mime.startsWith('video/') ? <><video src={`${m.url}#t=0.1`} muted preload="metadata" playsInline /><b className="vbadge">Βίντεο</b></> : <img src={m.url} alt={m.alt || m.name} loading="lazy" />}<span>{m.name}</span></button>
+          {editableImage(m.url) && <button type="button" className="mitem-ed" onClick={() => setEd(m)} title="Επεξεργασία πριν τη χρήση">Επεξεργασία</button>}</div>))}</div>}
+      {ed && <ImageEditor src={ed.url} mediaId={ed.id} onClose={() => setEd(null)} onDone={(u) => { setEd(null); onPick(u); }} />}
     </div></div>
   );
 }
@@ -87,17 +91,19 @@ export function PickMedia({ onClose, onPick, allowVideo = true, background = fal
 }
 
 export function ImageField({ value, onChange, noVideo = false, bg = false }) {
-  const [pick, setPick] = useState(false), [opts, setOpts] = useState(false);
+  const [pick, setPick] = useState(false), [opts, setOpts] = useState(false), [ed, setEd] = useState(false);
   const vid = isVideoUrl(value);
   return (
     <div className="imgf">
       {value ? (vid ? <video src={`${stripHash(value)}#t=0.1`} poster={parseVideo(value).poster || undefined} muted preload="metadata" className="imgf-prev" /> : <img src={value} alt="" className="imgf-prev" />) : <div className="imgf-prev empty">Χωρίς εικόνα</div>}
-      <div className="col">{vid && <span className="pill published">🎬 Βίντεο</span>}
+      <div className="col">{vid && <span className="pill published">Βίντεο</span>}
         <button type="button" className="btn btn-ghost sm" onClick={() => setPick(true)}>{value ? 'Αλλαγή' : noVideo ? 'Επιλογή εικόνας' : 'Επιλογή εικόνας / βίντεο'}</button>
         {vid && <button type="button" className="btn btn-ghost sm" onClick={() => setOpts(true)}>Ρυθμίσεις βίντεο</button>}
+        {!vid && editableImage(value) && <button type="button" className="btn btn-ghost sm" onClick={() => setEd(true)}>Επεξεργασία / περικοπή</button>}
         {value && <button type="button" className="btn btn-ghost sm" onClick={() => onChange('')}>Αφαίρεση</button>}</div>
       {pick && <PickMedia allowVideo={!noVideo} background={bg} onClose={() => setPick(false)} onPick={(u) => { onChange(u); setPick(false); }} />}
       {opts && <VideoOptions url={value} background={bg} onCancel={() => setOpts(false)} onDone={(u) => { onChange(u); setOpts(false); }} />}
+      {ed && <ImageEditor src={value} onClose={() => setEd(false)} onDone={(u) => { onChange(u); setEd(false); }} />}
     </div>
   );
 }
@@ -113,28 +119,8 @@ export function PdfField({ value, onChange }) {
     </div>
   );
 }
-export function HtmlEditor({ value, onChange, label = 'Κείμενο άρθρου', extra, placeholder, compact = false }) {
-  const ref = useRef(null); const [pick, setPick] = useState(false);
-  useEffect(() => { const el = ref.current; if (el && el.innerHTML !== (value || '') && document.activeElement !== el) el.innerHTML = value || ''; }, [value]);
-  const cmd = (c, a) => { ref.current.focus(); document.execCommand(c, false, a); onChange(ref.current.innerHTML); };
-  const B = ({ c, a, children, t }) => <button type="button" className="tb" title={t} aria-label={t} onMouseDown={(e) => e.preventDefault()} onClick={() => cmd(c, a)}>{children}</button>;
-  return (
-    <div className="rte">
-      <div className="rte-bar" role="toolbar" aria-label="Μορφοποίηση κειμένου">
-        <B c="bold" t="Έντονα"><b>Β</b></B><B c="italic" t="Πλάγια"><i>Π</i></B><B c="underline" t="Υπογράμμιση"><u>Υ</u></B>
-        <B c="formatBlock" a="h2" t="Τίτλος">Τ1</B><B c="formatBlock" a="h3" t="Υπότιτλος">Τ2</B><B c="formatBlock" a="p" t="Κανονική παράγραφος">¶</B>
-        <B c="insertUnorderedList" t="Λίστα">• ―</B><B c="insertOrderedList" t="Αριθμημένη λίστα">1.</B><B c="formatBlock" a="blockquote" t="Παράθεμα">❝</B>
-        <button type="button" className="tb" title="Σύνδεσμος" onMouseDown={(e) => e.preventDefault()} onClick={() => { const u = prompt('Διεύθυνση συνδέσμου (https://…)'); if (u) cmd('createLink', u); }}>🔗</button>
-        <button type="button" className="tb" title="Εικόνα" onMouseDown={(e) => e.preventDefault()} onClick={() => { ref.current.focus(); setPick(true); }}>🖼️</button>
-        <B c="insertHorizontalRule" t="Διαχωριστική γραμμή">―</B><B c="removeFormat" t="Καθαρισμός μορφοποίησης">✕</B>
-        {extra && extra({ insert: (html) => cmd('insertHTML', html), focus: () => ref.current.focus() })}
-      </div>
-      <div ref={ref} className={`rte-body prose${compact ? ' rte-compact' : ''}`} data-ph={placeholder || undefined} contentEditable suppressContentEditableWarning role="textbox" aria-multiline="true" aria-label={label}
-        onInput={() => onChange(ref.current.innerHTML)} onPaste={(e) => { e.preventDefault(); document.execCommand('insertText', false, e.clipboardData.getData('text/plain')); }} />
-      {pick && <MediaPicker allowVideo={false} onClose={() => setPick(false)} onPick={(u) => { setPick(false); cmd('insertImage', u); }} />}
-    </div>
-  );
-}
+/** Κειμενογράφος (βλ. RichEditor.js). Κρατάμε το παλιό όνομα για συμβατότητα. */
+export function HtmlEditor(props) { return <RichEditor {...props} />; }
 const toLocal = (iso) => { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
 export const STATUS_OPTS = [{ v: 'draft', l: 'Πρόχειρο' }, { v: 'published', l: 'Δημοσιευμένο' }, { v: 'archived', l: 'Αρχειοθετημένο' }];
 
@@ -144,8 +130,9 @@ export function Field({ f, value, onChange, options = [], form }) {
   const v = value ?? '';
   const L = <label htmlFor={id}>{f.label}{f.hint && <small>{f.hint}</small>}</label>;
   switch (f.t) {
+    case 'bigtitle': return <div className="fld fld-big"><label htmlFor={id} className="sr-only">{f.label}</label><AutoText id={id} className={f.sub ? 'studio-sub' : 'studio-title'} value={v} onChange={onChange} placeholder={f.ph || f.label} max={f.max} /></div>;
     case 'area': return <div className="fld">{L}<textarea id={id} rows={f.rows || 4} value={v} onChange={(e) => onChange(e.target.value)} /></div>;
-    case 'html': return <div className="fld"><label>{f.label}</label><HtmlEditor value={v} onChange={onChange} /></div>;
+    case 'html': return <div className="fld fld-html"><label>{f.label}{f.hint && <small>{f.hint}</small>}</label><HtmlEditor value={v} onChange={onChange} draftKey={f.draftKey ? f.draftKey(form || {}) : undefined} /></div>;
     case 'image': return <div className="fld"><label>{f.label}</label><ImageField value={v} onChange={onChange} noVideo={f.noVideo} bg={f.bg} /></div>;
     case 'pdf': return <div className="fld"><label>{f.label}</label><PdfField value={v} onChange={onChange} /></div>;
     case 'bool': return <div className="fld chk"><label><input type="checkbox" checked={!!value} onChange={(e) => onChange(e.target.checked)} /> {f.label}{f.hint && <small>{f.hint}</small>}</label></div>;
@@ -166,6 +153,12 @@ export function Field({ f, value, onChange, options = [], form }) {
     case 'tutorial': return <TutorialEditor f={f} value={value} onChange={onChange} form={form} />;
     default: return <div className="fld">{L}<input id={id} type="text" value={v} onChange={(e) => onChange(e.target.value)} placeholder={f.ph || ''} /></div>;
   }
+}
+/** Πεδίο κειμένου που μεγαλώνει μόνο του (για μεγάλους τίτλους στο studio άρθρων). */
+function AutoText({ id, className, value, onChange, placeholder, max }) {
+  const r = useRef(null);
+  useEffect(() => { const t = r.current; if (t) { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; } }, [value]);
+  return <><textarea ref={r} id={id} rows={1} className={className} value={value} placeholder={placeholder} maxLength={max || 300} onChange={(e) => onChange(e.target.value.replace(/\n/g, ' '))} onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()} />{max && <small className="fld-count">{String(value || '').length}/{max}</small>}</>;
 }
 export function ImagesField({ f, value, onChange }) {
   const list = Array.isArray(value) ? value : []; const [pick, setPick] = useState(false);

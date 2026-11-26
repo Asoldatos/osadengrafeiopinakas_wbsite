@@ -3,9 +3,11 @@ import { notFound } from 'next/navigation';
 import { getArticle, getRelated, getAdjacent, getSite } from '@/lib/data';
 import { getAdmin } from '@/lib/auth';
 import Pic from '@/components/Pic';
+import Icon from '@/components/Icons';
 import ReadingProgress from '@/components/ReadingProgress';
 import ShareButtons from '@/components/ShareButtons';
 import ArticleSocial from '@/components/community/ArticleSocial';
+import ArticleTools from '@/components/ArticleTools';
 import { imageOnly } from '@/lib/media';
 import { fmtDate, toEmbed, safeUrl, SITE_URL } from '@/lib/util';
 
@@ -43,11 +45,13 @@ export default async function ArticlePage({ params, searchParams }) {
           <h1 className="art-title">{a.title}</h1>{a.subtitle && <p className="lede">{a.subtitle}</p>}
           <div className="byline">
             {a.author_photo ? <Pic src={a.author_photo} alt="" ratio="1/1" className="avatar" sizes="48px" /> : <span className="avatar avatar-i" aria-hidden="true">{(a.author_name || '?').charAt(0)}</span>}
-            <div><strong>{a.author_name || 'Η σύνταξη'}</strong>{a.author_role && <span className="role"> · {a.author_role}</span>}<br /><span className="meta"><time dateTime={a.date}>{fmtDate(a.date)}</time> · {mins} λεπτά ανάγνωσης</span>{a.status === 'published' && <a href="#comments" className="art-stats">👁️ {a.view_count || 0}<span>❤️ {a.like_count || 0}</span><span>💬 {a.comment_count || 0} {a.comment_count === 1 ? 'σχόλιο' : 'σχόλια'}</span></a>}</div>
+            <div><strong>{a.author_name || 'Η σύνταξη'}</strong>{a.author_role && <span className="role"> · {a.author_role}</span>}<br /><span className="meta"><time dateTime={a.date}>{fmtDate(a.date)}</time> · {mins} λεπτά ανάγνωσης</span>{a.status === 'published' && <a href="#comments" className="art-stats"><span><Icon name="eye" size={15} /> {a.view_count || 0}</span><span><Icon name="heart" size={15} /> {a.like_count || 0}</span><span><Icon name="comment" size={15} /> {a.comment_count || 0} {a.comment_count === 1 ? 'σχόλιο' : 'σχόλια'}</span></a>}</div>
           </div>
         </header>
         {a.cover_url && <div className="wrap art-cover"><Pic src={a.cover_url} alt="" ratio="16/8" priority sizes="1100px" className="framed" /></div>}
-        <div className="wrap narrow">
+        <div className={site.ui !== 'classic' ? 'art-grid' : 'wrap narrow'}>
+          {site.ui !== 'classic' && <ArticleTools url={url} />}
+          <div className={site.ui !== 'classic' ? 'art-col' : undefined}>
           <div id="article-body" className="prose big" dangerouslySetInnerHTML={{ __html: a.content }} />
           {(a.videos || []).map((v, i) => { const e = toEmbed(v); return e ? <figure key={i} className="art-fig">{e.kind === 'video' ? <video className="hs-media" src={e.src} controls playsInline preload="metadata" /> : <div className="embed"><iframe src={e.src} title={`Βίντεο ${i + 1}`} allow="fullscreen; picture-in-picture" allowFullScreen loading="lazy" /></div>}</figure> : null; })}
           {a.gallery?.length > 0 && <div className="gal art-gal">{a.gallery.map((g, i) => <Pic key={i} src={g} alt={`Εικόνα ${i + 1} του άρθρου`} ratio="4/3" sizes="(max-width:800px) 50vw, 33vw" />)}</div>}
@@ -60,6 +64,7 @@ export default async function ArticlePage({ params, searchParams }) {
             {adj.prev ? <Link href={`/articles/${adj.prev.slug}`}><small>← Προηγούμενο</small><span>{adj.prev.title}</span></Link> : <span />}
             {adj.next ? <Link href={`/articles/${adj.next.slug}`} className="r"><small>Επόμενο →</small><span>{adj.next.title}</span></Link> : <span />}
           </nav>
+          </div>
         </div>
         {rel.length > 0 && <section className="wrap rel"><h2 className="h2">Σχετικά άρθρα</h2><div className="grid">{rel.map((r) => (
           <Link key={r.id} href={`/articles/${r.slug}`} className="acard"><Pic src={r.cover_url} alt="" ratio="16/10" /><div className="acard-b"><h3>{r.title}</h3><p className="meta">{fmtDate(r.date)}</p></div></Link>))}</div></section>}

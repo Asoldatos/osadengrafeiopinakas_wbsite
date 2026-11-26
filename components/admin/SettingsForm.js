@@ -26,7 +26,9 @@ export default function SettingsForm() {
         {tab === 'identity' && <>{T('name', 'Όνομα ιστοτόπου')}{T('tagline', 'Σύνθημα (tagline)')}{T('description', 'Περιγραφή (SEO / κοινοποιήσεις)', 'area')}
           {T('logoUrl', 'Λογότυπο (διαφανές) – μενού, υποσέλιδο, hero', 'image')}{T('logoBgUrl', 'Λογότυπο με φόντο (πίνακας)', 'image')}
           {T('faviconUrl', 'Favicon', 'image', { hint: 'Αρχικά είναι το επίσημο αρχείο favicon του σχολείου.', noVideo: true })}{T('ogImage', 'Εικόνα κοινοποίησης (Open Graph)', 'image', { noVideo: true })}</>}
-        {tab === 'design' && <><h3>Χρώματα</h3><div className="grid2">{Object.entries(COLORS).map(([k, l]) => T(`colors.${k}`, l, 'color'))}</div>
+        {tab === 'design' && <><h3>Εμφάνιση ιστοτόπου</h3>{T('ui', 'Σχέδιο', 'select', { opts: [{ v: 'v2', l: 'Νέα εμφάνιση (εφημερίδα)' }, { v: 'classic', l: 'Κλασική εμφάνιση (παιχνιδιάρικη, με χοντρά περιγράμματα)' }] })}
+          <p className="muted small">Αλλάζει μόνο την εμφάνιση του δημόσιου ιστοτόπου, όχι το περιεχόμενο. Μπορείς να γυρίσεις πίσω όποτε θέλεις: διάλεξε και πάτα «Αποθήκευση». Στη νέα εμφάνιση οι τίτλοι είναι πάντα σε Literata και το βασικό χρώμα είναι το «Πίνακας (πράσινο)».</p>
+          <h3>Χρώματα</h3><div className="grid2">{Object.entries(COLORS).map(([k, l]) => T(`colors.${k}`, l, 'color'))}</div>
           <h3>Γραμματοσειρές</h3>{T('fonts.heading', 'Τίτλοι', 'select', { opts: FONTS })}{T('fonts.body', 'Κείμενο άρθρων', 'select', { opts: FONTS })}<p className="muted small">Όλες οι γραμματοσειρές υποστηρίζουν πλήρως τα ελληνικά, με τόνους και διαλυτικά.</p></>}
         {tab === 'nav' && <><p className="muted">Τα κείμενα, οι προορισμοί και η ορατότητα των στοιχείων του κύριου μενού.</p>
           {(s.nav || []).map((n, i) => (

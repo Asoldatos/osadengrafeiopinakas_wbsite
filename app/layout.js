@@ -1,4 +1,6 @@
 import './globals.css';
+import './ui-v2.css';
+import './editor-tools.css';
 import { Comfortaa, Literata, Manrope } from 'next/font/google';
 import { getSite } from '@/lib/data';
 import { MascotProvider } from '@/components/Mascot';
@@ -15,7 +17,8 @@ export async function generateMetadata() {
     metadataBase: new URL(SITE_URL),
     title: { default: s.name, template: `%s · ${s.name}` },
     description: s.description,
-    icons: { icon: [{ url: '/favicon.ico', sizes: 'any' }, { url: imageOnly(s.faviconUrl) || '/favicon.png', type: 'image/png' }], apple: '/apple-touch-icon.png' },
+    // Η Google θέλει τετράγωνο εικονίδιο, πολλαπλάσιο των 48px, στο ίδιο domain: πρώτα τα σταθερά αρχεία του site
+    icons: { icon: [{ url: '/favicon.ico', sizes: '48x48' }, { url: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { url: '/favicon.png', sizes: '512x512', type: 'image/png' }, ...(imageOnly(s.faviconUrl) ? [{ url: imageOnly(s.faviconUrl), type: 'image/png' }] : [])], shortcut: '/favicon.ico', apple: '/apple-touch-icon.png' },
     openGraph: { siteName: s.name, locale: 'el_GR', type: 'website', title: s.name, description: s.description, images: imageOnly(s.ogImage) ? [imageOnly(s.ogImage)] : [] },
     twitter: { card: 'summary_large_image' },
     // Χωρίς canonical εδώ: κάθε σελίδα δηλώνει το δικό της (αλλιώς όλες θα «έδειχναν» στην αρχική).

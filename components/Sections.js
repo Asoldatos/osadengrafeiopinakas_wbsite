@@ -9,8 +9,9 @@ import { useSeasonal, Ornaments, Countdown, useThemedLogo } from './theme/ThemeR
 import { audio } from './audio/engine';
 import { isVideoUrl } from '@/lib/media';
 import { fmtDate, safeUrl, toEmbed, cx } from '@/lib/util';
+import Icon from './Icons';
 /** Μικροί μετρητές απήχησης στις κάρτες άρθρων (προβολές, likes, σχόλια). */
-export const Stats = ({ a }) => (a.view_count || a.like_count || a.comment_count ? <span className="astats">{a.view_count > 0 && <span title="Προβολές">👁️ {a.view_count}</span>}{a.like_count > 0 && <span title="Likes">❤️ {a.like_count}</span>}{a.comment_count > 0 && <span title="Σχόλια">💬 {a.comment_count}</span>}</span> : null);
+export const Stats = ({ a }) => (a.view_count || a.like_count || a.comment_count ? <span className="astats">{a.view_count > 0 && <span title="Προβολές"><Icon name="eye" size={14} /> {a.view_count}</span>}{a.like_count > 0 && <span title="Likes"><Icon name="heart" size={14} /> {a.like_count}</span>}{a.comment_count > 0 && <span title="Σχόλια"><Icon name="comment" size={14} /> {a.comment_count}</span>}</span> : null);
 
 export const EditCtx = createContext({ editing: false, onText: () => {}, site: {} });
 
@@ -49,10 +50,10 @@ function ArticleMeta({ a }) {
 }
 const Tag = ({ a }) => (a.category_name ? <span className="tag" style={{ '--c': a.category_color || '#00C8E0' }}>{a.category_name}</span> : null);
 
-function HeroMascot({ p }) {
+function HeroMascot({ p, size = 230 }) {
   const sea = useSeasonal(), [i, setI] = useState(-1), [pops, setPops] = useState([]);
   const phrases = sea.active ? String(sea.cfg?.texts?.heroPhrases || '').split('\n').map((x) => x.trim()).filter(Boolean) : [];
-  const say = sea.active && phrases.length ? (i < 0 ? sea.cfg.texts.santaSpeech : phrases[i % phrases.length]) : 'Γεια! Είμαι ο Κιμωλάκης 👋';
+  const say = sea.active && phrases.length ? (i < 0 ? sea.cfg.texts.santaSpeech : phrases[i % phrases.length]) : 'Γεια! Είμαι ο Κιμωλάκης!';
   const click = () => {
     if (sea.active) { audio().ui('jingle', { volume: 0.7, minGapMs: 250 }); setI((x) => x + 1); const id = Date.now(); setPops((a) => [...a.slice(-6), id]); setTimeout(() => setPops((a) => a.filter((x) => x !== id)), 1300); }
     else audio().ui('pop', { volume: 0.7 });
@@ -60,14 +61,50 @@ function HeroMascot({ p }) {
   return (
     <div className="hero-mascot">
       <div className="speech" aria-live="polite">{say}</div>
-      <button type="button" className="hero-m-btn no-sfx" onClick={click} aria-label={sea.active ? 'Ο Κιμωλάκης-Άγιος Βασίλης: πάτα για μια ευχή' : 'Ο Κιμωλάκης: πάτα για να τον χαιρετήσεις'}><Mascot mood={sea.active ? 'celebrate' : p.mascotMood || 'wave'} size={230} /></button>
+      <button type="button" className="hero-m-btn no-sfx" onClick={click} aria-label={sea.active ? 'Ο Κιμωλάκης-Άγιος Βασίλης: πάτα για μια ευχή' : 'Ο Κιμωλάκης: πάτα για να τον χαιρετήσεις'}><Mascot mood={sea.active ? 'celebrate' : p.mascotMood || 'wave'} size={size} /></button>
       {pops.map((id) => <span key={id} className="candy-pop" aria-hidden="true">{['🍬', '🍭', '🎁', '⭐', '🍪'].sort(() => Math.random() - 0.5).slice(0, 3).map((c, k) => <i key={k} style={{ '--dx': `${(k - 1) * 70 + (Math.random() * 30 - 15)}px` }}>{c}</i>)}</span>)}
     </div>
   );
 }
-function Hero({ s, p }) {
+/** Κυλιόμενη λωρίδα με τους τελευταίους τίτλους (νέα εμφάνιση). */
+function Ticker({ items }) {
+  return (
+    <div className="ticker" aria-label="Τελευταία άρθρα"><div className="wrap ticker-in"><b className="ticker-l">Τελευταία</b>
+      <div className="ticker-vp"><div className="ticker-tr" style={{ '--dur': `${Math.max(28, items.length * 7)}s` }}>{[...items, ...items].map((a, i) => <Link key={i} href={`/articles/${a.slug}`} aria-hidden={i >= items.length || undefined} tabIndex={i >= items.length ? -1 : undefined}>{a.title}</Link>)}</div></div></div></div>
+  );
+}
+function Hero({ s, p, data }) {
   const { site, editing } = useContext(EditCtx);
   const logo = useThemedLogo(site.logoUrl, 'large');
+  const lead = data?.recent?.[0];
+  if (site.ui !== 'classic') return (
+    <div className="hero board hero-v2">
+      <Doodles />
+      {!editing && <Ornaments />}
+      <div className="wrap hero-v2-grid">
+        <div className="hero-copy">
+          <Ed id={s.id} path="eyebrow" tag="p" className="eyebrow">{p.eyebrow}</Ed>
+          {p.showLogo && logo
+            ? <h1 className="hero-logo"><Media src={logo} alt={p.title || site.name} width="869" height="322" loading="eager" /></h1>
+            : <Ed id={s.id} path="title" tag="h1" className="hero-title">{p.title}</Ed>}
+          <Ed id={s.id} path="subtitle" tag="p" className="hero-sub">{p.subtitle}</Ed>
+          <div className="btns"><Btn href={p.ctaHref}>{p.ctaLabel}</Btn><Btn href={p.cta2Href} kind="light">{p.cta2Label}</Btn></div>
+          {!editing && <Countdown />}
+        </div>
+        {lead ? (
+          <div className="hero-lead-w">
+            <Link href={`/articles/${lead.slug}`} className="hero-lead">
+              <span className="hero-lead-k">Μόλις κυκλοφόρησε</span>
+              <Pic src={lead.cover_url} alt="" ratio="16/10" priority sizes="(max-width:900px) 100vw, 560px" />
+              <span className="hero-lead-b"><Tag a={lead} /><b className="hero-lead-t">{lead.title}</b>{lead.subtitle && <span className="hero-lead-s">{lead.subtitle}</span>}<ArticleMeta a={lead} /></span>
+            </Link>
+            {p.showMascot && <div className="hero-peek">{editing ? <Mascot mood={p.mascotMood || 'wave'} size={118} /> : <HeroMascot p={p} size={118} />}</div>}
+          </div>
+        ) : p.showMascot && (editing ? <div className="hero-mascot"><div className="speech">Γεια! Είμαι ο Κιμωλάκης!</div><Mascot mood={p.mascotMood || 'wave'} size={230} /></div> : <HeroMascot p={p} />)}
+      </div>
+      {!editing && data?.recent?.length > 1 && <Ticker items={data.recent.slice(0, 8)} />}
+    </div>
+  );
   return (
     <div className="hero board">
       <Doodles />
@@ -82,7 +119,7 @@ function Hero({ s, p }) {
           <div className="btns"><Btn href={p.ctaHref}>{p.ctaLabel}</Btn><Btn href={p.cta2Href} kind="light">{p.cta2Label}</Btn></div>
           {!editing && <Countdown />}
         </div>
-        {p.showMascot && (editing ? <div className="hero-mascot"><div className="speech">Γεια! Είμαι ο Κιμωλάκης 👋</div><Mascot mood={p.mascotMood || 'wave'} size={230} /></div> : <HeroMascot p={p} />)}
+        {p.showMascot && (editing ? <div className="hero-mascot"><div className="speech">Γεια! Είμαι ο Κιμωλάκης!</div><Mascot mood={p.mascotMood || 'wave'} size={230} /></div> : <HeroMascot p={p} />)}
       </div>
       <div className="ledge" aria-hidden="true"><i /><i /><i /></div>
     </div>
@@ -110,7 +147,10 @@ function LatestEdition({ s, p, data }) {
   );
 }
 function Featured({ s, p, data }) {
-  const list = (data?.featured?.length ? data.featured : data?.recent || []).slice(0, 3);
+  const { leadId } = useContext(EditCtx);
+  // στη νέα εμφάνιση το νεότερο άρθρο είναι ήδη στο πρωτοσέλιδο: δεν το επαναλαμβάνουμε
+  const pool = [...(data?.featured || []), ...(data?.recent || [])].filter((a, i, arr) => a.id !== leadId && arr.findIndex((b) => b.id === a.id) === i);
+  const list = (leadId ? pool : (data?.featured?.length ? data.featured : data?.recent || [])).slice(0, 3);
   return (
     <div className="wrap"><Head s={s} p={p} />
       {!list.length ? <MascotSay mood="oops" k="articles" /> : (
@@ -125,7 +165,32 @@ function Featured({ s, p, data }) {
   );
 }
 function Recent({ s, p, data }) {
-  const list = (data?.recent || []).slice(0, Math.max(1, +p.count || 6));
+  const { site, leadId } = useContext(EditCtx);
+  const list = (data?.recent || []).filter((a) => a.id !== leadId).slice(0, Math.max(1, +p.count || 6));
+  if (site.ui !== 'classic' && list.length >= 3) {
+    const popular = [...(data?.recent || [])].sort((a, b) => (b.view_count || 0) - (a.view_count || 0)).slice(0, 5);
+    const grid = list.slice(0, 4), rest = list.slice(4);
+    return (
+      <div className="wrap"><Head s={s} p={p} />
+        <div className="recent-v2">
+          <div className="rv-main">
+            <div className="rv-grid">{grid.map((a, i) => (
+              <Link key={a.id} href={`/articles/${a.slug}`} className={cx('acard', i === 0 && 'rv-first')}>
+                <Pic src={a.cover_url} alt="" ratio={i === 0 ? '16/9' : '16/10'} sizes="(max-width:800px) 100vw, 40vw" />
+                <div className="acard-b"><Tag a={a} /><h3>{a.title}</h3>{i === 0 && a.subtitle && <p>{a.subtitle}</p>}<ArticleMeta a={a} /></div></Link>))}</div>
+            {rest.length > 0 && <ol className="rlist rv-rest">{rest.map((a, i) => (
+              <li key={a.id}><Link href={`/articles/${a.slug}`} className="rrow"><span className="rnum" aria-hidden="true">{String(i + 5).padStart(2, '0')}</span>
+                <span className="rmain"><Tag a={a} /><strong>{a.title}</strong></span><span className="rdate">{fmtDate(a.date)}</span><span className="rarrow" aria-hidden="true">→</span></Link></li>))}</ol>}
+          </div>
+          <aside className="most-read" aria-labelledby={`mr-${s.id}`}>
+            <h3 id={`mr-${s.id}`}>Τα πιο διαβασμένα</h3>
+            <ol>{popular.map((a, i) => <li key={a.id}><Link href={`/articles/${a.slug}`}><span className="mr-n">{i + 1}</span><span className="mr-t"><b>{a.title}</b><small>{a.view_count || 0} {a.view_count === 1 ? 'ανάγνωση' : 'αναγνώσεις'}</small></span></Link></li>)}</ol>
+          </aside>
+        </div>
+        {p.ctaLabel && <div className="btns center"><Btn href={p.ctaHref} kind="ghost">{p.ctaLabel}</Btn></div>}
+      </div>
+    );
+  }
   return (
     <div className="wrap"><Head s={s} p={p} />
       {!list.length ? <MascotSay mood="confused" k="articles" /> : (
@@ -199,7 +264,7 @@ function Gallery({ s, p }) {
   );
 }
 function Announcement({ s, p }) {
-  return <div className="wrap narrow"><aside className="note"><span className="pin" aria-hidden="true">📌</span><Ed id={s.id} path="title" tag="h3">{p.title}</Ed><Ed id={s.id} path="text" tag="p">{p.text}</Ed><Btn href={p.ctaHref}>{p.ctaLabel}</Btn></aside></div>;
+  return <div className="wrap narrow"><aside className="note"><span className="pin" aria-hidden="true"><Icon name="pin" size={22} /></span><Ed id={s.id} path="title" tag="h3">{p.title}</Ed><Ed id={s.id} path="text" tag="p">{p.text}</Ed><Btn href={p.ctaHref}>{p.ctaLabel}</Btn></aside></div>;
 }
 function Contact({ s, p }) {
   const { site } = useContext(EditCtx); const c = site.footer?.contact || {}, soc = site.footer?.social || [];
@@ -208,10 +273,10 @@ function Contact({ s, p }) {
     <div className="wrap narrow"><header className="sec-head"><Ed id={s.id} path="title" tag="h2" className="h2">{p.title}</Ed><Ed id={s.id} path="text" tag="p" className="lede">{p.text}</Ed></header>
       {!any ? <MascotSay mood="phone" text="Τα στοιχεία επικοινωνίας δεν έχουν συμπληρωθεί ακόμα." /> : (
         <div className="contact-grid">
-          {c.email && <a className="ccard" href={`mailto:${c.email}`}><span aria-hidden="true">✉️</span><b>Email</b>{c.email}</a>}
-          {c.phone && <a className="ccard" href={`tel:${c.phone.replace(/\s/g, '')}`}><span aria-hidden="true">📞</span><b>Τηλέφωνο</b>{c.phone}</a>}
-          {c.address && <div className="ccard"><span aria-hidden="true">📍</span><b>Διεύθυνση</b>{c.address}</div>}
-          {soc.map((x, i) => <a key={i} className="ccard" href={safeUrl(x.url)} target="_blank" rel="noopener noreferrer"><span aria-hidden="true">🌐</span><b>{x.label}</b>Άνοιγμα ↗</a>)}
+          {c.email && <a className="ccard" href={`mailto:${c.email}`}><span aria-hidden="true"><Icon name="mail" size={26} /></span><b>Email</b>{c.email}</a>}
+          {c.phone && <a className="ccard" href={`tel:${c.phone.replace(/\s/g, '')}`}><span aria-hidden="true"><Icon name="phone" size={26} /></span><b>Τηλέφωνο</b>{c.phone}</a>}
+          {c.address && <div className="ccard"><span aria-hidden="true"><Icon name="pin" size={26} /></span><b>Διεύθυνση</b>{c.address}</div>}
+          {soc.map((x, i) => <a key={i} className="ccard" href={safeUrl(x.url)} target="_blank" rel="noopener noreferrer"><span aria-hidden="true"><Icon name="arrowRight" size={26} /></span><b>{x.label}</b>Άνοιγμα ↗</a>)}
         </div>)}
     </div>
   );
@@ -225,9 +290,9 @@ const Custom = ({ p }) => <div className="wrap narrow prose" dangerouslySetInner
 
 const RENDER = { hero: Hero, pageHeader: PageHeader, latestEdition: LatestEdition, featured: Featured, recent: Recent, categories: Categories, team: Team, about: TextImage, textImage: TextImage, banner: Banner, video: Video, gallery: Gallery, announcement: Announcement, contact: Contact, newsletter: Newsletter, custom: Custom };
 
-export default function Sections({ sections = [], data, site, editing = false, selectedId, onSelect, onText }) {
+export default function Sections({ sections = [], data, site, editing = false, selectedId, onSelect, onText, leadId: leadProp }) {
   return (
-    <EditCtx.Provider value={{ editing, onText: onText || (() => {}), site: site || {} }}>
+    <EditCtx.Provider value={{ editing, onText: onText || (() => {}), site: site || {}, leadId: leadProp !== undefined ? leadProp : (site?.ui !== 'classic' && sections.some((x) => x.type === 'hero' && !x.hidden) && data?.recent?.[0]?.id) || null }}>
       {sections.filter((s) => editing || !s.hidden).map((s) => {
         const C = RENDER[s.type]; if (!C) return null;
         const st = s.style || {};

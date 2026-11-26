@@ -11,6 +11,8 @@ export default async function Home() {
   if (!sections) notFound();
   // το 3D παιχνίδι μπαίνει αμέσως κάτω από την πρώτη ενότητα (συνήθως το hero) για να το βλέπουν όλοι
   const [first, ...rest] = sections;
+  // νέα εμφάνιση: το νεότερο άρθρο μπαίνει στο πρωτοσέλιδο, οπότε δεν επαναλαμβάνεται στις επόμενες ενότητες
+  const leadId = site.ui !== 'classic' && sections.some((x) => x.type === 'hero' && !x.hidden) ? data?.recent?.[0]?.id || null : null;
   // δομημένα δεδομένα: λένε στη Google το όνομα του ιστοτόπου (αντί για το «osaden.gr») και το λογότυπο
   const sameAs = (site.footer?.social || []).map((x) => x?.url).filter((u) => /^https:\/\//.test(u || ''));
   const ld = [
@@ -19,9 +21,9 @@ export default async function Home() {
   ];
   return (<>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, '\\u003c') }} />
-    <Sections sections={first ? [first] : []} data={data} site={site} />
+    <Sections sections={first ? [first] : []} data={data} site={site} leadId={leadId} />
     <div className="wrap"><Game3D /></div>
     <CommunityStrip />
-    {rest.length > 0 && <Sections sections={rest} data={data} site={site} />}
+    {rest.length > 0 && <Sections sections={rest} data={data} site={site} leadId={leadId} />}
   </>);
 }

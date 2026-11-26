@@ -2,10 +2,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, toast, uploadImage, uploadPdf, uploadVideo, isVideoFile, uploadAudio, isAudioFile } from '@/lib/clientUpload';
 import { MascotSay } from '../Mascot';
+import ImageEditor, { editableImage } from './ImageEditor';
 
 const kb = (n) => (n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 export default function MediaLibrary() {
-  const [rows, setRows] = useState(null), [q, setQ] = useState(''), [type, setType] = useState(''), [prog, setProg] = useState(null);
+  const [rows, setRows] = useState(null), [q, setQ] = useState(''), [type, setType] = useState(''), [prog, setProg] = useState(null), [ed, setEd] = useState(null);
   const load = useCallback(() => api('/api/admin/media' + (q ? `?q=${encodeURIComponent(q)}` : '')).then(setRows).catch((e) => toast(e.message, 'oops')), [q]);
   useEffect(() => { const t = setTimeout(load, 200); return () => clearTimeout(t); }, [load]);
   const up = async (files) => {
@@ -31,8 +32,10 @@ export default function MediaLibrary() {
             <figcaption><b title={m.name}>{m.name}</b><small>{m.mime.split('/')[1]} · {kb(m.size)}</small>
               <input defaultValue={m.alt || ''} placeholder="Εναλλακτικό κείμενο (alt)" aria-label={`Εναλλακτικό κείμενο: ${m.name}`} onBlur={(e) => alt(m, e.target.value)} />
               <span className="row wrap"><button type="button" className="btn btn-ghost sm" onClick={() => navigator.clipboard.writeText(m.url).then(() => toast('Ο σύνδεσμος αντιγράφηκε!'))}>Αντιγραφή URL</button>
+                {editableImage(m.url) && <button type="button" className="btn btn-primary sm" onClick={() => setEd(m)}>Επεξεργασία</button>}
                 {m.mime.startsWith('image/') && <label className="btn btn-ghost sm">Αντικατάσταση<input type="file" hidden accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" onChange={(e) => replace(m, e.target.files[0])} /></label>}
                 <button type="button" className="btn btn-danger sm" onClick={() => del(m)}>Διαγραφή</button></span></figcaption></figure>))}</div>)}
+      {ed && <ImageEditor src={ed.url} mediaId={ed.id} onClose={() => setEd(null)} onDone={() => { setEd(null); load(); }} />}
     </div>
   );
 }

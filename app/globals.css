@@ -661,3 +661,34 @@ html.g3d-leaving body::after{content:"";position:fixed;inset:0;z-index:99999;bac
 .fab-menu a .ic{order:2}
 .vplay .ic{margin-left:3px}.vplay .ic path{fill:currentColor}
 .ic-li{display:flex;align-items:center;gap:10px}.ic-li .ic{color:var(--muted)}
+
+/* ================= Μπάρα πλοήγησης (τελική, αντικαθιστά όλους τους παλιούς κανόνες) =================
+   Λογότυπο πάντα πάνω αριστερά. Το μενού μπαίνει στη σειρά μόνο όταν χωράει (το μετράει το SiteNav)·
+   αλλιώς γίνεται κουμπί ☰. Τίποτα δεν βγαίνει έξω από την οθόνη, σε καμία ανάλυση. */
+html{overflow-x:clip}
+.nav .wrap.nav-in{width:min(1760px,100% - 48px);display:flex;align-items:center;gap:16px;min-height:68px;position:static;flex-wrap:nowrap}
+.nav-in>.brand{flex:0 0 auto;margin:0;display:block;line-height:0}
+.nav-in>.brand img,.nav-in>.brand video{height:44px;width:auto;max-width:170px;object-fit:contain;object-position:left center}
+.nav #mainnav{flex:1 1 auto;min-width:0;margin:0;display:flex;justify-content:flex-end}
+.nav #mainnav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0;flex-wrap:nowrap}
+.nav #mainnav a{display:block;padding:8px 12px;border-radius:999px;font-size:.93rem;white-space:nowrap}
+.nav-measure{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;display:flex;gap:2px;list-style:none;margin:0;padding:0;white-space:nowrap;height:0;overflow:hidden}
+.nav-measure span{display:block;padding:0 12px;font-weight:800;font-size:.93rem}
+.nav-tools{flex:0 0 auto;display:flex;align-items:center;gap:8px;margin-left:auto}
+.nav-tools .nav-inbox,.nav-tools .acct,.nav-tools .acct-login,.nav-tools>.icon-btn,.nav-tools>.snd{margin:0}
+.nav-tools .burger{display:none;flex:none}
+.nav:not(.compact) .nav-tools{margin-left:0}
+.nav.compact #mainnav{flex:0 0 0}
+.nav.compact .burger{display:flex}.nav.compact #mainnav{position:absolute;inset:100% 0 auto 0;margin:0;background:var(--paper);border-bottom:var(--bw) solid var(--ink);display:none;padding:10px max(16px,env(safe-area-inset-left,0px)) 18px;max-height:calc(100dvh - 70px);overflow-y:auto;box-shadow:0 14px 24px rgba(0,0,0,.12)}.nav.compact #mainnav.open{display:block}.nav.compact #mainnav ul{flex-direction:column;gap:2px;width:min(1180px,100%);margin-inline:auto}.nav.compact #mainnav a{padding:13px 16px;font-size:1.05rem}
+@media (max-width:899px){.nav .burger{display:flex}.nav #mainnav{position:absolute;inset:100% 0 auto 0;margin:0;background:var(--paper);border-bottom:var(--bw) solid var(--ink);display:none;padding:10px max(16px,env(safe-area-inset-left,0px)) 18px;max-height:calc(100dvh - 70px);overflow-y:auto;box-shadow:0 14px 24px rgba(0,0,0,.12)}.nav #mainnav.open{display:block}.nav #mainnav ul{flex-direction:column;gap:2px;width:min(1180px,100%);margin-inline:auto}.nav #mainnav a{padding:13px 16px;font-size:1.05rem}}
+/* κινητό: μικρότερα στοιχεία, το «Chat» της μπάρας κρύβεται (υπάρχει το στρογγυλό κουμπί κάτω δεξιά) */
+@media (max-width:640px){
+  .nav .wrap.nav-in{width:calc(100% - 24px);gap:8px;min-height:60px}
+  .nav-in>.brand img,.nav-in>.brand video{height:38px;max-width:128px}
+  .nav-tools{gap:6px}
+  .nav-tools .nav-inbox{display:none}
+  .nav-tools .acct{padding:3px;gap:0}.nav-tools .acct-t{display:none}
+  .nav-tools .icon-btn,.nav-tools .burger{min-width:40px;width:40px;height:40px;padding:0;border-radius:11px}
+  .nav-tools .acct-login{padding:7px 11px}
+}
+@media (max-width:360px){.nav-in>.brand img,.nav-in>.brand video{max-width:104px}.nav-tools{gap:4px}.nav-tools .icon-btn,.nav-tools .burger{min-width:36px;width:36px;height:36px}}

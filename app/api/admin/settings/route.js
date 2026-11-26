@@ -17,6 +17,7 @@ export const PUT = route(async (req, _c, user) => {
   const input = clean(await body(req));
   for (const [k, v] of Object.entries(input.colors || {})) if (!HEX.test(v)) return json({ error: `Μη έγκυρο χρώμα: ${k}` }, 400);
   for (const k of ['heading', 'body']) if (input.fonts && !FONTS.includes(input.fonts[k])) return json({ error: 'Μη έγκυρη γραμματοσειρά.' }, 400);
+  if (input.ui !== 'classic') input.ui = 'v2';
   await q("insert into settings(key,value) values('site',$1::jsonb) on conflict(key) do update set value=excluded.value", [JSON.stringify(input)]);
   revalidatePath('/', 'layout');
   await logActivity(user, 'Αλλαγή ρυθμίσεων ιστοτόπου');

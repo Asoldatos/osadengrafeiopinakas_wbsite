@@ -4,6 +4,8 @@ import { tutorialHtml, tutorialVars } from '@/lib/tutorials.mjs';
 import { getSite, getPage } from '@/lib/data';
 import { getAdmin } from '@/lib/auth';
 import SiteNav from '@/components/SiteNav';
+import Masthead from '@/components/Masthead';
+import BackToTop from '@/components/BackToTop';
 import Footer from '@/components/Footer';
 import GamePromo from '@/components/GamePromo';
 import ChatFab from '@/components/community/ChatFab';
@@ -61,14 +63,19 @@ export default async function SiteLayout({ children }) {
   return (
     <ThemeRuntime theme={theme ? { slug: theme.slug, name: theme.name, config: theme.config } : null} available={!!avail || initialActive} initialActive={initialActive}
       intro={!!introTheme && introTheme.slug === theme?.slug} canPreview={canPreview} logoUrl={site.logoUrl} baseColors={[c.paper || '#FBF6EA', c.c1 || '#00C8E0', c.board || '#2C5E4A']}>
+      {/* «Νέα εμφάνιση» (v2) ή «Κλασική»: επιλέγεται στις Ρυθμίσεις του πίνακα σύνταξης */}
+      <div className={site.ui === 'classic' ? 'ui-classic' : 'ui-v2'}>
       <a className="skip" href="#main">Μετάβαση στο περιεχόμενο</a>
       {m.enabled && admin && <div className="adminbar">Η λειτουργία συντήρησης είναι ΕΝΕΡΓΗ — οι επισκέπτες βλέπουν τη σελίδα συντήρησης. <Link href="/editor-panel/settings">Ρυθμίσεις</Link></div>}
       {a?.enabled && a.text && <div className="announce">{a.link ? <Link href={safeUrl(a.link)}>{a.text} →</Link> : a.text}</div>}
       <GamePromo />
+      {site.ui !== 'classic' && <Masthead tagline={site.tagline} />}
       <SiteNav name={site.name} logoUrl={site.logoUrl} items={items} student={st ? { nickname: st.nickname, avatar: st.avatar, level: levelFor(st.xp) } : null} />
       <main id="main">{children}</main>
       {st && <ChatFab />}
+      {site.ui !== 'classic' && <BackToTop />}
       <Footer site={site} items={items} />
+      </div>
     </ThemeRuntime>
   );
 }
